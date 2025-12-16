@@ -8,6 +8,15 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserProfile from './pages/UserProfile';
 import AdminProfile from './pages/AdminProfile';
 import Forgotpassword from './pages/forgotpassword';
+import BrowsePets from './pages/BrowsePets';
+import PetDetails from './pages/PetDetails';
+import AdoptionForm from './pages/AdoptionForm';
+import VaccinationDetails from './pages/VaccinationDetails';
+import AdminPetsManagement from "./pages/AdminPetsManagement";
+import AdminInventoryManagement from './pages/AdminInventoryManagement';
+import HostelManagement from "./pages/HostelManagement";
+
+
 
 function App() {
   return (
@@ -22,6 +31,14 @@ function App() {
         <Route path="/user-profile" element={<UserProfile />} />
         <Route path="/admin-profile" element={<AdminProfile />} />
         <Route path="/forgot-password" element={<Forgotpassword />} />
+        <Route path="/browse-pets" element={<BrowsePets />} />
+        <Route path="/pet-details/:id" element={<PetDetails />} />
+        <Route path="/adopt/:id" element={<AdoptionForm />} />
+        <Route path="/vaccinations/:id" element={<VaccinationDetails />} />
+        <Route path="/admin-pets-management" element={<AdminPetsManagement />} />
+        <Route path="/admin-inventory-management" element={<AdminInventoryManagement />} />
+        <Route path="/admin-hostel-management" element={<HostelManagement />} />
+        
       </Routes>
     </Router>
   );
