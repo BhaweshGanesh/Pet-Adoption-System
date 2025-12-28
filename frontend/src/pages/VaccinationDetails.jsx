@@ -1,124 +1,89 @@
-import React, { useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-
-// Sample vaccination data by pet id
-const VACCINATION_DATA = {
-  1: [
-    {
-      name: "Rabies",
-      status: "completed",
-      date: "2025-01-05",
-      nextDue: "2026-01-05",
-    },
-    {
-      name: "DHPP",
-      status: "completed",
-      date: "2024-12-10",
-      nextDue: "2025-12-10",
-    },
-    {
-      name: "Parvovirus",
-      status: "completed",
-      date: "2024-11-20",
-      nextDue: "2025-11-20",
-    },
-    {
-      name: "Bordetella",
-      status: "pending",
-      date: null,
-      nextDue: null,
-    },
-    {
-      name: "Leptospirosis",
-      status: "pending",
-      date: null,
-      nextDue: null,
-    },
-    {
-      name: "Deworming",
-      status: "completed",
-      date: "2025-02-15",
-      nextDue: "2025-08-15",
-    },
-    {
-      name: "Tick / Flea Treatment",
-      status: "completed",
-      date: "2025-03-01",
-      nextDue: "2025-06-01",
-    },
-  ],
-  2: [
-    { name: "Rabies", status: "completed", date: "2024-10-12", nextDue: "2025-10-12" },
-    { name: "DHPP", status: "completed", date: "2024-09-01", nextDue: "2025-09-01" },
-    { name: "Parvovirus", status: "completed", date: "2024-09-01", nextDue: "2025-09-01" },
-    { name: "Bordetella", status: "completed", date: "2025-02-01", nextDue: "2026-02-01" },
-    { name: "Leptospirosis", status: "pending", date: null, nextDue: null },
-    { name: "Deworming", status: "completed", date: "2025-01-10", nextDue: "2025-07-10" },
-    { name: "Tick / Flea Treatment", status: "completed", date: "2025-03-05", nextDue: "2025-06-05" },
-  ],
-  // default for others if not specified
-};
 
 const VaccinationDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
 
-  const petName = location.state?.petName || "Selected Pet";
-  const petImage = location.state?.petImage || "/photo/golden-retriever.avif";
+  const [petData, setPetData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const records = useMemo(() => {
-    const key = Number(id);
-    return VACCINATION_DATA[key] || [
-      {
-        name: "Rabies",
-        status: "pending",
-        date: null,
-        nextDue: null,
-      },
-      {
-        name: "DHPP",
-        status: "pending",
-        date: null,
-        nextDue: null,
-      },
-      {
-        name: "Parvovirus",
-        status: "pending",
-        date: null,
-        nextDue: null,
-      },
-      {
-        name: "Bordetella",
-        status: "pending",
-        date: null,
-        nextDue: null,
-      },
-      {
-        name: "Leptospirosis",
-        status: "pending",
-        date: null,
-        nextDue: null,
-      },
-      {
-        name: "Deworming",
-        status: "pending",
-        date: null,
-        nextDue: null,
-      },
-      {
-        name: "Tick / Flea Treatment",
-        status: "pending",
-        date: null,
-        nextDue: null,
-      },
-    ];
+  const petName = petData?.name || location.state?.petName || "Selected Pet";
+  const petImage = petData?.image || location.state?.petImage || "/photo/golden-retriever.avif";
+
+  useEffect(() => {
+    const fetchPetData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`http://localhost:4000/api/pets/${id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setPetData(data.data);
+        } else {
+          setError('Failed to fetch pet data');
+        }
+      } catch (err) {
+        console.error('Error fetching pet data:', err);
+        setError('Failed to load vaccination records');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPetData();
   }, [id]);
+
+  const records = petData?.vaccinations && petData.vaccinations.length > 0
+    ? petData.vaccinations.map(v => ({
+        ...v,
+        date: v.date ? new Date(v.date).toISOString().split('T')[0] : null,
+        nextDue: v.nextDue ? new Date(v.nextDue).toISOString().split('T')[0] : null
+      }))
+    : [
+        { name: "Rabies", status: "pending", date: null, nextDue: null },
+        { name: "DHPP", status: "pending", date: null, nextDue: null },
+        { name: "Parvovirus", status: "pending", date: null, nextDue: null },
+        { name: "Bordetella", status: "pending", date: null, nextDue: null }
+      ];
+
+  // Check if pet is officially marked as vaccinated
+  const anyVaccineCompleted = records.some(v => v.status === "completed");
+  const isOfficiallyVaccinated = petData?.vaccinated && anyVaccineCompleted;
 
   const goBack = () => {
     // back to pet details page
     navigate(`/pet-details/${id}`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#fff7f0] to-[#ffe8d6] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading vaccination records...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#fff7f0] to-[#ffe8d6] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fff7f0] to-[#ffe8d6] flex flex-col">
@@ -152,14 +117,26 @@ const VaccinationDetails = () => {
       {/* Content */}
       <main className="flex-1 flex items-start justify-center px-4 lg:px-16 pb-10">
         <div className="w-full max-w-4xl bg-white/95 shadow-xl rounded-3xl p-5 lg:p-7">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base lg:text-lg font-semibold text-slate-900">
-              Vaccination Details
-            </h2>
-            <p className="text-xs text-slate-500">
-              {records.filter((r) => r.status === "completed").length} of{" "}
-              {records.length} completed
-            </p>
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base lg:text-lg font-semibold text-slate-900">
+                Vaccination Details
+              </h2>
+              <p className="text-xs text-slate-500">
+                {records.filter((r) => r.status === "completed").length} of{" "}
+                {records.length} completed
+              </p>
+            </div>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
+              isOfficiallyVaccinated 
+                ? 'bg-green-50 text-green-700 border border-green-200' 
+                : 'bg-amber-50 text-amber-700 border border-amber-200'
+            }`}>
+              <span className="text-sm">{isOfficiallyVaccinated ? '✓' : '⚠'}</span>
+              <span>
+                Official Status: {isOfficiallyVaccinated ? 'Vaccinated' : 'Pending'}
+              </span>
+            </div>
           </div>
 
           <div className="space-y-3">

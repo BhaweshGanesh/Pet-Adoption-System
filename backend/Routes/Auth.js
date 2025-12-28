@@ -1,23 +1,10 @@
 import express from 'express';
 import { body } from 'express-validator';
-import { signup, login, getMe, verifyEmail, resendVerificationCode, hi, forgotPassword, verifyResetCode, resetPassword, updateProfile, changePassword } from '../Controller/AuthController.js';
+import { signup, login, getMe, verifyEmail, resendVerificationCode, forgotPassword, verifyResetCode, resetPassword, updateProfile, changePassword } from '../Controller/AuthController.js';
 import { protect } from '../Middleware/Auth.js';
 import { validate } from '../Middleware/Validate.js';
 
 const router = express.Router();
-
-console.log('🔧 Auth Routes file loaded successfully');
-
-// TEST: Simple routes without validation
-router.get('/test1', (req, res) => {
-  console.log('✅ Test1 route hit');
-  res.json({ message: 'Test 1 works' });
-});
-
-router.post('/test2', (req, res) => {
-  console.log('✅ Test2 route hit');
-  res.json({ message: 'Test 2 works' });
-});
 
 // Validation rules
 const signupValidation = [
@@ -68,18 +55,19 @@ const resendVerificationValidation = [
     .withMessage('Please provide a valid email'),
 ];
 
-// Routes
+// Authentication routes
 router.post('/signup', signupValidation, validate, signup);
 router.post('/login', loginValidation, validate, login);
-router.get('/test3', (req, res) => res.json({ message: 'Test 3 works' }));
+router.get('/me', protect, getMe);
+
+// Email verification routes
 router.post('/verify-email', verifyEmail);
 router.post('/resend-verification', resendVerificationValidation, validate, resendVerificationCode);
+
+// Password reset routes
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-reset-code', verifyResetCode);
 router.post('/reset-password', resetPassword);
-router.get('/hi', hi);
-
-router.get('/me', protect, getMe);
 
 // Profile routes
 router.put('/update-profile', protect, updateProfile);

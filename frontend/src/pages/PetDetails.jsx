@@ -1,85 +1,62 @@
-import React, { useMemo, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
-// Sample data – keep ids same as in BrowsePets
-const PETS = [
-  {
-    id: 1,
-    name: "Bruno",
-    breed: "Golden Retriever",
-    ageLabel: "2 Months Old",
-    gender: "Male",
-    size: "Large",
-    Inshelter: "4 months",
-    vaccinated: true,
-    description:
-      "Bruno is a playful and friendly Golden Retriever who loves people and other pets. He enjoys outdoor walks and cuddling on the couch.",
-    image: "/photo/golden-retriever.avif",
-  },
-  {
-    id: 2,
-    name: "Lussy",
-    breed: "Labrador Retriever",
-    ageLabel: "5 Months Old",
-    gender: "Female",
-    size: "Medium",
-    Inshelter: "5 months",
-    vaccinated: true,
-    description:
-      "Lussy is an energetic Labrador who loves playing fetch and is very loyal to her family.",
-    image: "/photo/labrador-retriever.avif",
-  },
-  {
-    id: 3,
-    name: "Coco",
-    breed: "Pug",
-    ageLabel: "1 Months Old",
-    gender: "Male",
-    size: "Small",
-    Inshelter: "7 months",
-    vaccinated: true,
-    description:
-      "Coco is a calm and affectionate pug looking for a loving home. Perfect for apartment living.",
-    image: "/photo/pug.avif",
-  },
-  {
-    id: 4,
-    name: "Torres",
-    breed: "German Shepherd",
-    ageLabel: "1.5 Months Old",
-    gender: "Male",
-    size: "Large",
-    Inshelter: "2 months",
-    vaccinated: true,
-    description:
-      "Torres is an alert and intelligent German Shepherd who enjoys training and outdoor activities.",
-    image: "/photo/german-shepherd.avif",
-  },
-  {
-    id: 5,
-    name: "Syke",
-    breed: "Husky",
-    ageLabel: "8 Months Old",
-    gender: "Male",
-    size: "Large",
-    Inshelter: "5 months",
-    vaccinated: true,
-    description:
-      "Syke is a friendly husky who loves cold weather, long walks and plenty of playtime.",
-    image: "/photo/husky.avif",
-  },
-  // ...add the rest of your pets with matching ids if you want
-];
 
 const PetDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [pet, setPet] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const pet = useMemo(
-    () => PETS.find((p) => p.id === Number(id)),
-    [id]
-  );
+  useEffect(() => {
+    fetchPetDetails();
+  }, [id]);
+
+  const fetchPetDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`http://localhost:4000/api/pets/${id}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Check if at least one vaccine is completed
+        const vaccinations = data.data.vaccinations || [];
+        const anyVaccineCompleted = vaccinations.some(v => v.status === 'completed');
+        const isVaccinated = data.data.vaccinated && anyVaccineCompleted;
+        
+        // Transform backend data to match frontend format
+        const transformedPet = {
+          id: data.data._id,
+          _id: data.data._id,
+          name: data.data.name,
+          breed: data.data.breed,
+          ageLabel: data.data.age,
+          gender: data.data.gender,
+          size: data.data.size || "Medium",
+          Inshelter: data.data.inShelter && data.data.inShelter.trim() !== "" ? data.data.inShelter : "N/A",
+          vaccinated: isVaccinated,
+          vaccinationStatus: isVaccinated ? "Vaccinated – View Details" : "View Schedule",
+          description: data.data.description || `${data.data.name} is looking for a loving home!`,
+          image: data.data.image,
+        };
+        setPet(transformedPet);
+      }
+    } catch (error) {
+      console.error('Error fetching pet details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fff7f0]">
+        <div className="bg-white shadow-md rounded-xl px-8 py-6 text-center">
+          <p className="text-slate-700">Loading pet details...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!pet) {
     return (
@@ -190,10 +167,8 @@ const PetDetails = () => {
                   <p className="text-[11px] text-slate-500 uppercase">
                     Vaccination Status
                   </p>
-                  <p className="text-slate-900 font-medium underline decoration-dotted">
-                    {pet.vaccinated
-                      ? "Fully Vaccinated – View Details"
-                      : "View Schedule"}
+                  <p className={`font-medium underline decoration-dotted ${pet.vaccinated ? 'text-green-700' : 'text-amber-700'}`}>
+                    {pet.vaccinationStatus}
                   </p>
                 </button>
               </div>
@@ -234,8 +209,7 @@ const PetDetails = () => {
               Adoption Request for {pet.name}
             </h3>
             <p className="text-sm text-slate-600 mb-4">
-              We’re excited to help you give Bruno a new loving home! Please complete the adoption form so we can learn a little about you.
-
+              We're excited to help you give {pet.name} a new loving home! Please complete the adoption form so we can learn a little about you.
             </p>
 
             <button

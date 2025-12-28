@@ -1,127 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const PETS = [
-  {
-    id: 1,
-    name: "Bruno",
-    type: "Dog",
-    ageMonths: 11,
-    ageLabel: "11 Months Old",
-    breed: "Golden Retriever",
-    gender: "Male",
-    size: "Large",
-    vaccinated: true,
-    inShelter: "5 months",
-    image: "/photo/golden-retriever.avif",
-   },
-  {
-    id: 2,
-    name: "Lussy",
-    type: "Dog",
-    ageMonths: 11,
-    ageLabel: "11 Months Old",
-    breed: "Labrador Retriever",
-    gender: "Female",
-    size: "Medium",
-    vaccinated: true,
-    inShelter: "7 months",
-    image:"/photo/labrador-retriever.avif"
-  },
-  {
-    id: 3,
-    name: "Coco",
-    type: "Dog",
-    ageMonths: 11,
-    ageLabel: "1 Months Old",
-    breed: "Pug",
-    gender: "Male",
-    size: "Small",
-    vaccinated: true,
-    inShelter: "1 months",
-    image:"/photo/pug.avif"
-  },
-  {
-    id: 4,
-    name: "Torres",
-    type: "Dog",
-    ageMonths: 7,
-    ageLabel: "9 Months Old",
-    breed: "German Shepherd",
-    gender: "Male",
-    size: "Small",
-    vaccinated: true,
-    inShelter: "5 months",
-    image: "/photo/german-shepherd.avif"
-  },
-  {
-    id: 5,
-    name: "Syke",
-    type: "Dog",
-    ageMonths: 8,
-    ageLabel: "8 Months Old",
-    breed: "Husky",
-    gender: "Male",
-    size: "Large",
-    vaccinated: true,
-    inShelter: "5 months",
-    image: "/photo/husky.avif"
-  },
-  {
-    id: 6,
-    name: "Oreo",
-    type: "Cat",
-    ageMonths: 5,
-    ageLabel: "5 Months Old",
-    breed: "Abyssinian",
-    gender: "Male",
-    size: "Small",
-    vaccinated: true,
-    inShelter: "5 months",
-    image:"/photo/abyssinian.avif"
-  },
-  {
-    id: 7,
-    name: "Kiwi",
-    type: "Cat",
-    ageMonths: 5,
-    ageLabel: "5 Months Old",
-    breed: "Bengal",
-    gender: "Female",
-    size: "Small",
-    vaccinated: false,
-    inShelter: "5 months",
-    image: "/photo/bengal.avif" 
-   },
-  {
-    id: 8,
-    name: "Bella",
-    type: "Rabbit",
-    ageMonths: 8,
-    ageLabel: "8 Months Old",
-    breed: "Californian",
-    gender: "Female",
-    size: "Medium",
-    vaccinated: true,
-    inShelter: "5 months",
-    image: "/photo/californian.avif"
-  },
-  {
-    id: 9,
-    name: "Carrot",
-    type: "Rabbit",
-    ageMonths: 4,
-    ageLabel: "4 Months Old",
-    breed: "Rex",
-    gender: "Male",
-    size: "Small",
-    vaccinated: false,
-    inShelter: "5 months",
-    image: "photo/rex.avif"
-  },
-];
-
 const BrowsePets = () => {
+  const [pets, setPets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [gender, setGender] = useState("");
@@ -129,18 +11,67 @@ const BrowsePets = () => {
   const [size, setSize] = useState("");
   const [vaccinated, setVaccinated] = useState("");
 
-  const petTypes = useMemo(
-    () => Array.from(new Set(PETS.map((p) => p.type))),
-    []
-  );
-  const sizes = useMemo(
-    () => Array.from(new Set(PETS.map((p) => p.size))),
-    []
-  );
-  const genders = useMemo(
-    () => Array.from(new Set(PETS.map((p) => p.gender))),
-    []
-  );
+  // Fetch pets from backend
+  useEffect(() => {
+    fetchPets();
+  }, []);
+
+  const fetchPets = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:4000/api/pets');
+      const data = await response.json();
+      
+      if (data.success) {
+        // Filter only available and booked pets
+        const availablePets = data.data.filter(pet => pet.status === 'Available' || pet.status === 'Booked');
+        
+        const transformedPets = availablePets.map(pet => {
+          const vaccinations = pet.vaccinations || [];
+          const anyVaccineCompleted = vaccinations.some(v => v.status === 'completed');
+          const isVaccinated = pet.vaccinated && anyVaccineCompleted;
+          
+          return {
+            id: pet._id,
+            _id: pet._id,
+            name: pet.name || "Unknown",
+            type: pet.type || "Other",
+            breed: pet.breed || "Unknown",
+            gender: pet.gender || "Male",
+            ageLabel: pet.age || "Unknown",
+            ageMonths: parseAgeToMonths(pet.age),
+            size: pet.size || "Medium",
+            vaccinated: isVaccinated,
+            vaccinationStatus: isVaccinated ? "Yes" : "Pending",
+            inShelter: pet.inShelter && pet.inShelter.trim() !== "" ? pet.inShelter : "N/A",
+            image: pet.image || "",
+            status: pet.status || "Available",
+          };
+        });
+        setPets(transformedPets);
+      }
+    } catch (error) {
+      console.error('Error fetching pets:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper function to parse age string to months
+  const parseAgeToMonths = (ageString) => {
+    if (!ageString) return 0;
+    const lower = ageString.toLowerCase();
+    const match = lower.match(/(\d+)\s*(month|year)/);
+    if (!match) return 0;
+    const value = parseInt(match[1]);
+    const unit = match[2];
+    return unit.startsWith('year') ? value * 12 : value;
+  };
+
+  // Define all possible filter options (always visible, matching backend schema)
+  const petTypes = ['Dog', 'Cat', 'Rabbit', 'Other'];
+  const sizes = ['Small', 'Medium', 'Large'];
+  const genders = ['Male', 'Female'];
 
   const toggleType = (type) => {
     setSelectedTypes((prev) =>
@@ -158,7 +89,7 @@ const BrowsePets = () => {
   };
 
   const filteredPets = useMemo(() => {
-    return PETS.filter((pet) => {
+    return pets.filter((pet) => {
       const term = search.trim().toLowerCase();
       if (
         term &&
@@ -191,7 +122,7 @@ const BrowsePets = () => {
 
       return true;
     });
-  }, [search, selectedTypes, gender, size, vaccinated, ageRange]);
+  }, [search, selectedTypes, gender, size, vaccinated, ageRange, pets]);
 
   return (
     <div className="min-h-screen bg-[#fff7f0] flex flex-col">
@@ -208,27 +139,27 @@ const BrowsePets = () => {
     </div>
 
         <nav className="hidden md:flex gap-6 text-sm text-slate-500">
-          <a href="#" className="hover:text-slate-900">
+          <Link to="/" className="hover:text-slate-900">
             Home
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/browse-pets"
             className="text-orange-500 border-b-2 border-orange-400 pb-0.5"
           >
             Browse Pets
-          </a>
+          </Link>
           <a href="#" className="hover:text-slate-900">
             Pet Hotel
           </a>
-          <a href="#" className="hover:text-slate-900">
+          <Link to="/shop" className="hover:text-slate-900">
             Shop
-          </a>
+          </Link>
           <a href="#" className="hover:text-slate-900">
             About
           </a>
-          <a href="#" className="hover:text-slate-900">
+          <Link to="/user-profile" className="hover:text-slate-900">
             Profile
-          </a>
+          </Link>
         </nav>
       </header>
 
@@ -420,7 +351,11 @@ const BrowsePets = () => {
               </span>
             </div>
 
-            {filteredPets.length === 0 ? (
+            {loading ? (
+              <div className="border border-orange-200 rounded-xl bg-white p-6 text-center text-sm text-slate-500">
+                <p>Loading pets...</p>
+              </div>
+            ) : filteredPets.length === 0 ? (
               <div className="border border-dashed border-orange-200 rounded-xl bg-white p-6 text-center text-sm text-slate-500">
                 <p>No pets match the selected filters.</p>
                 <button
@@ -462,7 +397,17 @@ const BrowsePets = () => {
                       <p className="flex justify-between gap-2">
                         <span>In shelter: {pet.inShelter}</span>
                         <span>
-                          Vaccinated: {pet.vaccinated ? "Yes" : "No"}
+                          Vaccinated: 
+                          <span className={`ml-1 font-semibold ${pet.vaccinated ? 'text-green-600' : 'text-amber-600'}`}>
+                            {pet.vaccinationStatus}
+                          </span>
+                        </span>
+                      </p>
+                      <p className="flex justify-between gap-2">
+                        <span>Status: 
+                          <span className={`ml-1 font-semibold ${pet.status === 'Available' ? 'text-green-600' : 'text-orange-600'}`}>
+                            {pet.status}
+                          </span>
                         </span>
                       </p>
                       <div className="pt-1 flex justify-end">

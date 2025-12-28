@@ -100,33 +100,33 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8" id="services">
             {/* Service Card 1 */}
-            <div className="bg-orange-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group">
+            <Link to="/adoption-service" className="bg-orange-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group">
               <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <span className="text-3xl">🏠</span>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Adoption</h3>
               <p className="text-gray-600">Find your perfect companion from our shelter</p>
-            </div>
+            </Link>
 
             {/* Service Card 2 */}
-            <div className="bg-orange-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group">
+            <Link to="/hostel-service" className="bg-orange-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group">
               <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <span className="text-3xl">🏨</span>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Pet Hostel</h3>
               <p className="text-gray-600">Safe, comfortable, and caring accommodation for your pets while you're away</p>
-            </div>
+            </Link>
 
             {/* Service Card 3 */}
-            <div className="bg-orange-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group">
+            <Link to="/store-service" className="bg-orange-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group">
               <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <span className="text-3xl">🛒</span>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Pet Store</h3>
               <p className="text-gray-600">Wide range of quality pet products delivered to your doorstep</p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

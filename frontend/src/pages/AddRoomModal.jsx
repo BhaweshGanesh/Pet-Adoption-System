@@ -1,4 +1,4 @@
-// src/components/admin/hostel/AddRoomModal.jsx
+ // src/components/admin/hostel/AddRoomModal.jsx
 import React from "react";
 
 const AddRoomModal = ({ isOpen, form, onChange, onImageChange, onClose, onSubmit }) => {

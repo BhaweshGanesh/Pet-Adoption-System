@@ -3,6 +3,11 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import authRoutes from './Routes/Auth.js';
+import petRoutes from './Routes/Pets.js';
+import adoptionRoutes from './Routes/AdoptionApplications.js';
+import uploadRoutes from './Routes/Upload.js';
+import productRoutes from './Routes/Products.js';
+import orderRoutes from './Routes/Orders.js';
 
 // Load environment variables
 dotenv.config();
@@ -27,18 +32,18 @@ mongoose
     process.exit(1);
   });
 
-
-
-
-
+// Routes
 app.use('/api/auth', authRoutes);
-
+app.use('/api/pets', petRoutes);
+app.use('/api/adoptions', adoptionRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'PetAdopt+ API is running' });
 });
-
 
 // Start server
 const PORT = process.env.PORT || 4000;
@@ -46,5 +51,3 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });
-  
-

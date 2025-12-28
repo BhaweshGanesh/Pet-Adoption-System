@@ -15,8 +15,14 @@ import VaccinationDetails from './pages/VaccinationDetails';
 import AdminPetsManagement from "./pages/AdminPetsManagement";
 import AdminInventoryManagement from './pages/AdminInventoryManagement';
 import HostelManagement from "./pages/HostelManagement";
-
-
+import Shop from './pages/Shop';
+import ProductDetails from './pages/ProductDetails';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import OrderSuccess from './pages/OrderSuccess';
+import AdoptionService from './pages/AdoptionService';
+import PetHostelService from './pages/PetHostelService';
+import PetStoreService from './pages/PetStoreService';
 
 function App() {
   return (
@@ -38,7 +44,14 @@ function App() {
         <Route path="/admin-pets-management" element={<AdminPetsManagement />} />
         <Route path="/admin-inventory-management" element={<AdminInventoryManagement />} />
         <Route path="/admin-hostel-management" element={<HostelManagement />} />
-        
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
+        <Route path="/adoption-service" element={<AdoptionService />} />
+        <Route path="/hostel-service" element={<PetHostelService />} />
+        <Route path="/store-service" element={<PetStoreService />} />
       </Routes>
     </Router>
   );
