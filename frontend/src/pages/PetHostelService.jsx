@@ -179,7 +179,7 @@ const PetHostelService = () => {
                     ))}
                   </ul>
                   <Link
-                    to="/admin-hostel-management"
+                    to="/hostel"
                     className="block w-full text-center px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-all"
                   >
                     Book Now
@@ -246,7 +246,7 @@ const PetHostelService = () => {
             Book your pet's stay today and enjoy your vacation knowing they're in great hands
           </p>
           <Link
-            to="/login"
+            to="/hostel"
             className="inline-block px-10 py-4 bg-white text-orange-500 rounded-full font-bold text-lg hover:bg-slate-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
           >
             Book Your Pet's Stay

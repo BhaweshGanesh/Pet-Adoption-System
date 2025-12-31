@@ -1,5 +1,5 @@
 // src/pages/HostelManagement.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 
 // all these files are in the same folder: src/pages
 import AdminNavbar from "./AdminNavbar";
@@ -9,45 +9,10 @@ import AddRoomModal from "./AddRoomModal";
 import EditRoomModal from "./EditRoomModal";
 import Calendar from "./Calendar";
 
-const INITIAL_ROOMS = [
-  {
-    id: 1,
-    roomNumber: "H-101",
-    roomType: "Single",
-    capacity: 1,
-    status: "Available",
-    description: "Cozy single room for small pets.",
-    currentPet: "",
-  },
-  {
-    id: 2,
-    roomNumber: "H-102",
-    roomType: "Deluxe",
-    capacity: 2,
-    status: "Occupied",
-    description: "Deluxe suite with toys and bed.",
-    currentPet: "Bruno",
-  },
-  {
-    id: 3,
-    roomNumber: "H-201",
-    roomType: "Shared",
-    capacity: 4,
-    status: "Under Maintenance",
-    description: "Shared room – currently under maintenance.",
-    currentPet: "",
-  },
-];
-
-const SAMPLE_PETS = [
-  "Bruno",
-  "Lussy",
-  "Coco",
-  "Kiwi",
-];
-
 const HostelManagement = () => {
-  const [rooms, setRooms] = useState(INITIAL_ROOMS);
+  const [rooms, setRooms] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,18 +23,21 @@ const HostelManagement = () => {
 
   const [roomForm, setRoomForm] = useState({
     roomNumber: "",
+    roomName: "",
     roomType: "Single",
+    petType: "All",
     capacity: 1,
+    pricePerDay: 0,
+    facilities: [],
     status: "Available",
     description: "",
     image: "",
   });
 
   const [checkInRoom, setCheckInRoom] = useState(null);
-  const [selectedPet, setSelectedPet] = useState(SAMPLE_PETS[0] || "");
+  const [selectedPet, setSelectedPet] = useState("");
 
   const [calendarValue, setCalendarValue] = useState(new Date());
-  const [bookings, setBookings] = useState([]);
   const [bookingDateRange, setBookingDateRange] = useState(null);
   const [bookingModal, setBookingModal] = useState({
     open: false,
@@ -79,6 +47,52 @@ const HostelManagement = () => {
     roomNumber: "",
     petName: "",
   });
+  const [imageFile, setImageFile] = useState(null);
+
+  useEffect(() => {
+    fetchRooms();
+    fetchBookings();
+  }, []);
+
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:4000/api/hostel-rooms');
+      const data = await response.json();
+
+      if (data.success) {
+        setRooms(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      alert('Failed to fetch rooms');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/hostel-bookings');
+      const data = await response.json();
+
+      if (data.success) {
+        // Convert bookings to calendar format
+        const calendarBookings = data.data
+          .filter(b => b.status !== 'Cancelled' && b.status !== 'Checked-Out')
+          .map(b => ({
+            id: b._id,
+            roomNumber: b.room?.roomNumber || 'N/A',
+            petName: b.petDetails?.petName || 'Unknown',
+            startDate: new Date(b.checkInDate),
+            endDate: new Date(b.checkOutDate),
+          }));
+        setBookings(calendarBookings);
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    }
+  };
 
   const filteredRooms = useMemo(() => {
     return rooms
@@ -90,7 +104,8 @@ const HostelManagement = () => {
         if (!searchTerm.trim()) return true;
         return room.roomNumber
           .toLowerCase()
-          .includes(searchTerm.toLowerCase());
+          .includes(searchTerm.toLowerCase()) ||
+          room.roomName?.toLowerCase().includes(searchTerm.toLowerCase());
       });
   }, [rooms, statusFilter, searchTerm]);
 
@@ -99,122 +114,300 @@ const HostelManagement = () => {
     setRoomForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleRoomImageChange = (e) => {
+  const handleRoomImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    setImageFile(file);
     const previewUrl = URL.createObjectURL(file);
     setRoomForm((prev) => ({ ...prev, image: previewUrl }));
+  };
+
+  const uploadImage = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('http://localhost:4000/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        return data.imageUrl;
+      }
+      throw new Error('Image upload failed');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    }
   };
 
   const openAddModal = () => {
     setRoomForm({
       roomNumber: "",
+      roomName: "",
       roomType: "Single",
+      petType: "All",
       capacity: 1,
+      pricePerDay: 0,
+      facilities: [],
       status: "Available",
       description: "",
       image: "",
     });
+    setImageFile(null);
     setIsAddModalOpen(true);
   };
 
-  const handleAddRoom = (e) => {
+  const handleAddRoom = async (e) => {
     e.preventDefault();
 
-    if (!roomForm.roomNumber.trim()) {
-      alert("Please enter Room Number.");
+    if (!roomForm.roomNumber.trim() || !roomForm.roomName.trim()) {
+      alert("Please enter Room Number and Room Name.");
       return;
     }
 
-    const newRoom = {
-      id: rooms.length ? Math.max(...rooms.map((r) => r.id)) + 1 : 1,
-      ...roomForm,
-      capacity: Number(roomForm.capacity) || 1,
-      currentPet: "",
-    };
+    if (!roomForm.pricePerDay || roomForm.pricePerDay <= 0) {
+      alert("Please enter a valid price per day.");
+      return;
+    }
 
-    setRooms((prev) => [...prev, newRoom]);
-    setIsAddModalOpen(false);
+    try {
+      let imageUrl = roomForm.image;
+      
+      // Upload image if a new file was selected
+      if (imageFile) {
+        const uploadedUrl = await uploadImage(imageFile);
+        if (uploadedUrl) {
+          imageUrl = uploadedUrl;
+        }
+      }
+
+      // Parse facilities from comma-separated string
+      const facilitiesArray = roomForm.facilities
+        ? (typeof roomForm.facilities === 'string' 
+            ? roomForm.facilities.split(',').map(f => f.trim()).filter(f => f)
+            : roomForm.facilities)
+        : [];
+
+      const roomData = {
+        roomNumber: roomForm.roomNumber,
+        roomName: roomForm.roomName,
+        roomType: roomForm.roomType,
+        petType: roomForm.petType,
+        capacity: Number(roomForm.capacity) || 1,
+        pricePerDay: Number(roomForm.pricePerDay),
+        facilities: facilitiesArray,
+        description: roomForm.description,
+        image: imageUrl,
+        status: roomForm.status,
+      };
+
+      const response = await fetch('http://localhost:4000/api/hostel-rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(roomData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Room added successfully!');
+        setIsAddModalOpen(false);
+        fetchRooms();
+      } else {
+        alert(data.message || 'Failed to add room');
+      }
+    } catch (error) {
+      console.error('Error adding room:', error);
+      alert('Failed to add room');
+    }
   };
 
   const openEditModal = (room) => {
     setEditRoom(room);
     setRoomForm({
       roomNumber: room.roomNumber,
+      roomName: room.roomName || room.roomNumber,
       roomType: room.roomType,
+      petType: room.petType || "All",
       capacity: room.capacity,
+      pricePerDay: room.pricePerDay || 0,
+      facilities: Array.isArray(room.facilities) ? room.facilities.join(', ') : (room.facilities || ''),
       status: room.status,
-      description: room.description,
+      description: room.description || "",
       image: room.image || "",
     });
+    setImageFile(null);
   };
 
-  const handleEditRoomSave = (e) => {
+  const handleEditRoomSave = async (e) => {
     e.preventDefault();
 
-    setRooms((prev) =>
-      prev.map((r) =>
-        r.id === editRoom.id
-          ? {
-              ...r,
-              ...roomForm,
-              capacity: Number(roomForm.capacity) || 1,
-            }
-          : r
-      )
-    );
-    setEditRoom(null);
+    try {
+      let imageUrl = roomForm.image;
+      
+      // Upload new image if selected
+      if (imageFile) {
+        const uploadedUrl = await uploadImage(imageFile);
+        if (uploadedUrl) {
+          imageUrl = uploadedUrl;
+        }
+      }
+
+      // Parse facilities from comma-separated string
+      const facilitiesArray = roomForm.facilities
+        ? (typeof roomForm.facilities === 'string' 
+            ? roomForm.facilities.split(',').map(f => f.trim()).filter(f => f)
+            : roomForm.facilities)
+        : [];
+
+      const roomData = {
+        roomNumber: roomForm.roomNumber,
+        roomName: roomForm.roomName,
+        roomType: roomForm.roomType,
+        petType: roomForm.petType,
+        capacity: Number(roomForm.capacity) || 1,
+        pricePerDay: Number(roomForm.pricePerDay),
+        facilities: facilitiesArray,
+        description: roomForm.description,
+        image: imageUrl,
+        status: roomForm.status,
+      };
+
+      const response = await fetch(`http://localhost:4000/api/hostel-rooms/${editRoom._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(roomData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Room updated successfully!');
+        setEditRoom(null);
+        fetchRooms();
+      } else {
+        alert(data.message || 'Failed to update room');
+      }
+    } catch (error) {
+      console.error('Error updating room:', error);
+      alert('Failed to update room');
+    }
   };
 
   const confirmDeleteRoom = (room) => {
     setDeleteTarget(room);
   };
 
-  const handleDeleteRoom = () => {
+  const handleDeleteRoom = async () => {
     if (!deleteTarget) return;
-    setRooms((prev) => prev.filter((r) => r.id !== deleteTarget.id));
-    setDeleteTarget(null);
+
+    try {
+      const response = await fetch(`http://localhost:4000/api/hostel-rooms/${deleteTarget._id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Room deleted successfully!');
+        setDeleteTarget(null);
+        fetchRooms();
+      } else {
+        alert(data.message || 'Failed to delete room');
+      }
+    } catch (error) {
+      console.error('Error deleting room:', error);
+      alert('Failed to delete room');
+    }
   };
 
   const openCheckInModal = (room) => {
     setCheckInRoom(room);
-    setSelectedPet(SAMPLE_PETS[0] || "");
+    setSelectedPet("");
   };
 
-  const handleConfirmCheckIn = () => {
-    if (!checkInRoom || !selectedPet) return;
+  const handleConfirmCheckIn = async () => {
+    if (!checkInRoom || !selectedPet) {
+      alert("Please enter pet name");
+      return;
+    }
 
-    setRooms((prev) =>
-      prev.map((r) =>
-        r.id === checkInRoom.id
-          ? {
-              ...r,
-              status: "Occupied",
-              currentPet: selectedPet,
-            }
-          : r
-      )
-    );
-    setCheckInRoom(null);
+    try {
+      const roomData = {
+        status: "Occupied",
+        currentOccupant: {
+          petName: selectedPet,
+          checkIn: new Date(),
+        }
+      };
+
+      const response = await fetch(`http://localhost:4000/api/hostel-rooms/${checkInRoom._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(roomData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`Pet "${selectedPet}" checked in successfully!`);
+        setCheckInRoom(null);
+        fetchRooms();
+      } else {
+        alert(data.message || 'Failed to check in');
+      }
+    } catch (error) {
+      console.error('Error checking in:', error);
+      alert('Failed to check in');
+    }
   };
 
-  const handleCheckOut = (room) => {
+  const handleCheckOut = async (room) => {
     const ok = window.confirm(
-      `Check‑out pet from Room ${room.roomNumber}?`
+      `Check-out pet from Room ${room.roomNumber}?`
     );
     if (!ok) return;
 
-    setRooms((prev) =>
-      prev.map((r) =>
-        r.id === room.id
-          ? {
-              ...r,
-              status: "Available",
-              currentPet: "",
-            }
-          : r
-      )
-    );
+    try {
+      const roomData = {
+        status: "Available",
+        currentOccupant: {
+          petName: "",
+          checkIn: null,
+          checkOut: null,
+        }
+      };
+
+      const response = await fetch(`http://localhost:4000/api/hostel-rooms/${room._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(roomData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Pet checked out successfully!');
+        fetchRooms();
+      } else {
+        alert(data.message || 'Failed to check out');
+      }
+    } catch (error) {
+      console.error('Error checking out:', error);
+      alert('Failed to check out');
+    }
   };
 
   const handleCalendarChange = (value) => {
@@ -239,7 +432,7 @@ const HostelManagement = () => {
     e.preventDefault();
 
     if (!bookingForm.roomNumber || !bookingForm.petName) {
-      alert("Please select room and pet.");
+      alert("Please select room and enter pet name.");
       return;
     }
 
@@ -248,7 +441,7 @@ const HostelManagement = () => {
       : [bookingDateRange, bookingDateRange];
 
     const newBooking = {
-      id: bookings.length ? Math.max(...bookings.map((b) => b.id)) + 1 : 1,
+      id: bookings.length ? Math.max(...bookings.map((b) => b.id || 0)) + 1 : 1,
       roomNumber: bookingForm.roomNumber,
       petName: bookingForm.petName,
       startDate: start || bookingModal.date,
@@ -257,7 +450,19 @@ const HostelManagement = () => {
 
     setBookings((prev) => [...prev, newBooking]);
     setBookingModal({ open: false, date: null });
+    alert('Booking added to calendar view');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#fff7f0] flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mb-4"></div>
+          <p className="text-slate-600">Loading hostel data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fff7f0] flex">
@@ -275,6 +480,7 @@ const HostelManagement = () => {
               <h2 className="text-lg font-semibold text-slate-900">
                 Manage hostel rooms, check‑ins and bookings.
               </h2>
+              <p className="text-xs text-slate-600 mt-1">{rooms.length} total rooms</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -343,6 +549,7 @@ const HostelManagement = () => {
         room={editRoom}
         form={roomForm}
         onChange={handleRoomFormChange}
+        onImageChange={handleRoomImageChange}
         onClose={() => setEditRoom(null)}
         onSubmit={handleEditRoomSave}
       />
@@ -385,18 +592,16 @@ const HostelManagement = () => {
               Check‑In Pet – Room {checkInRoom.roomNumber}
             </h3>
             <p className="text-xs text-slate-600 mb-3">
-              Select a pet to assign to this room.
+              Enter pet name to assign to this room.
             </p>
             <div className="space-y-3 text-xs">
-              <select
+              <input
+                type="text"
                 value={selectedPet}
                 onChange={(e) => setSelectedPet(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-orange-500"
-              >
-                {SAMPLE_PETS.map((pet) => (
-                  <option key={pet}>{pet}</option>
-                ))}
-              </select>
+                placeholder="Enter pet name..."
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              />
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <button
@@ -442,7 +647,7 @@ const HostelManagement = () => {
                 >
                   <option value="">Select room</option>
                   {rooms.map((r) => (
-                    <option key={r.id} value={r.roomNumber}>
+                    <option key={r._id} value={r.roomNumber}>
                       {r.roomNumber} ({r.roomType})
                     </option>
                   ))}

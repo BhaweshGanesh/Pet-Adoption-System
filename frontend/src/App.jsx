@@ -23,6 +23,8 @@ import OrderSuccess from './pages/OrderSuccess';
 import AdoptionService from './pages/AdoptionService';
 import PetHostelService from './pages/PetHostelService';
 import PetStoreService from './pages/PetStoreService';
+import UserHostelPage from './pages/UserHostelPage';
+import MyHostelBookings from './pages/MyHostelBookings';
 
 function App() {
   return (
@@ -52,6 +54,8 @@ function App() {
         <Route path="/adoption-service" element={<AdoptionService />} />
         <Route path="/hostel-service" element={<PetHostelService />} />
         <Route path="/store-service" element={<PetStoreService />} />
+        <Route path="/hostel" element={<UserHostelPage />} />
+        <Route path="/my-hostel-bookings" element={<MyHostelBookings />} />
       </Routes>
     </Router>
   );

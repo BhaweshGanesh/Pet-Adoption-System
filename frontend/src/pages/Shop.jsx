@@ -11,12 +11,25 @@ const Shop = () => {
   const [priceRange, setPriceRange] = useState("");
   const [cart, setCart] = useState([]);
   const [showCartPreview, setShowCartPreview] = useState(false);
+  const [user, setUser] = useState(null);
 
   // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem('petshop_cart');
     if (savedCart) {
       setCart(JSON.parse(savedCart));
+    }
+  }, []);
+
+  // Load user data
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
     }
   }, []);
 
@@ -163,12 +176,21 @@ const Shop = () => {
               </span>
             )}
           </Link>
-          <Link
-            to="/login"
-            className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white transition-colors"
-          >
-            Login
-          </Link>
+          {user ? (
+            <Link
+              to={user.role === 'admin' ? '/admin-dashboard' : '/dashboard'}
+              className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white transition-colors"
+            >
+              {user.fullName || 'Dashboard'}
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white transition-colors"
+            >
+              Login
+            </Link>
+          )}
         </div>
       </header>
 

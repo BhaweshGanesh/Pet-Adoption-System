@@ -8,6 +8,8 @@ import adoptionRoutes from './Routes/AdoptionApplications.js';
 import uploadRoutes from './Routes/Upload.js';
 import productRoutes from './Routes/Products.js';
 import orderRoutes from './Routes/Orders.js';
+import hostelRoomRoutes from './Routes/HostelRooms.js';
+import hostelBookingRoutes from './Routes/HostelBookings.js';
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +41,8 @@ app.use('/api/adoptions', adoptionRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/hostel-rooms', hostelRoomRoutes);
+app.use('/api/hostel-bookings', hostelBookingRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

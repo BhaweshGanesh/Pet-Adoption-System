@@ -34,6 +34,11 @@ const orderSchema = new mongoose.Schema(
       unique: true,
       sparse: true, // Allow null/undefined until generated
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false, // Optional - for authenticated users
+    },
     customer: {
       name: {
         type: String,

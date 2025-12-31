@@ -1,5 +1,7 @@
 import Order from '../model/Ordermodel.js';
 import Product from '../model/Productmodel.js';
+import User from '../model/Usermodel.js';
+import { sendOrderConfirmationEmail } from '../utils/emailService.js';
 
 // @desc    Get all orders
 // @route   GET /api/orders
@@ -63,10 +65,25 @@ export const getOrder = async (req, res) => {
 
 // @desc    Create new order
 // @route   POST /api/orders
-// @access  Public
+// @access  Private (requires authentication)
 export const createOrder = async (req, res) => {
   try {
     const { customer, items, paymentMethod, notes } = req.body;
+
+    // Get authenticated user if available
+    let userEmail = customer.email;
+    let userName = customer.name;
+    let userId = null;
+
+    // If user is authenticated (token is present), use their email
+    if (req.user) {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        userEmail = user.email;
+        userName = user.fullName;
+        userId = user._id;
+      }
+    }
 
     // Validate and calculate order
     let totalAmount = 0;
@@ -105,9 +122,14 @@ export const createOrder = async (req, res) => {
       await product.save();
     }
 
-    // Create order instance first, then save to trigger pre-save hook
+    // Create order instance with authenticated user email
     const order = new Order({
-      customer,
+      customer: {
+        ...customer,
+        name: userName,
+        email: userEmail,
+      },
+      user: userId, // Link to user if authenticated
       items: orderItems,
       totalAmount,
       paymentMethod,
@@ -116,6 +138,22 @@ export const createOrder = async (req, res) => {
 
     // Save to trigger pre-save hook for orderNumber generation
     await order.save();
+
+    // Send order confirmation email
+    try {
+      await sendOrderConfirmationEmail(userEmail, userName, {
+        orderNumber: order.orderNumber,
+        items: orderItems,
+        totalAmount: order.totalAmount,
+        paymentMethod: order.paymentMethod,
+        address: customer.address,
+        orderDate: order.createdAt,
+      });
+      console.log(`✅ Order confirmation email sent to ${userEmail}`);
+    } catch (emailError) {
+      console.error('⚠️ Failed to send order confirmation email:', emailError);
+      // Don't fail the order if email fails
+    }
 
     res.status(201).json({
       success: true,

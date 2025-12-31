@@ -5,6 +5,8 @@ const Checkout = () => {
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -16,7 +18,33 @@ const Checkout = () => {
 
   useEffect(() => {
     loadCart();
+    loadUserData();
   }, []);
+
+  const loadUserData = () => {
+    // Check if user is logged in
+    const storedToken = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+
+    if (storedToken && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        setToken(storedToken);
+        
+        // Pre-fill form with user data
+        setFormData(prev => ({
+          ...prev,
+          name: parsedUser.fullName || "",
+          email: parsedUser.email || "",
+          phone: parsedUser.phone || "",
+          address: parsedUser.address || "",
+        }));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  };
 
   const loadCart = () => {
     const savedCart = localStorage.getItem('petshop_cart');
@@ -67,11 +95,19 @@ const Checkout = () => {
         notes: formData.notes,
       };
 
+      // Prepare headers with optional authentication
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add authentication token if user is logged in
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('http://localhost:4000/api/orders', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(orderData),
       });
 
@@ -161,16 +197,22 @@ const Checkout = () => {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Email *
+                          Email * {user && <span className="text-xs text-green-600">(From your account)</span>}
                         </label>
                         <input
                           type="email"
                           name="email"
                           value={formData.email}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                          className={`w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${user ? 'bg-slate-50' : ''}`}
+                          disabled={!!user}
                           required
                         />
+                        {user && (
+                          <p className="text-xs text-slate-600 mt-1">
+                            Order confirmation will be sent to this email
+                          </p>
+                        )}
                       </div>
 
                       <div>
