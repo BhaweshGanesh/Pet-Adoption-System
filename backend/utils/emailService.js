@@ -534,6 +534,8 @@ export const sendOrderConfirmationEmail = async (email, fullName, orderDetails) 
     const {
       orderNumber,
       items,
+      subtotal,
+      shippingFee,
       totalAmount,
       paymentMethod,
       address,
@@ -693,6 +695,19 @@ export const sendOrderConfirmationEmail = async (email, fullName, orderDetails) 
                 </thead>
                 <tbody>
                   ${itemsHTML}
+                  <tr>
+                    <td colspan="3" style="padding: 10px; text-align: right; font-weight: bold;">Subtotal:</td>
+                    <td style="padding: 10px; text-align: right;">Rs ${subtotal}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="3" style="padding: 10px; text-align: right; font-weight: bold;">
+                      Shipping Fee:
+                      ${shippingFee === 0 ? '<span style="color: #10b981; font-size: 12px; margin-left: 5px;">(FREE)</span>' : ''}
+                    </td>
+                    <td style="padding: 10px; text-align: right; ${shippingFee === 0 ? 'color: #10b981;' : ''}">
+                      ${shippingFee === 0 ? 'FREE' : `Rs ${shippingFee}`}
+                    </td>
+                  </tr>
                   <tr class="total-row">
                     <td colspan="3" style="padding: 15px 10px; text-align: right;">Total Amount:</td>
                     <td style="padding: 15px 10px; text-align: right; color: #f97316;">Rs ${totalAmount}</td>

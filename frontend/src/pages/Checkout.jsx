@@ -65,7 +65,11 @@ const Checkout = () => {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 100;
+  const SHIPPING_FEE = 100;
+  const FREE_SHIPPING_THRESHOLD = 10000;
+  
+  // Calculate shipping: free if subtotal > 10,000, otherwise 100
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const total = subtotal + shipping;
 
   const handlePlaceOrder = async (e) => {
@@ -91,6 +95,9 @@ const Checkout = () => {
           product: item._id,
           quantity: item.quantity,
         })),
+        subtotal: subtotal,
+        shippingFee: shipping,
+        totalAmount: total,
         paymentMethod: formData.paymentMethod,
         notes: formData.notes,
       };
@@ -345,9 +352,32 @@ const Checkout = () => {
                       <span className="font-semibold">Rs {subtotal}</span>
                     </div>
                     <div className="flex justify-between text-slate-700">
-                      <span>Shipping</span>
-                      <span className="font-semibold">Rs {shipping}</span>
+                      <span className="flex items-center gap-2">
+                        Shipping
+                        {shipping === 0 && (
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                            FREE
+                          </span>
+                        )}
+                      </span>
+                      <span className={`font-semibold ${shipping === 0 ? 'text-green-600 line-through' : ''}`}>
+                        Rs {SHIPPING_FEE}
+                      </span>
                     </div>
+                    {subtotal >= FREE_SHIPPING_THRESHOLD && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <p className="text-xs text-green-800 font-semibold">
+                          🎉 You've qualified for FREE shipping!
+                        </p>
+                      </div>
+                    )}
+                    {subtotal < FREE_SHIPPING_THRESHOLD && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-xs text-blue-800">
+                          Add <span className="font-semibold">Rs {FREE_SHIPPING_THRESHOLD - subtotal}</span> more to get FREE shipping
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-between text-xl font-bold text-slate-900 mb-6">

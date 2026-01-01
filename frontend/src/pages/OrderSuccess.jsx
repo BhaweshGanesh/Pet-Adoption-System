@@ -58,6 +58,27 @@ const OrderSuccess = () => {
               </span>
             </div>
           </div>
+          
+          {/* Price Breakdown */}
+          <div className="mt-4 pt-4 border-t border-slate-200 space-y-2">
+            <div className="flex justify-between text-sm text-slate-700">
+              <span>Subtotal:</span>
+              <span className="font-medium">Rs {order.subtotal || order.totalAmount}</span>
+            </div>
+            <div className="flex justify-between text-sm text-slate-700">
+              <span>Shipping Fee:</span>
+              <span className={`font-medium ${order.shippingFee === 0 ? 'text-green-600' : ''}`}>
+                {order.shippingFee === 0 ? 'FREE' : `Rs ${order.shippingFee || 0}`}
+              </span>
+            </div>
+            {order.shippingFee === 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+                <p className="text-xs text-green-800 font-semibold">
+                  🎉 You saved Rs 100 with free shipping!
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Customer Info */}

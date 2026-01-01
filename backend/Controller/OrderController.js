@@ -68,7 +68,7 @@ export const getOrder = async (req, res) => {
 // @access  Private (requires authentication)
 export const createOrder = async (req, res) => {
   try {
-    const { customer, items, paymentMethod, notes } = req.body;
+    const { customer, items, subtotal, shippingFee, totalAmount, paymentMethod, notes } = req.body;
 
     // Get authenticated user if available
     let userEmail = customer.email;
@@ -86,7 +86,7 @@ export const createOrder = async (req, res) => {
     }
 
     // Validate and calculate order
-    let totalAmount = 0;
+    let calculatedSubtotal = 0;
     const orderItems = [];
 
     for (const item of items) {
@@ -106,21 +106,34 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      const subtotal = product.price * item.quantity;
-      totalAmount += subtotal;
+      const itemSubtotal = product.price * item.quantity;
+      calculatedSubtotal += itemSubtotal;
 
       orderItems.push({
         product: product._id,
         productName: product.name,
         quantity: item.quantity,
         price: product.price,
-        subtotal: subtotal,
+        subtotal: itemSubtotal,
       });
 
       // Reduce stock
       product.stock -= item.quantity;
       await product.save();
     }
+
+    // Calculate shipping fee (free if subtotal >= 10000)
+    const FREE_SHIPPING_THRESHOLD = 10000;
+    const SHIPPING_FEE = 100;
+    const calculatedShipping = calculatedSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+    
+    // Calculate final total
+    const calculatedTotal = calculatedSubtotal + calculatedShipping;
+
+    // Use provided values or calculated values (for validation)
+    const finalSubtotal = subtotal || calculatedSubtotal;
+    const finalShipping = shippingFee !== undefined ? shippingFee : calculatedShipping;
+    const finalTotal = totalAmount || calculatedTotal;
 
     // Create order instance with authenticated user email
     const order = new Order({
@@ -131,7 +144,9 @@ export const createOrder = async (req, res) => {
       },
       user: userId, // Link to user if authenticated
       items: orderItems,
-      totalAmount,
+      subtotal: finalSubtotal,
+      shippingFee: finalShipping,
+      totalAmount: finalTotal,
       paymentMethod,
       notes,
     });
@@ -144,7 +159,9 @@ export const createOrder = async (req, res) => {
       await sendOrderConfirmationEmail(userEmail, userName, {
         orderNumber: order.orderNumber,
         items: orderItems,
-        totalAmount: order.totalAmount,
+        subtotal: finalSubtotal,
+        shippingFee: finalShipping,
+        totalAmount: finalTotal,
         paymentMethod: order.paymentMethod,
         address: customer.address,
         orderDate: order.createdAt,

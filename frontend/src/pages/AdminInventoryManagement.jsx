@@ -16,6 +16,7 @@ const AdminInventoryManagement = () => {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);  
+  
   // Orders states
   const [orders, setOrders] = useState([]);
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
@@ -983,8 +984,20 @@ const AdminInventoryManagement = () => {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-3 pt-3 border-t border-slate-200">
-                      <div className="flex justify-between items-center">
+                    <div className="mt-3 pt-3 border-t border-slate-200 space-y-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600">Subtotal</span>
+                        <span className="font-medium text-slate-900">
+                          Rs {selectedOrder.subtotal || selectedOrder.totalAmount}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600">Shipping Fee</span>
+                        <span className={`font-medium ${selectedOrder.shippingFee === 0 ? 'text-green-600' : 'text-slate-900'}`}>
+                          {selectedOrder.shippingFee === 0 ? 'FREE' : `Rs ${selectedOrder.shippingFee || 0}`}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t border-slate-200">
                         <span className="font-semibold text-slate-900">Total Amount</span>
                         <span className="text-lg font-bold text-orange-600">Rs {selectedOrder.totalAmount}</span>
                       </div>
