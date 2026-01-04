@@ -7,7 +7,7 @@ const Calendar = ({
   value,
   onChange,
   bookings,
-  onDateClick,
+  onDateClick,      
 }) => {
   const tileContent = ({ date, view }) => {
     if (view !== "month") return null;

@@ -18,7 +18,7 @@ const Checkout = () => {
 
   useEffect(() => {
     loadCart();
-    loadUserData();
+    loadUserData(); 
   }, []);
 
   const loadUserData = () => {
