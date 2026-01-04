@@ -274,21 +274,7 @@ const Checkout = () => {
                       </div>
                     </label>
 
-                    <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="Online Payment"
-                        checked={formData.paymentMethod === "Online Payment"}
-                        onChange={handleInputChange}
-                        className="w-5 h-5 text-orange-500"
-                      />
-                      <div className="flex-1">
-                        <p className="font-semibold text-slate-900">Online Payment</p>
-                        <p className="text-sm text-slate-600">Pay now using card or UPI</p>
-                      </div>
-                    </label>
-
+                    
                     <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
                       <input
                         type="radio"
