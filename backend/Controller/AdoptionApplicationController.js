@@ -1,5 +1,6 @@
 import AdoptionApplication from '../model/AdoptionApplicationmodel.js';
 import Pet from '../model/Petmodel.js';
+import { sendAdoptionConfirmationEmail, sendAdoptionApprovalEmail } from '../utils/emailService.js';
 
 // @desc    Submit adoption application
 // @route   POST /api/adoptions
@@ -46,6 +47,27 @@ export const submitApplication = async (req, res) => {
       });
     }
 
+    // Check if pet is available
+    if (pet.status !== 'Available') {
+      return res.status(400).json({
+        success: false,
+        message: 'This pet is not available for adoption at this time.',
+      });
+    }
+
+    // Check if there's already a pending adoption request for this pet
+    const existingRequest = await AdoptionApplication.findOne({
+      petId,
+      status: 'pending'
+    });
+
+    if (existingRequest) {
+      return res.status(400).json({
+        success: false,
+        message: 'This pet already has a pending adoption request. Please check back later or browse other pets.',
+      });
+    }
+
     // Create application
     const application = await AdoptionApplication.create({
       petId,
@@ -63,6 +85,26 @@ export const submitApplication = async (req, res) => {
       agree,
       userId: req.user?._id, // If user is logged in
     });
+
+    // Update pet status to "Booked" since there's now a pending adoption request
+    pet.status = 'Booked';
+    await pet.save();
+    console.log(`✅ Pet ${pet.name} status updated to Booked`);
+
+    // Send confirmation email
+    try {
+      await sendAdoptionConfirmationEmail(email, fullName, {
+        petName: petName || pet.name,
+        petBreed: pet.breed,
+        petAge: pet.age,
+        applicationDate: application.createdAt,
+        status: application.status,
+      });
+      console.log(`✅ Adoption confirmation email sent to ${email}`);
+    } catch (emailError) {
+      console.error('⚠️ Failed to send adoption confirmation email:', emailError);
+      // Don't fail the application if email fails
+    }
 
     res.status(201).json({
       success: true,
@@ -154,7 +196,8 @@ export const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    const application = await AdoptionApplication.findById(req.params.id);
+    const application = await AdoptionApplication.findById(req.params.id)
+      .populate('petId', 'name breed age');
 
     if (!application) {
       return res.status(404).json({
@@ -163,12 +206,59 @@ export const updateApplicationStatus = async (req, res) => {
       });
     }
 
+    const pet = await Pet.findById(application.petId);
+    if (!pet) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pet not found',
+      });
+    }
+
+    // Update application
     application.status = status;
     application.reviewNotes = reviewNotes || application.reviewNotes;
     application.reviewedBy = req.user?._id;
     application.reviewedAt = new Date();
-
     await application.save();
+
+    // Handle pet status based on application status
+    if (status === 'approved') {
+      // Update pet status to Unavailable
+      pet.status = 'Unavailable';
+      await pet.save();
+      console.log(`✅ Pet ${pet.name} status updated to Unavailable (Adopted)`);
+
+      // Send approval email with pickup details
+      try {
+        // Generate pickup details (3 days from now, 10 AM)
+        const pickupDate = new Date();
+        pickupDate.setDate(pickupDate.getDate() + 3);
+        const formattedDate = pickupDate.toLocaleDateString('en-US', { 
+          weekday: 'long',
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric'
+        });
+
+        await sendAdoptionApprovalEmail(application.email, application.fullName, {
+          petName: pet.name,
+          petBreed: pet.breed,
+          petAge: pet.age,
+          pickupDate: formattedDate,
+          pickupTime: '10:00 AM - 12:00 PM',
+          pickupLocation: 'PetAdopt+ Adoption Center, 123 Main Street, City Center',
+        });
+        console.log(`✅ Approval email sent to ${application.email}`);
+      } catch (emailError) {
+        console.error('⚠️ Failed to send approval email:', emailError);
+        // Don't fail the approval if email fails
+      }
+    } else if (status === 'rejected') {
+      // Update pet status back to Available so others can apply
+      pet.status = 'Available';
+      await pet.save();
+      console.log(`✅ Pet ${pet.name} status updated to Available (Application Rejected)`);
+    }
 
     res.status(200).json({
       success: true,
@@ -176,6 +266,7 @@ export const updateApplicationStatus = async (req, res) => {
       data: application,
     });
   } catch (error) {
+    console.error('Error updating application status:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while updating application',
@@ -196,6 +287,16 @@ export const deleteApplication = async (req, res) => {
         success: false,
         message: 'Application not found',
       });
+    }
+
+    // If the application was pending, update pet status back to Available
+    if (application.status === 'pending') {
+      const pet = await Pet.findById(application.petId);
+      if (pet && pet.status === 'Booked') {
+        pet.status = 'Available';
+        await pet.save();
+        console.log(`✅ Pet ${pet.name} status updated to Available (Application Deleted)`);
+      }
     }
 
     await application.deleteOne();

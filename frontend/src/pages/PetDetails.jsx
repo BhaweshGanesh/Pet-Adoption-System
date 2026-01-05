@@ -7,6 +7,7 @@ const PetDetails = () => {
   const [showModal, setShowModal] = useState(false);
   const [pet, setPet] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [petStatus, setPetStatus] = useState('Available'); // Track pet status
 
   useEffect(() => {
     fetchPetDetails();
@@ -40,6 +41,7 @@ const PetDetails = () => {
           image: data.data.image,
         };
         setPet(transformedPet);
+        setPetStatus(data.data.status); // Store original status
       }
     } catch (error) {
       console.error('Error fetching pet details:', error);
@@ -184,12 +186,21 @@ const PetDetails = () => {
             </div>
 
             <div className="flex flex-col gap-3 mt-4">
-              <button
-                onClick={() => setShowModal(true)}
-                className="w-full inline-flex items-center justify-center rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2.5 shadow-md"
-              >
-                Adopt Now
-              </button>
+              {petStatus === 'Booked' ? (
+                <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 text-center">
+                  <p className="text-amber-800 font-semibold mb-1">📋 Application Pending</p>
+                  <p className="text-sm text-amber-700">
+                    This pet has a pending adoption application under review.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="w-full inline-flex items-center justify-center rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2.5 shadow-md"
+                >
+                  Adopt Now
+                </button>
+              )}
               <button
                 onClick={() => navigate("/browse-pets")}
                 className="w-full inline-flex items-center justify-center rounded-full border border-slate-300 text-slate-700 text-sm font-medium py-2.5 hover:bg-slate-50"

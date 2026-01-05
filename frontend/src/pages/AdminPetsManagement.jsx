@@ -7,13 +7,18 @@ import AdminSidebar from "./AdminSidebar";
 
 
 const AdminPetsManagement = () => {
+  const [activeTab, setActiveTab] = useState("pets"); // pets or adoptions
   const [pets, setPets] = useState([]);
+  const [adoptionRequests, setAdoptionRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [adoptionStatusFilter, setAdoptionStatusFilter] = useState("all");
   const [isPetModalOpen, setIsPetModalOpen] = useState(false);
   const [editingPet, setEditingPet] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [selectedAdoption, setSelectedAdoption] = useState(null);
+  const [isAdoptionModalOpen, setIsAdoptionModalOpen] = useState(false);
   const [form, setForm] = useState({
     name: "",
     type: "Dog",
@@ -35,6 +40,7 @@ const AdminPetsManagement = () => {
   });
   useEffect(() => {
     fetchPets();
+    fetchAdoptionRequests();
   }, []);
   const fetchPets = async () => {
     try {
@@ -49,6 +55,18 @@ const AdminPetsManagement = () => {
       alert('Failed to fetch pets');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAdoptionRequests = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/adoptions');
+      const data = await response.json();
+      if (data.success) {
+        setAdoptionRequests(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching adoption requests:', error);
     }
   };
 
@@ -93,6 +111,11 @@ const AdminPetsManagement = () => {
     }
     return pets;
   }, [pets, filterStatus]);
+
+  const filteredAdoptions = useMemo(() => {
+    if (adoptionStatusFilter === "all") return adoptionRequests;
+    return adoptionRequests.filter(a => a.status === adoptionStatusFilter);
+  }, [adoptionRequests, adoptionStatusFilter]);
 
   const openAddPetModal = () => {
     setEditingPet(null);
@@ -279,8 +302,39 @@ const AdminPetsManagement = () => {
         />
 
         <main className="flex-1 p-4 lg:p-8 space-y-4">
-    
-             
+          
+          {/* Tab Switcher */}
+          <div className="flex gap-2 border-b border-slate-200 pb-2">
+            <button
+              onClick={() => setActiveTab("pets")}
+              className={`px-6 py-2 rounded-t-lg font-semibold text-sm transition-colors ${
+                activeTab === "pets"
+                  ? "bg-orange-500 text-white"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              🐕 Pets Management
+            </button>
+            <button
+              onClick={() => setActiveTab("adoptions")}
+              className={`px-6 py-2 rounded-t-lg font-semibold text-sm transition-colors ${
+                activeTab === "adoptions"
+                  ? "bg-orange-500 text-white"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              📋 Adoption Requests
+              {adoptionRequests.filter(a => a.status === 'pending').length > 0 && (
+                <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-[10px] font-bold">
+                  {adoptionRequests.filter(a => a.status === 'pending').length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Pets Tab Content */}
+          {activeTab === "pets" && (
+            <>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-slate-900">
@@ -685,6 +739,326 @@ const AdminPetsManagement = () => {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+            </>
+          )}
+
+          {/* Adoption Requests Tab Content */}
+          {activeTab === "adoptions" && (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">
+                    Manage Adoption Applications
+                  </h2>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Review and process adoption requests from potential pet parents
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={adoptionStatusFilter}
+                    onChange={(e) => setAdoptionStatusFilter(e.target.value)}
+                    className="border border-slate-200 rounded-full px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  >
+                    <option value="all">All Applications</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Adoption Requests Table */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-xs">
+                    <thead className="bg-slate-50 text-slate-500 uppercase tracking-wide">
+                      <tr>
+                        <th className="px-4 py-3 text-left">Applicant</th>
+                        <th className="px-4 py-3 text-left">Pet</th>
+                        <th className="px-4 py-3 text-left">Contact</th>
+                        <th className="px-4 py-3 text-left">Date</th>
+                        <th className="px-4 py-3 text-left">Status</th>
+                        <th className="px-4 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredAdoptions.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="px-4 py-6 text-center text-slate-500"
+                          >
+                            No adoption requests found.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredAdoptions.map((adoption) => (
+                          <tr
+                            key={adoption._id}
+                            className="border-t border-slate-100 hover:bg-slate-50/60"
+                          >
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="font-medium text-slate-900">
+                                  {adoption.fullName}
+                                </p>
+                                <p className="text-[10px] text-slate-500">
+                                  Age: {adoption.age} • {adoption.occupation}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                {adoption.petId?.image && (
+                                  <img
+                                    src={adoption.petId.image}
+                                    alt={adoption.petName}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                  />
+                                )}
+                                <div>
+                                  <p className="font-medium text-slate-900">
+                                    {adoption.petName}
+                                  </p>
+                                  <p className="text-[10px] text-slate-500">
+                                    {adoption.petId?.breed}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-slate-700">
+                              <p className="text-[11px]">{adoption.email}</p>
+                              <p className="text-[10px] text-slate-500">{adoption.phone}</p>
+                            </td>
+                            <td className="px-4 py-3 text-slate-700">
+                              {new Date(adoption.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                                  adoption.status === "pending"
+                                    ? "bg-amber-50 text-amber-700"
+                                    : adoption.status === "approved"
+                                    ? "bg-emerald-50 text-emerald-600"
+                                    : "bg-red-50 text-red-600"
+                                }`}
+                              >
+                                {adoption.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <button
+                                onClick={() => {
+                                  setSelectedAdoption(adoption);
+                                  setIsAdoptionModalOpen(true);
+                                }}
+                                className="px-3 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100"
+                              >
+                                View Details
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Adoption Details Modal */}
+          {isAdoptionModalOpen && selectedAdoption && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto py-8">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6 my-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Adoption Application Details
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setIsAdoptionModalOpen(false);
+                      setSelectedAdoption(null);
+                    }}
+                    className="text-slate-400 hover:text-slate-600 text-2xl leading-none"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Applicant Information */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
+                      Applicant Information
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <label className="text-slate-600 text-xs">Full Name</label>
+                        <p className="font-medium text-slate-900">{selectedAdoption.fullName}</p>
+                      </div>
+                      <div>
+                        <label className="text-slate-600 text-xs">Email</label>
+                        <p className="font-medium text-slate-900">{selectedAdoption.email}</p>
+                      </div>
+                      <div>
+                        <label className="text-slate-600 text-xs">Phone</label>
+                        <p className="font-medium text-slate-900">{selectedAdoption.phone}</p>
+                      </div>
+                      <div>
+                        <label className="text-slate-600 text-xs">Address</label>
+                        <p className="font-medium text-slate-900">{selectedAdoption.address}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-slate-600 text-xs">Age</label>
+                          <p className="font-medium text-slate-900">{selectedAdoption.age}</p>
+                        </div>
+                        <div>
+                          <label className="text-slate-600 text-xs">Occupation</label>
+                          <p className="font-medium text-slate-900">{selectedAdoption.occupation}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pet & Lifestyle Information */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
+                      Pet & Lifestyle Details
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <label className="text-slate-600 text-xs">Pet Applying For</label>
+                        <p className="font-medium text-slate-900">{selectedAdoption.petName}</p>
+                      </div>
+                      <div>
+                        <label className="text-slate-600 text-xs">Currently Owns Pets</label>
+                        <p className="font-medium text-slate-900 capitalize">{selectedAdoption.ownsPets}</p>
+                      </div>
+                      <div>
+                        <label className="text-slate-600 text-xs">Has Pet Experience</label>
+                        <p className="font-medium text-slate-900 capitalize">{selectedAdoption.experience}</p>
+                      </div>
+                      <div>
+                        <label className="text-slate-600 text-xs">Living Environment</label>
+                        <p className="font-medium text-slate-900 capitalize">{selectedAdoption.environment}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reason for Adoption */}
+                <div className="mt-6">
+                  <h4 className="font-semibold text-slate-900 text-sm border-b pb-2 mb-2">
+                    Why They Want to Adopt
+                  </h4>
+                  <p className="text-sm text-slate-700 bg-slate-50 rounded-lg p-3">
+                    {selectedAdoption.reason}
+                  </p>
+                </div>
+
+                {/* Status & Actions */}
+                <div className="mt-6 pt-6 border-t border-slate-200">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {selectedAdoption.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(
+                                `http://localhost:4000/api/adoptions/${selectedAdoption._id}/status`,
+                                {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ status: 'approved' }),
+                                }
+                              );
+                              const data = await response.json();
+                              if (data.success) {
+                                alert('✅ Application approved! The applicant will receive an email with pickup details. The pet status has been updated to Unavailable.');
+                                fetchAdoptionRequests(); // Refresh adoption requests
+                                fetchPets(); // Refresh pets list to show updated status
+                                setIsAdoptionModalOpen(false);
+                              }
+                            } catch (error) {
+                              console.error('Error approving application:', error);
+                              alert('Failed to approve application');
+                            }
+                          }}
+                          className="flex-1 py-2 bg-emerald-500 text-white rounded-full font-semibold text-sm hover:bg-emerald-600"
+                        >
+                          ✓ Approve Application
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm('Are you sure you want to reject this application?')) return;
+                            try {
+                              const response = await fetch(
+                                `http://localhost:4000/api/adoptions/${selectedAdoption._id}/status`,
+                                {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ status: 'rejected' }),
+                                }
+                              );
+                              const data = await response.json();
+                              if (data.success) {
+                                alert('Application rejected. The pet status has been updated to Available for other adopters.');
+                                fetchAdoptionRequests(); // Refresh adoption requests
+                                fetchPets(); // Refresh pets list to show updated status
+                                setIsAdoptionModalOpen(false);
+                              }
+                            } catch (error) {
+                              console.error('Error rejecting application:', error);
+                              alert('Failed to reject application');
+                            }
+                          }}
+                          className="flex-1 py-2 bg-red-500 text-white rounded-full font-semibold text-sm hover:bg-red-600"
+                        >
+                          ✗ Reject Application
+                        </button>
+                      </>
+                    )}
+                    {selectedAdoption.status !== 'pending' && (
+                      <div className="flex-1 text-center py-2 bg-slate-100 rounded-full">
+                        <span className="text-sm font-semibold text-slate-700">
+                          Status: {selectedAdoption.status.toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm('Are you sure you want to delete this application?')) return;
+                        try {
+                          const response = await fetch(
+                            `http://localhost:4000/api/adoptions/${selectedAdoption._id}`,
+                            { method: 'DELETE' }
+                          );
+                          const data = await response.json();
+                          if (data.success) {
+                            alert('Application deleted successfully. If it was pending, the pet is now available again.');
+                            fetchAdoptionRequests(); // Refresh adoption requests
+                            fetchPets(); // Refresh pets list to show updated status
+                            setIsAdoptionModalOpen(false);
+                          }
+                        } catch (error) {
+                          console.error('Error deleting application:', error);
+                          alert('Failed to delete application');
+                        }
+                      }}
+                      className="py-2 px-6 border-2 border-red-200 text-red-600 rounded-full font-semibold text-sm hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

@@ -411,11 +411,17 @@ const BrowsePets = () => {
                         </span>
                       </p>
                       <div className="pt-1 flex justify-end">
-                         <Link to={`/pet-details/${pet.id}`}
-                          className="inline-flex items-center justify-center px-3 py-1.5 rounded-full border border-slate-800 text-[11px] font-medium text-slate-900 hover:bg-slate-900 hover:text-white"
-                         >
-                            View Details
-                         </Link>
+                         {pet.status === 'Booked' ? (
+                           <div className="px-3 py-1.5 rounded-full bg-amber-100 text-[11px] font-medium text-amber-800">
+                             📋 Application Pending
+                           </div>
+                         ) : (
+                           <Link to={`/pet-details/${pet.id}`}
+                            className="inline-flex items-center justify-center px-3 py-1.5 rounded-full border border-slate-800 text-[11px] font-medium text-slate-900 hover:bg-slate-900 hover:text-white"
+                           >
+                              View Details
+                           </Link>
+                         )}
                          </div>
                       
                      

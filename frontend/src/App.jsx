@@ -15,6 +15,7 @@ import VaccinationDetails from './pages/VaccinationDetails';
 import AdminPetsManagement from "./pages/AdminPetsManagement";
 import AdminInventoryManagement from './pages/AdminInventoryManagement';
 import HostelManagement from "./pages/HostelManagement";
+import HostelBookingsManagement from "./pages/HostelBookingsManagement";
 import Shop from './pages/Shop';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
@@ -24,7 +25,6 @@ import AdoptionService from './pages/AdoptionService';
 import PetHostelService from './pages/PetHostelService';
 import PetStoreService from './pages/PetStoreService';
 import UserHostelPage from './pages/UserHostelPage';
-import MyHostelBookings from './pages/MyHostelBookings';
 
 function App() {
   return (
@@ -46,6 +46,7 @@ function App() {
         <Route path="/admin-pets-management" element={<AdminPetsManagement />} />
         <Route path="/admin-inventory-management" element={<AdminInventoryManagement />} />
         <Route path="/admin-hostel-management" element={<HostelManagement />} />
+        <Route path="/hostel-bookings" element={<HostelBookingsManagement />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />
@@ -55,7 +56,6 @@ function App() {
         <Route path="/hostel-service" element={<PetHostelService />} />
         <Route path="/store-service" element={<PetStoreService />} />
         <Route path="/hostel" element={<UserHostelPage />} />
-        <Route path="/my-hostel-bookings" element={<MyHostelBookings />} />
       </Routes>
     </Router>
   );

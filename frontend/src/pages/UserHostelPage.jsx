@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 const UserHostelPage = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("rooms"); // "rooms" or "bookings"
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -26,11 +27,23 @@ const UserHostelPage = () => {
   });
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState("");
+  
+  // My Bookings state
+  const [myBookings, setMyBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingFilter, setBookingFilter] = useState("All");
+  const [selectedBookingDetail, setSelectedBookingDetail] = useState(null);
 
   useEffect(() => {
     loadUserData();
     fetchRooms();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "bookings" && user) {
+      fetchMyBookings();
+    }
+  }, [activeTab, user]);
 
   const loadUserData = () => {
     const userData = localStorage.getItem('user');
@@ -178,7 +191,8 @@ const UserHostelPage = () => {
       if (data.success) {
         alert(`Booking confirmed! Booking Number: ${data.data.bookingNumber}\n\nA confirmation email has been sent to ${user.email}`);
         closeBookingModal();
-        navigate('/my-hostel-bookings');
+        setActiveTab("bookings"); // Switch to bookings tab
+        fetchMyBookings(); // Refresh bookings
       } else {
         setBookingError(data.message || 'Failed to create booking');
       }
@@ -206,52 +220,130 @@ const UserHostelPage = () => {
 
   const priceInfo = calculateDaysAndPrice();
 
+  // Fetch user's bookings
+  const fetchMyBookings = async () => {
+    try {
+      setBookingsLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        return;
+      }
+
+      const response = await fetch('http://localhost:4000/api/hostel-bookings/my-bookings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMyBookings(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
+
+  const filteredMyBookings = myBookings.filter(booking => {
+    if (bookingFilter === "All") return true;
+    return booking.status === bookingFilter;
+  });
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'Confirmed': 'bg-green-100 text-green-800 border-green-200',
+      'Checked-In': 'bg-blue-100 text-blue-800 border-blue-200',
+      'Checked-Out': 'bg-slate-100 text-slate-800 border-slate-200',
+      'Cancelled': 'bg-red-100 text-red-800 border-red-200',
+    };
+    return colors[status] || 'bg-slate-100 text-slate-800 border-slate-200';
+  };
+
+  const handleCancelBooking = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to cancel this booking?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:4000/api/hostel-bookings/${bookingId}/cancel`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Booking cancelled successfully!');
+        fetchMyBookings();
+      } else {
+        alert(data.message || 'Failed to cancel booking');
+      }
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      alert('Failed to cancel booking');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fff7f0]">
-      {/* NAVBAR */}
+      {/* NAVBAR - Matching BrowsePets style */}
       <header className="sticky top-0 z-20 bg-white border-b border-orange-100/80 px-6 lg:px-16 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-12">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">🏠</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-900">
-              Pet<span className="text-green-500">Hostel</span>
-            </span>
+        {/* Left: logo */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+            <span className="text-2xl">🐾</span>
           </div>
-
-          <nav className="hidden md:flex gap-6 text-sm text-slate-500">
-            <Link to="/" className="hover:text-slate-900">Home</Link>
-            <Link to="/browse-pets" className="hover:text-slate-900">Browse Pets</Link>
-            <Link to="/shop" className="hover:text-slate-900">Shop</Link>
-            <Link to="/hostel" className="text-green-500 border-b-2 border-green-400 pb-0.5">Hostel</Link>
-            {user && (
-              <Link to="/my-hostel-bookings" className="hover:text-slate-900">My Bookings</Link>
-            )}
-          </nav>
+          <span className="text-2xl font-bold text-slate-900">
+            Pet<span className="text-orange-500">Adopt+</span>
+          </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <nav className="hidden md:flex gap-12 text-sm text-slate-500">
+          <Link to="/" className="hover:text-slate-900">
+            Home
+          </Link>
+          <Link to="/browse-pets" className="hover:text-slate-900">
+            Browse Pets
+          </Link>
+          <Link to="/hostel" className="text-orange-500 border-b-2 border-orange-400 pb-0.5">
+            Pet Hotel
+          </Link>
+          <Link to="/shop" className="hover:text-slate-900">
+            Shop
+          </Link>
+          <a href="#" className="hover:text-slate-900">
+            About
+          </a>
           {user ? (
-            <Link
-              to={user.role === 'admin' ? '/admin-dashboard' : '/dashboard'}
-              className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white transition-colors"
-            >
-              {user.fullName || 'Dashboard'}
+            <Link to="/user-profile" className="hover:text-slate-900">
+              Profile
             </Link>
           ) : (
-            <Link
-              to="/login"
-              className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white transition-colors"
-            >
+            <Link to="/login" className="hover:text-slate-900">
               Login
             </Link>
+          )}
+        </nav>
+
+        <div className="flex items-center gap-3">
+          {user && (
+            <span className="text-sm text-slate-600 hidden lg:block">
+              Welcome, {user.fullName}
+            </span>
           )}
         </div>
       </header>
 
       {/* HERO SECTION */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100 px-6 lg:px-16 py-12">
+      <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 px-6 lg:px-16 py-12">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl font-bold text-slate-900 mb-4">
             Pet Hostel Services
@@ -262,12 +354,42 @@ const UserHostelPage = () => {
         </div>
       </div>
 
+      {/* TABS */}
+      <div className="px-6 lg:px-16 py-6 border-b border-orange-100">
+        <div className="max-w-7xl mx-auto flex gap-4">
+          <button
+            onClick={() => setActiveTab("rooms")}
+            className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors ${
+              activeTab === "rooms"
+                ? "bg-orange-500 text-white"
+                : "bg-white text-slate-600 border border-slate-200 hover:border-orange-300"
+            }`}
+          >
+            🏠 Available Rooms
+          </button>
+          {user && (
+            <button
+              onClick={() => setActiveTab("bookings")}
+              className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors ${
+                activeTab === "bookings"
+                  ? "bg-orange-500 text-white"
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-orange-300"
+              }`}
+            >
+              📋 My Bookings
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* MAIN CONTENT */}
       <div className="px-6 lg:px-16 py-8">
         <div className="max-w-7xl mx-auto">
-          {/* FILTERS */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-8">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Filter Rooms</h3>
+          {activeTab === "rooms" ? (
+            <>
+              {/* FILTERS */}
+              <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-8">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Filter Rooms</h3>
             <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Pet Type</label>
@@ -403,6 +525,117 @@ const UserHostelPage = () => {
                 </div>
               ))}
             </div>
+          )}
+            </>
+          ) : (
+            /* MY BOOKINGS TAB */
+            <>
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">My Hostel Bookings</h2>
+                  <p className="text-slate-600 mt-1">View and manage your booking history</p>
+                </div>
+                <select
+                  value={bookingFilter}
+                  onChange={(e) => setBookingFilter(e.target.value)}
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                >
+                  <option value="All">All Bookings</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Checked-In">Checked-In</option>
+                  <option value="Checked-Out">Checked-Out</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              {bookingsLoading ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                  <p className="mt-4 text-slate-600">Loading bookings...</p>
+                </div>
+              ) : filteredMyBookings.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
+                  <p className="text-slate-600 text-lg mb-4">No bookings found</p>
+                  <button
+                    onClick={() => setActiveTab("rooms")}
+                    className="px-6 py-2 rounded-full bg-orange-500 text-white font-semibold hover:bg-orange-600"
+                  >
+                    Book a Room
+                  </button>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {filteredMyBookings.map((booking) => (
+                    <div
+                      key={booking._id}
+                      className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <h3 className="text-lg font-bold text-slate-900">
+                              {booking.room?.roomName || 'Room'}
+                            </h3>
+                            <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${getStatusColor(booking.status)}`}>
+                              {booking.status}
+                            </span>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                            <div>
+                              <span className="text-slate-600">Booking #:</span>
+                              <span className="font-semibold text-slate-900 ml-2">{booking.bookingNumber}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-600">Room:</span>
+                              <span className="font-semibold text-slate-900 ml-2">{booking.room?.roomNumber}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-600">Pet:</span>
+                              <span className="font-semibold text-slate-900 ml-2">{booking.petDetails?.petName} ({booking.petDetails?.petType})</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-600">Check-In:</span>
+                              <span className="font-semibold text-slate-900 ml-2">
+                                {new Date(booking.checkInDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-600">Check-Out:</span>
+                              <span className="font-semibold text-slate-900 ml-2">
+                                {new Date(booking.checkOutDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-600">Total Amount:</span>
+                              <span className="font-semibold text-slate-900 ml-2">Rs {booking.totalAmount}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedBookingDetail(booking)}
+                            className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                          >
+                            View Details
+                          </button>
+                          {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
+                            <button
+                              onClick={() => handleCancelBooking(booking._id)}
+                              className="px-4 py-2 rounded-lg border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -609,6 +842,135 @@ const UserHostelPage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* BOOKING DETAILS MODAL */}
+      {selectedBookingDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900">Booking Details</h2>
+              <button
+                onClick={() => setSelectedBookingDetail(null)}
+                className="text-slate-400 hover:text-slate-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Booking Info */}
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-3">Booking Information</h3>
+                <div className="bg-slate-50 rounded-lg p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Booking Number:</span>
+                    <span className="font-semibold text-slate-900">{selectedBookingDetail.bookingNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Status:</span>
+                    <span className={`px-3 py-1 rounded-full border font-semibold text-xs ${getStatusColor(selectedBookingDetail.status)}`}>
+                      {selectedBookingDetail.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Room:</span>
+                    <span className="font-semibold text-slate-900">
+                      {selectedBookingDetail.room?.roomNumber} - {selectedBookingDetail.room?.roomName}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Check-In:</span>
+                    <span className="font-semibold text-slate-900">
+                      {new Date(selectedBookingDetail.checkInDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Check-Out:</span>
+                    <span className="font-semibold text-slate-900">
+                      {new Date(selectedBookingDetail.checkOutDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Duration:</span>
+                    <span className="font-semibold text-slate-900">{selectedBookingDetail.numberOfDays} days</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Total Amount:</span>
+                    <span className="font-semibold text-orange-600 text-lg">Rs {selectedBookingDetail.totalAmount}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pet Details */}
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-3">Pet Information</h3>
+                <div className="bg-amber-50 rounded-lg p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Pet Name:</span>
+                    <span className="font-semibold text-slate-900">{selectedBookingDetail.petDetails?.petName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Type:</span>
+                    <span className="font-semibold text-slate-900">{selectedBookingDetail.petDetails?.petType}</span>
+                  </div>
+                  {selectedBookingDetail.petDetails?.age && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Age:</span>
+                      <span className="font-semibold text-slate-900">{selectedBookingDetail.petDetails.age}</span>
+                    </div>
+                  )}
+                  {selectedBookingDetail.petDetails?.breed && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Breed:</span>
+                      <span className="font-semibold text-slate-900">{selectedBookingDetail.petDetails.breed}</span>
+                    </div>
+                  )}
+                  {selectedBookingDetail.petDetails?.specialNeeds && (
+                    <div>
+                      <span className="text-slate-600">Special Needs:</span>
+                      <p className="font-semibold text-slate-900 mt-1">{selectedBookingDetail.petDetails.specialNeeds}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-3">Contact Information</h3>
+                <div className="bg-blue-50 rounded-lg p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Phone:</span>
+                    <span className="font-semibold text-slate-900">{selectedBookingDetail.contactInfo?.phone}</span>
+                  </div>
+                  {selectedBookingDetail.contactInfo?.emergencyContact && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Emergency Contact:</span>
+                      <span className="font-semibold text-slate-900">{selectedBookingDetail.contactInfo.emergencyContact}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Special Instructions */}
+              {selectedBookingDetail.specialInstructions && (
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-3">Special Instructions</h3>
+                  <div className="bg-cyan-50 rounded-lg p-4 text-sm text-slate-700">
+                    {selectedBookingDetail.specialInstructions}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => setSelectedBookingDetail(null)}
+                className="w-full px-6 py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -135,11 +135,12 @@ const HostelManagement = () => {
 
       const data = await response.json();
       if (data.success) {
-        return data.imageUrl;
+        return data.url; // Backend returns 'url' not 'imageUrl'
       }
-      throw new Error('Image upload failed');
+      throw new Error(data.message || 'Image upload failed');
     } catch (error) {
       console.error('Error uploading image:', error);
+      alert(`Failed to upload image: ${error.message}`);
       return null;
     }
   };
@@ -175,13 +176,16 @@ const HostelManagement = () => {
     }
 
     try {
-      let imageUrl = roomForm.image;
+      let imageUrl = "";
       
       // Upload image if a new file was selected
       if (imageFile) {
         const uploadedUrl = await uploadImage(imageFile);
         if (uploadedUrl) {
           imageUrl = uploadedUrl;
+        } else {
+          alert('Failed to upload image. Please try again.');
+          return;
         }
       }
 
@@ -218,7 +222,22 @@ const HostelManagement = () => {
       if (data.success) {
         alert('Room added successfully!');
         setIsAddModalOpen(false);
-        fetchRooms();
+        // Clear image file state
+        setImageFile(null);
+        // Reset form
+        setRoomForm({
+          roomNumber: "",
+          roomName: "",
+          roomType: "Single",
+          petType: "All",
+          capacity: 1,
+          pricePerDay: 0,
+          facilities: [],
+          status: "Available",
+          description: "",
+          image: "",
+        });
+        await fetchRooms();
       } else {
         alert(data.message || 'Failed to add room');
       }
@@ -249,13 +268,17 @@ const HostelManagement = () => {
     e.preventDefault();
 
     try {
-      let imageUrl = roomForm.image;
+      // Start with existing image URL from the room (not from form state which might have blob URL)
+      let imageUrl = editRoom.image || "";
       
       // Upload new image if selected
       if (imageFile) {
         const uploadedUrl = await uploadImage(imageFile);
         if (uploadedUrl) {
           imageUrl = uploadedUrl;
+        } else {
+          alert('Failed to upload image. Please try again.');
+          return;
         }
       }
 
@@ -292,7 +315,9 @@ const HostelManagement = () => {
       if (data.success) {
         alert('Room updated successfully!');
         setEditRoom(null);
-        fetchRooms();
+        // Clear image file state
+        setImageFile(null);
+        await fetchRooms();
       } else {
         alert(data.message || 'Failed to update room');
       }
@@ -541,7 +566,22 @@ const HostelManagement = () => {
         form={roomForm}
         onChange={handleRoomFormChange}
         onImageChange={handleRoomImageChange}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setImageFile(null);
+          setRoomForm({
+            roomNumber: "",
+            roomName: "",
+            roomType: "Single",
+            petType: "All",
+            capacity: 1,
+            pricePerDay: 0,
+            facilities: [],
+            status: "Available",
+            description: "",
+            image: "",
+          });
+        }}
         onSubmit={handleAddRoom}
       />
 
@@ -550,7 +590,10 @@ const HostelManagement = () => {
         form={roomForm}
         onChange={handleRoomFormChange}
         onImageChange={handleRoomImageChange}
-        onClose={() => setEditRoom(null)}
+        onClose={() => {
+          setEditRoom(null);
+          setImageFile(null);
+        }}
         onSubmit={handleEditRoomSave}
       />
 
@@ -682,6 +725,274 @@ const HostelManagement = () => {
                   className="px-4 py-1.5 rounded-full bg-orange-500 text-white text-xs font-semibold hover:bg-orange-600"
                 >
                   Add Booking
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Modal removed - moved to HostelBookingsManagement page */}
+      {false && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto py-8">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 my-8">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-slate-900">
+                Create Hostel Booking
+              </h3>
+              <button
+                onClick={() => setIsAdminBookingModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleAdminBookingSubmit} className="space-y-6">
+              {/* Customer Information */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
+                  Customer Information
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Customer Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={adminBookingForm.customerName}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, customerName: e.target.value})}
+                      placeholder="Full Name"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Customer Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={adminBookingForm.customerEmail}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, customerEmail: e.target.value})}
+                      placeholder="email@example.com"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      value={adminBookingForm.phone}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, phone: e.target.value})}
+                      placeholder="Contact number"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Room *
+                    </label>
+                    <select
+                      value={adminBookingForm.roomId}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, roomId: e.target.value})}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                      required
+                    >
+                      <option value="">Select Room</option>
+                      {rooms.map((room) => (
+                        <option key={room._id} value={room._id}>
+                          {room.roomNumber} - {room.roomName} ({room.roomType}) - Rs {room.pricePerDay}/day
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pet Details */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
+                  Pet Information
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Pet Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={adminBookingForm.petName}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, petName: e.target.value})}
+                      placeholder="e.g., Max"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Pet Type *
+                    </label>
+                    <select
+                      value={adminBookingForm.petType}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, petType: e.target.value})}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                    >
+                      <option value="Dog">Dog</option>
+                      <option value="Cat">Cat</option>
+                      <option value="Rabbit">Rabbit</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Age
+                    </label>
+                    <input
+                      type="text"
+                      value={adminBookingForm.age}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, age: e.target.value})}
+                      placeholder="e.g., 2 years"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Breed
+                    </label>
+                    <input
+                      type="text"
+                      value={adminBookingForm.breed}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, breed: e.target.value})}
+                      placeholder="e.g., Golden Retriever"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Special Needs
+                    </label>
+                    <input
+                      type="text"
+                      value={adminBookingForm.specialNeeds}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, specialNeeds: e.target.value})}
+                      placeholder="Allergies, medications, etc."
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Details */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
+                  Booking Details
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Check-In Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={adminBookingForm.checkInDate}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, checkInDate: e.target.value})}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Check-Out Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={adminBookingForm.checkOutDate}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, checkOutDate: e.target.value})}
+                      min={adminBookingForm.checkInDate || new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Emergency Contact */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
+                  Emergency Contact
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Emergency Contact Name
+                    </label>
+                    <input
+                      type="text"
+                      value={adminBookingForm.emergencyContactName}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, emergencyContactName: e.target.value})}
+                      placeholder="Alternative contact person"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Emergency Contact Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={adminBookingForm.emergencyContactPhone}
+                      onChange={(e) => setAdminBookingForm({...adminBookingForm, emergencyContactPhone: e.target.value})}
+                      placeholder="Alternative phone number"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Special Instructions */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Special Instructions
+                </label>
+                <textarea
+                  value={adminBookingForm.specialInstructions}
+                  onChange={(e) => setAdminBookingForm({...adminBookingForm, specialInstructions: e.target.value})}
+                  rows={3}
+                  placeholder="Any additional information or requests..."
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 resize-none"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setIsAdminBookingModalOpen(false)}
+                  className="px-6 py-2 rounded-full border border-slate-200 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-full bg-green-500 text-white text-sm font-semibold hover:bg-green-600"
+                >
+                  Create Booking
                 </button>
               </div>
             </form>

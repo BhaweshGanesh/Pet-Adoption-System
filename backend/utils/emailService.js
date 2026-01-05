@@ -743,3 +743,639 @@ export const sendOrderConfirmationEmail = async (email, fullName, orderDetails) 
     return false;
   }
 };
+
+// Send adoption application confirmation email
+export const sendAdoptionConfirmationEmail = async (email, fullName, adoptionDetails) => {
+  try {
+    const transporter = createTransporter();
+
+    const {
+      petName,
+      petBreed,
+      petAge,
+      applicationDate,
+      status = 'pending'
+    } = adoptionDetails;
+
+    const mailOptions = {
+      from: `"PetAdopt+" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `Adoption Application Received for ${petName} - PetAdopt+`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+              color: white;
+              padding: 30px;
+              text-align: center;
+              border-radius: 10px 10px 0 0;
+            }
+            .content {
+              background: #f9fafb;
+              padding: 30px;
+              border-radius: 0 0 10px 10px;
+            }
+            .pet-box {
+              background: white;
+              border: 2px solid #f97316;
+              border-radius: 10px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .pet-name {
+              font-size: 24px;
+              font-weight: bold;
+              color: #f97316;
+              text-align: center;
+              margin-bottom: 15px;
+            }
+            .info-row {
+              padding: 8px 0;
+              border-bottom: 1px solid #e5e7eb;
+            }
+            .info-label {
+              font-weight: bold;
+              color: #666;
+            }
+            .status-badge {
+              display: inline-block;
+              background: #fef3c7;
+              color: #d97706;
+              padding: 5px 15px;
+              border-radius: 20px;
+              font-weight: bold;
+              font-size: 14px;
+              margin-top: 10px;
+            }
+            .success-box {
+              background: #d1fae5;
+              border-left: 4px solid #10b981;
+              padding: 15px;
+              margin: 20px 0;
+              border-radius: 5px;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              color: #666;
+              font-size: 12px;
+            }
+            .paw-icon {
+              font-size: 40px;
+              margin-bottom: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="paw-icon">🐾</div>
+              <h1>Application Received!</h1>
+            </div>
+            <div class="content">
+              <h2>Thank you, ${fullName}!</h2>
+              <p>We've received your adoption application and we're excited about your interest in giving a loving pet a forever home!</p>
+              
+              <div class="pet-box">
+                <div class="pet-name">🐕 ${petName}</div>
+                
+                <div style="margin: 15px 0;">
+                  <div class="info-row">
+                    <span class="info-label">Breed:</span>
+                    <span>${petBreed || 'Mixed'}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Age:</span>
+                    <span>${petAge || 'Unknown'}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Application Date:</span>
+                    <span>${new Date(applicationDate).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}</span>
+                  </div>
+                  <div class="info-row" style="border-bottom: none;">
+                    <span class="info-label">Status:</span>
+                    <span class="status-badge">⏳ ${status.toUpperCase()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="success-box">
+                <p style="margin: 0;"><strong>✨ What's Next?</strong></p>
+                <p style="margin: 5px 0 0 0;">
+                  Our team is reviewing your application. We'll contact you within 2-3 business days to discuss the next steps. 
+                  This may include a phone interview, home visit, and meeting with ${petName}.
+                </p>
+              </div>
+              
+              <p><strong>In the meantime:</strong></p>
+              <ul style="color: #475569;">
+                <li>Please ensure your contact information is up to date</li>
+                <li>Prepare any questions you might have about ${petName}</li>
+                <li>Think about how you'll welcome your new family member</li>
+              </ul>
+              
+              <p>If you have any questions or need to update your application, please don't hesitate to contact us.</p>
+              
+              <p>Best regards,<br>The PetAdopt+ Team 🐕🐱</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
+              <p>Making tails wag and hearts happy! 🐾</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Adoption confirmation email sent to:', email);
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending adoption confirmation email:', error);
+    return false;
+  }
+};
+
+// Send adoption approval email with pickup details
+export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails) => {
+  try {
+    const transporter = createTransporter();
+
+    const {
+      petName,
+      petBreed,
+      petAge,
+      pickupDate,
+      pickupTime,
+      pickupLocation
+    } = approvalDetails;
+
+    const mailOptions = {
+      from: `"PetAdopt+" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `🎉 Adoption Approved for ${petName} - PetAdopt+`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              color: white;
+              padding: 40px 30px;
+              text-align: center;
+              border-radius: 10px 10px 0 0;
+            }
+            .content {
+              background: #f9fafb;
+              padding: 30px;
+              border-radius: 0 0 10px 10px;
+            }
+            .celebration {
+              font-size: 60px;
+              margin-bottom: 10px;
+            }
+            .pet-box {
+              background: white;
+              border: 3px solid #10b981;
+              border-radius: 10px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .pet-name {
+              font-size: 28px;
+              font-weight: bold;
+              color: #10b981;
+              text-align: center;
+              margin-bottom: 15px;
+            }
+            .pickup-section {
+              background: #ecfdf5;
+              border: 2px solid #10b981;
+              border-radius: 10px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .pickup-title {
+              font-size: 18px;
+              font-weight: bold;
+              color: #065f46;
+              margin-bottom: 15px;
+              text-align: center;
+            }
+            .pickup-detail {
+              display: flex;
+              align-items: center;
+              padding: 10px 0;
+              border-bottom: 1px solid #d1fae5;
+            }
+            .pickup-detail:last-child {
+              border-bottom: none;
+            }
+            .pickup-icon {
+              font-size: 24px;
+              margin-right: 15px;
+              min-width: 30px;
+            }
+            .pickup-label {
+              font-weight: bold;
+              color: #065f46;
+              margin-right: 10px;
+            }
+            .pickup-value {
+              color: #047857;
+              font-size: 16px;
+            }
+            .info-row {
+              padding: 8px 0;
+              border-bottom: 1px solid #e5e7eb;
+            }
+            .info-label {
+              font-weight: bold;
+              color: #666;
+            }
+            .checklist {
+              background: #fef3c7;
+              border-left: 4px solid #f59e0b;
+              padding: 15px;
+              margin: 20px 0;
+              border-radius: 5px;
+            }
+            .success-box {
+              background: #d1fae5;
+              border-left: 4px solid #10b981;
+              padding: 15px;
+              margin: 20px 0;
+              border-radius: 5px;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              color: #666;
+              font-size: 12px;
+            }
+            ul {
+              margin: 10px 0;
+              padding-left: 20px;
+            }
+            li {
+              margin: 5px 0;
+              color: #475569;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="celebration">🎉</div>
+              <h1>Congratulations!</h1>
+              <h2 style="margin-top: 10px; font-weight: normal;">Your Adoption Has Been Approved!</h2>
+            </div>
+            <div class="content">
+              <h2>Dear ${fullName},</h2>
+              <p>We are absolutely delighted to inform you that your adoption application has been <strong>APPROVED</strong>! 
+              You're about to give a wonderful pet a loving forever home. 🏡❤️</p>
+              
+              <div class="pet-box">
+                <div class="pet-name">🐕 ${petName}</div>
+                <div style="margin: 15px 0; text-align: center;">
+                  <div class="info-row" style="border-bottom: none; text-align: center;">
+                    <span class="info-label">Breed:</span>
+                    <span>${petBreed || 'Mixed'}</span>
+                    <span class="info-label" style="margin-left: 20px;">Age:</span>
+                    <span>${petAge || 'Unknown'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pickup-section">
+                <div class="pickup-title">📍 Pickup Details</div>
+                
+                <div class="pickup-detail">
+                  <span class="pickup-icon">📅</span>
+                  <div>
+                    <span class="pickup-label">Date:</span>
+                    <span class="pickup-value">${pickupDate}</span>
+                  </div>
+                </div>
+                
+                <div class="pickup-detail">
+                  <span class="pickup-icon">🕐</span>
+                  <div>
+                    <span class="pickup-label">Time:</span>
+                    <span class="pickup-value">${pickupTime}</span>
+                  </div>
+                </div>
+                
+                <div class="pickup-detail">
+                  <span class="pickup-icon">📍</span>
+                  <div>
+                    <span class="pickup-label">Location:</span>
+                    <span class="pickup-value">${pickupLocation}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="checklist">
+                <p style="margin: 0 0 10px 0;"><strong>⚠️ Important: What to Bring</strong></p>
+                <ul style="margin: 5px 0;">
+                  <li>Valid government-issued photo ID</li>
+                  <li>Proof of address (utility bill, lease agreement, etc.)</li>
+                  <li>Pet carrier or leash (depending on the pet)</li>
+                  <li>Payment for any applicable adoption fees</li>
+                  <li>A lot of love and excitement! ❤️</li>
+                </ul>
+              </div>
+
+              <div class="success-box">
+                <p style="margin: 0;"><strong>✨ What Happens Next?</strong></p>
+                <p style="margin: 5px 0 0 0;">
+                  Please arrive at the specified date and time. Our team will have ${petName} ready for you, 
+                  along with any medical records, vaccination certificates, and care instructions. 
+                  If you have any questions before the pickup, feel free to contact us!
+                </p>
+              </div>
+
+              <div style="background: #fef3c7; border-radius: 10px; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #78350f;"><strong>📞 Need to Reschedule?</strong></p>
+                <p style="margin: 5px 0 0 0; color: #92400e;">
+                  Please contact us at least 24 hours in advance if you need to change your pickup time. 
+                  We understand that circumstances can change!
+                </p>
+              </div>
+              
+              <p style="font-size: 16px; color: #047857; font-weight: bold; text-align: center; margin: 30px 0;">
+                Thank you for choosing to adopt and giving ${petName} a wonderful new home! 🐾
+              </p>
+              
+              <p>Warmest regards,<br><strong>The PetAdopt+ Team</strong> 🐕🐱</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
+              <p>Making tails wag and hearts happy! 🐾</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Adoption approval email sent to:', email);
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending adoption approval email:', error);
+    return false;
+  }
+};
+
+// Send hostel booking status update email
+export const sendBookingStatusUpdateEmail = async (email, customerName, statusDetails) => {
+  try {
+    const transporter = createTransporter();
+
+    const {
+      bookingNumber,
+      status,
+      roomNumber,
+      roomName,
+      petName,
+      checkInDate,
+      checkOutDate,
+      updateDate
+    } = statusDetails;
+
+    // Different content based on status
+    let statusColor, statusIcon, statusTitle, statusMessage, actionMessage;
+
+    switch(status) {
+      case 'Confirmed':
+        statusColor = '#10b981';
+        statusIcon = '✅';
+        statusTitle = 'Booking Confirmed';
+        statusMessage = 'Your hostel booking has been confirmed! We\'re preparing everything for your pet\'s stay.';
+        actionMessage = 'Please arrive at the scheduled check-in time. Our staff will be ready to welcome your pet!';
+        break;
+      case 'Checked-In':
+        statusColor = '#3b82f6';
+        statusIcon = '🏠';
+        statusTitle = 'Checked In Successfully';
+        statusMessage = `${petName} has been checked in and is now comfortable in their room. We\'ll take great care of your pet!`;
+        actionMessage = 'You can contact us anytime if you have questions. We\'ll send you updates during the stay.';
+        break;
+      case 'Checked-Out':
+        statusColor = '#8b5cf6';
+        statusIcon = '👋';
+        statusTitle = 'Checked Out';
+        statusMessage = `${petName} has been checked out. Thank you for choosing our pet hostel service!`;
+        actionMessage = 'We hope to see you again soon! Please share your feedback with us.';
+        break;
+      case 'Cancelled':
+        statusColor = '#ef4444';
+        statusIcon = '❌';
+        statusTitle = 'Booking Cancelled';
+        statusMessage = 'Your hostel booking has been cancelled as requested.';
+        actionMessage = 'If you need to rebook, please don\'t hesitate to contact us or make a new reservation.';
+        break;
+      default:
+        statusColor = '#f59e0b';
+        statusIcon = '📋';
+        statusTitle = 'Booking Update';
+        statusMessage = `Your booking status has been updated to: ${status}`;
+        actionMessage = 'For any questions, please contact our support team.';
+    }
+
+    const mailOptions = {
+      from: `"PetAdopt+ Hostel" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `${statusIcon} ${statusTitle} - Booking #${bookingNumber}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              background: linear-gradient(135deg, ${statusColor} 0%, ${statusColor}dd 100%);
+              color: white;
+              padding: 30px;
+              text-align: center;
+              border-radius: 10px 10px 0 0;
+            }
+            .content {
+              background: #f9fafb;
+              padding: 30px;
+              border-radius: 0 0 10px 10px;
+            }
+            .status-icon {
+              font-size: 50px;
+              margin-bottom: 10px;
+            }
+            .booking-box {
+              background: white;
+              border: 2px solid ${statusColor};
+              border-radius: 10px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .booking-number {
+              font-size: 20px;
+              font-weight: bold;
+              color: ${statusColor};
+              text-align: center;
+              margin-bottom: 15px;
+            }
+            .detail-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 10px 0;
+              border-bottom: 1px solid #e5e7eb;
+            }
+            .detail-row:last-child {
+              border-bottom: none;
+            }
+            .detail-label {
+              font-weight: bold;
+              color: #666;
+            }
+            .detail-value {
+              color: #1f2937;
+            }
+            .info-box {
+              background: #fef3c7;
+              border-left: 4px solid #f59e0b;
+              padding: 15px;
+              margin: 20px 0;
+              border-radius: 5px;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              color: #666;
+              font-size: 12px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="status-icon">${statusIcon}</div>
+              <h1>${statusTitle}</h1>
+            </div>
+            <div class="content">
+              <h2>Dear ${customerName},</h2>
+              <p>${statusMessage}</p>
+              
+              <div class="booking-box">
+                <div class="booking-number">Booking #${bookingNumber}</div>
+                
+                <div style="margin: 15px 0;">
+                  <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value" style="color: ${statusColor}; font-weight: bold;">${status.toUpperCase()}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Room:</span>
+                    <span class="detail-value">${roomNumber} - ${roomName}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Pet:</span>
+                    <span class="detail-value">${petName}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Check-In Date:</span>
+                    <span class="detail-value">${new Date(checkInDate).toLocaleDateString('en-US', { 
+                      weekday: 'short',
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric'
+                    })}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Check-Out Date:</span>
+                    <span class="detail-value">${new Date(checkOutDate).toLocaleDateString('en-US', { 
+                      weekday: 'short',
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric'
+                    })}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Updated On:</span>
+                    <span class="detail-value">${new Date(updateDate).toLocaleString('en-US', { 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-box">
+                <p style="margin: 0;"><strong>💡 What's Next?</strong></p>
+                <p style="margin: 5px 0 0 0;">${actionMessage}</p>
+              </div>
+              
+              <p>If you have any questions or concerns, please don't hesitate to contact us.</p>
+              
+              <p>Best regards,<br><strong>PetAdopt+ Hostel Team</strong> 🐕🐱</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2024 PetAdopt+ Hostel Services. All rights reserved.</p>
+              <p>Booking Number: ${bookingNumber}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Booking status update email (${status}) sent to:`, email);
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending booking status update email:', error);
+    return false;
+  }
+};

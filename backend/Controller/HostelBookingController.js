@@ -1,7 +1,8 @@
 import HostelBooking from '../model/HostelBookingmodel.js';
 import HostelRoom from '../model/HostelRoommodel.js';
 import User from '../model/Usermodel.js';
-import { sendHostelBookingConfirmationEmail } from '../utils/emailService.js';
+import mongoose from 'mongoose';
+import { sendHostelBookingConfirmationEmail, sendBookingStatusUpdateEmail } from '../utils/emailService.js';
 
 // @desc    Get all bookings (Admin)
 // @route   GET /api/hostel-bookings
@@ -245,7 +246,9 @@ export const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    const booking = await HostelBooking.findById(req.params.id);
+    const booking = await HostelBooking.findById(req.params.id)
+      .populate('room', 'roomNumber roomName roomType')
+      .populate('user', 'fullName email');
 
     if (!booking) {
       return res.status(404).json({
@@ -254,8 +257,36 @@ export const updateBookingStatus = async (req, res) => {
       });
     }
 
+    // Store old status for comparison
+    const oldStatus = booking.status;
+    
+    // Update status
     booking.status = status;
     await booking.save();
+
+    // Get customer email - either from user or contactInfo
+    const customerEmail = booking.user?.email || booking.contactInfo?.email;
+    const customerName = booking.user?.fullName || 'Valued Customer';
+
+    // Send status update email
+    if (customerEmail && status !== oldStatus) {
+      try {
+        await sendBookingStatusUpdateEmail(customerEmail, customerName, {
+          bookingNumber: booking.bookingNumber,
+          status: status,
+          roomNumber: booking.room?.roomNumber || 'N/A',
+          roomName: booking.room?.roomName || 'N/A',
+          petName: booking.petDetails?.petName || 'Your Pet',
+          checkInDate: booking.checkInDate,
+          checkOutDate: booking.checkOutDate,
+          updateDate: new Date(),
+        });
+        console.log(`✅ Status update email sent to ${customerEmail} for booking ${booking.bookingNumber}`);
+      } catch (emailError) {
+        console.error('⚠️ Failed to send status update email:', emailError);
+        // Don't fail the status update if email fails
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -315,6 +346,127 @@ export const cancelBooking = async (req, res) => {
       success: false,
       message: 'Error cancelling booking',
       error: error.message,
+    });
+  }
+};
+
+// @desc    Create booking by admin (with custom user email)
+// @route   POST /api/hostel-bookings/admin
+// @access  Admin
+export const createAdminBooking = async (req, res) => {
+  try {
+    const {
+      room,
+      customerEmail,
+      customerName,
+      petDetails,
+      checkInDate,
+      checkOutDate,
+      contactInfo,
+      specialInstructions,
+    } = req.body;
+
+    // Validate required fields
+    if (!room || !customerEmail || !customerName || !petDetails?.petName || !checkInDate || !checkOutDate || !contactInfo?.phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields',
+      });
+    }
+
+    // Get room details
+    const roomDetails = await HostelRoom.findById(room);
+    if (!roomDetails) {
+      return res.status(404).json({
+        success: false,
+        message: 'Room not found',
+      });
+    }
+
+    // Validate dates
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+
+    if (checkOut <= checkIn) {
+      return res.status(400).json({
+        success: false,
+        message: 'Check-out date must be after check-in date',
+      });
+    }
+
+    // Calculate days and total amount
+    const numberOfDays = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+    const totalAmount = numberOfDays * roomDetails.pricePerDay;
+
+    // Try to find user by email, or create a temporary user reference
+    let userId = null;
+    const existingUser = await User.findOne({ email: customerEmail });
+    if (existingUser) {
+      userId = existingUser._id;
+    }
+
+    // Create booking
+    const booking = new HostelBooking({
+      user: userId, // Can be null for walk-in customers
+      room: room,
+      petDetails: {
+        petName: petDetails.petName,
+        petType: petDetails.petType || 'Dog',
+        age: petDetails.age || '',
+        breed: petDetails.breed || '',
+        specialNeeds: petDetails.specialNeeds || '',
+      },
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      numberOfDays,
+      totalAmount,
+      specialInstructions: specialInstructions || '',
+      contactInfo: {
+        phone: contactInfo.phone,
+        emergencyContactName: contactInfo.emergencyContactName || '',
+        emergencyContactPhone: contactInfo.emergencyContactPhone || '',
+      },
+      status: 'Confirmed',
+    });
+
+    await booking.save();
+
+    // Populate room details for email
+    await booking.populate('room', 'roomNumber roomName roomType pricePerDay facilities');
+
+    // Send confirmation email to customer
+    try {
+      await sendHostelBookingConfirmationEmail(customerEmail, customerName, {
+        bookingNumber: booking.bookingNumber,
+        roomName: roomDetails.roomName,
+        roomNumber: roomDetails.roomNumber,
+        roomType: roomDetails.roomType,
+        petName: petDetails.petName,
+        petType: petDetails.petType || 'Dog',
+        checkInDate: booking.checkInDate,
+        checkOutDate: booking.checkOutDate,
+        numberOfDays: booking.numberOfDays,
+        totalAmount: booking.totalAmount,
+        pricePerDay: roomDetails.pricePerDay,
+        facilities: roomDetails.facilities || [],
+        specialInstructions: booking.specialInstructions,
+      });
+      console.log(`✅ Admin booking confirmation email sent to ${customerEmail}`);
+    } catch (emailError) {
+      console.error('⚠️ Failed to send booking confirmation email:', emailError);
+      // Don't fail the booking if email fails
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Booking created successfully by admin',
+      data: booking,
+    });
+  } catch (error) {
+    console.error('Error creating admin booking:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Error creating booking',
     });
   }
 };
