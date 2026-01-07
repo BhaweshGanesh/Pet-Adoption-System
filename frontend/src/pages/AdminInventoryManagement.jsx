@@ -15,8 +15,8 @@ const AdminInventoryManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);  
-  
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
   // Orders states
   const [orders, setOrders] = useState([]);
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
@@ -262,7 +262,7 @@ const AdminInventoryManagement = () => {
       if (data.success) {
         alert(data.message);
         fetchProducts();
-        setDeleteTarget(null);
+    setDeleteTarget(null);
       } else {
         alert(data.message || 'Failed to delete product');
       }
@@ -272,27 +272,40 @@ const AdminInventoryManagement = () => {
     }
   };
 
-  const handleUpdateOrderStatus = async (orderId, status, paymentStatus) => {
+  const handleUpdateOrderStatus = async (orderId, newStatus, newPaymentStatus) => {
     try {
       const response = await fetch(`http://localhost:4000/api/orders/${orderId}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, paymentStatus }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          paymentStatus: newPaymentStatus,
+        }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        alert('Order status updated');
+        // Update the selected order in state
+        setSelectedOrder(data.data);
+        
+        // Refresh orders list
         fetchOrders();
-        setIsOrderModalOpen(false);
-        setSelectedOrder(null);
+        
+        // Show success message with email confirmation
+        const statusMsg = newStatus !== selectedOrder.status 
+          ? `Order status updated to "${newStatus}"`
+          : `Payment status updated to "${newPaymentStatus}"`;
+        
+        alert(`${statusMsg}\n\n✅ Email notification sent to customer!`);
       } else {
-        alert(data.message || 'Failed to update order');
+        alert(data.message || 'Failed to update order status');
       }
     } catch (error) {
-      console.error('Error updating order:', error);
-      alert('Failed to update order');
+      console.error('Error updating order status:', error);
+      alert('Failed to update order status');
     }
   };
 
@@ -330,7 +343,7 @@ const AdminInventoryManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fff7f0] flex">
+        <div className="min-h-screen bg-[#fff7f0] flex">
       <AdminSidebar />
 
       <div className="flex-1 flex flex-col">
@@ -396,23 +409,23 @@ const AdminInventoryManagement = () => {
                   Manage Products - Food, Toys & Accessories
                 </h2>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    type="text"
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="text"
                     placeholder="Search products..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border border-slate-200 rounded-full px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-orange-500"
-                  />
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border border-slate-200 rounded-full px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-orange-500"
+              />
 
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="border border-slate-200 rounded-full px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-orange-500"
-                  >
-                    <option value="all">All Categories</option>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="border border-slate-200 rounded-full px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-orange-500"
+              >
+                <option value="all">All Categories</option>
                     <option value="Toy">Toy</option>
-                    <option value="Food">Food</option>
+                <option value="Food">Food</option>
                     <option value="Accessory">Accessory</option>
                   </select>
 
@@ -426,85 +439,85 @@ const AdminInventoryManagement = () => {
                     <option value="Cat">Cat</option>
                     <option value="Rabbit">Rabbit</option>
                     <option value="All">All Pets</option>
-                  </select>
+              </select>
 
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="border border-slate-200 rounded-full px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-orange-500"
-                  >
-                    <option value="all">All Status</option>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border border-slate-200 rounded-full px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-orange-500"
+              >
+                <option value="all">All Status</option>
                     <option value="Available">Available</option>
                     <option value="Unavailable">Unavailable</option>
-                    <option value="Out of Stock">Out of Stock</option>
-                  </select>
+                <option value="Out of Stock">Out of Stock</option>
+              </select>
 
-                  <button
+              <button
                     onClick={openAddProductModal}
-                    className="inline-flex items-center gap-1 rounded-full bg-orange-500 text-white text-xs font-semibold px-4 py-2 hover:bg-orange-600 shadow-sm"
-                  >
-                    <span className="text-lg leading-none">+</span>
+                className="inline-flex items-center gap-1 rounded-full bg-orange-500 text-white text-xs font-semibold px-4 py-2 hover:bg-orange-600 shadow-sm"
+              >
+                <span className="text-lg leading-none">+</span>
                     <span>Add Product</span>
-                  </button>
-                </div>
-              </div>
+              </button>
+            </div>
+          </div>
 
               {/* Products Table */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 {loading ? (
                   <div className="p-8 text-center text-slate-500">Loading products...</div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-xs">
-                      <thead className="bg-slate-50 text-slate-500 uppercase tracking-wide">
-                        <tr>
-                          <th className="px-4 py-3 text-left">Product</th>
-                          <th className="px-4 py-3 text-left">Category</th>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-xs">
+                <thead className="bg-slate-50 text-slate-500 uppercase tracking-wide">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Product</th>
+                    <th className="px-4 py-3 text-left">Category</th>
                           <th className="px-4 py-3 text-left">Pet Type</th>
                           <th className="px-4 py-3 text-left">Stock</th>
-                          <th className="px-4 py-3 text-left">Price (Rs)</th>
-                          <th className="px-4 py-3 text-left">Status</th>
-                          <th className="px-4 py-3 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <th className="px-4 py-3 text-left">Price (Rs)</th>
+                    <th className="px-4 py-3 text-left">Status</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
                         {filteredProducts.length === 0 ? (
                           <tr>
                             <td colSpan={7} className="px-4 py-6 text-center text-slate-500">
                               No products found
-                            </td>
-                          </tr>
-                        ) : (
+                      </td>
+                    </tr>
+                  ) : (
                           filteredProducts.map((product) => (
-                            <tr
+                      <tr
                               key={product._id}
-                              className="border-t border-slate-100 hover:bg-slate-50/60"
-                            >
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-3">
+                        className="border-t border-slate-100 hover:bg-slate-50/60"
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
                                   {product.image && (
-                                    <img
+                              <img
                                       src={product.image}
                                       alt={product.name}
-                                      className="w-12 h-12 rounded-xl object-cover border border-slate-100"
-                                    />
-                                  )}
-                                  <div>
-                                    <p className="font-medium text-slate-900">
+                                className="w-12 h-12 rounded-xl object-cover border border-slate-100"
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium text-slate-900">
                                       {product.name}
-                                    </p>
+                              </p>
                                     {product.brand && (
-                                      <p className="text-[11px] text-slate-500">
+                              <p className="text-[11px] text-slate-500">
                                         {product.brand}
-                                      </p>
+                              </p>
                                     )}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-slate-700">
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">
                                 {product.category}
-                              </td>
-                              <td className="px-4 py-3 text-slate-700">
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">
                                 {product.petType}
                               </td>
                               <td className="px-4 py-3">
@@ -518,45 +531,45 @@ const AdminInventoryManagement = () => {
                                     <span className="ml-1 text-amber-600">⚠️</span>
                                   )}
                                 </span>
-                              </td>
-                              <td className="px-4 py-3 text-slate-700">
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">
                                 Rs {product.price}
-                              </td>
-                              <td className="px-4 py-3">
-                                <span
-                                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
                                     product.status === "Available"
-                                      ? "bg-emerald-50 text-emerald-600"
+                                ? "bg-emerald-50 text-emerald-600"
                                       : product.status === "Out of Stock"
                                       ? "bg-red-50 text-red-600"
-                                      : "bg-slate-100 text-slate-600"
-                                  }`}
-                                >
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
                                   {product.status}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="inline-flex gap-2">
-                                  <button
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="inline-flex gap-2">
+                            <button
                                     onClick={() => openEditProductModal(product)}
-                                    className="px-3 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
+                              className="px-3 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100"
+                            >
+                              Edit
+                            </button>
+                            <button
                                     onClick={() => confirmDeleteProduct(product)}
-                                    className="px-3 py-1 rounded-full border border-red-200 text-[11px] text-red-600 hover:bg-red-50"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                              className="px-3 py-1 rounded-full border border-red-200 text-[11px] text-red-600 hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
                 )}
               </div>
             </>
@@ -581,8 +594,9 @@ const AdminInventoryManagement = () => {
                   <option value="Shipped">Shipped</option>
                   <option value="Delivered">Delivered</option>
                   <option value="Cancelled">Cancelled</option>
+                  <option value="Returned">Returned</option>
                 </select>
-              </div>
+          </div>
 
               {/* Orders Table */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -638,6 +652,8 @@ const AdminInventoryManagement = () => {
                                     ? "bg-emerald-50 text-emerald-600"
                                     : order.status === "Cancelled"
                                     ? "bg-red-50 text-red-600"
+                                    : order.status === "Returned"
+                                    ? "bg-indigo-50 text-indigo-600"
                                     : order.status === "Shipped"
                                     ? "bg-blue-50 text-blue-600"
                                     : "bg-amber-50 text-amber-600"
@@ -651,6 +667,10 @@ const AdminInventoryManagement = () => {
                                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
                                   order.paymentStatus === "Paid"
                                     ? "bg-emerald-50 text-emerald-600"
+                                    : order.paymentStatus === "Failed"
+                                    ? "bg-red-50 text-red-600"
+                                    : order.paymentStatus === "Refunded"
+                                    ? "bg-indigo-50 text-indigo-600"
                                     : "bg-slate-100 text-slate-600"
                                 }`}
                               >
@@ -698,27 +718,27 @@ const AdminInventoryManagement = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Left Column */}
                     <div className="space-y-3">
-                      <div>
+                    <div>
                         <label className="block mb-1 text-sm font-medium text-slate-700">
-                          Product Name *
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
+                        Product Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
                           value={productForm.name}
                           onChange={handleProductFormChange}
                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                           required
-                        />
-                      </div>
+                      />
+                    </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <div>
+                    <div>
                           <label className="block mb-1 text-sm font-medium text-slate-700">
                             Category *
-                          </label>
-                          <select
-                            name="category"
+                      </label>
+                      <select
+                        name="category"
                             value={productForm.category}
                             onChange={handleProductFormChange}
                             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -727,13 +747,13 @@ const AdminInventoryManagement = () => {
                             <option value="Toy">Toy</option>
                             <option value="Food">Food</option>
                             <option value="Accessory">Accessory</option>
-                          </select>
-                        </div>
+                      </select>
+                    </div>
 
-                        <div>
+                      <div>
                           <label className="block mb-1 text-sm font-medium text-slate-700">
                             Pet Type *
-                          </label>
+                        </label>
                           <select
                             name="petType"
                             value={productForm.petType}
@@ -750,13 +770,13 @@ const AdminInventoryManagement = () => {
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <div>
+                      <div>
                           <label className="block mb-1 text-sm font-medium text-slate-700">
                             Price (Rs) *
-                          </label>
-                          <input
-                            type="number"
-                            name="price"
+                        </label>
+                        <input
+                          type="number"
+                          name="price"
                             value={productForm.price}
                             onChange={handleProductFormChange}
                             min="0"
@@ -778,8 +798,8 @@ const AdminInventoryManagement = () => {
                             min="0"
                             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                             required
-                          />
-                        </div>
+                        />
+                      </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
@@ -827,14 +847,14 @@ const AdminInventoryManagement = () => {
                           <p className="text-xs text-slate-500 mt-1">
                             Alert when stock falls below this number
                           </p>
-                        </div>
+                    </div>
 
-                        <div>
+                    <div>
                           <label className="block mb-1 text-sm font-medium text-slate-700">
                             Status *
-                          </label>
-                          <select
-                            name="status"
+                      </label>
+                      <select
+                        name="status"
                             value={productForm.status}
                             onChange={handleProductFormChange}
                             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -844,49 +864,49 @@ const AdminInventoryManagement = () => {
                             <option value="Unavailable">Unavailable</option>
                             {/* Only show "Out of Stock" option when editing an existing product */}
                             {editingProduct && <option value="Out of Stock">Out of Stock</option>}
-                          </select>
+                      </select>
                           <p className="text-xs text-slate-500 mt-1">
                             💡 <strong>Note:</strong> "Out of Stock" is set automatically when stock reaches 0
                           </p>
                         </div>
                       </div>
-                    </div>
+                  </div>
 
                     {/* Right Column */}
                     <div className="space-y-3">
-                      <div>
+                    <div>
                         <label className="block mb-1 text-sm font-medium text-slate-700">
                           Description *
-                        </label>
-                        <textarea
-                          name="description"
+                      </label>
+                      <textarea
+                        name="description"
                           rows={5}
                           value={productForm.description}
                           onChange={handleProductFormChange}
                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-500"
                           required
-                        />
-                      </div>
+                      />
+                    </div>
 
-                      <div>
+                    <div>
                         <label className="block mb-1 text-sm font-medium text-slate-700">
-                          Product Image
-                        </label>
-                        <input
-                          type="file"
-                          accept="image/*"
+                        Product Image
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
                           onChange={handleImageSelect}
                           className="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100"
-                        />
-                        {imagePreview && (
+                      />
+                      {imagePreview && (
                           <div className="mt-3">
-                            <img
-                              src={imagePreview}
-                              alt="Preview"
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
                               className="w-full h-40 rounded-xl object-cover border border-slate-200"
-                            />
+                        />
                           </div>
-                        )}
+                      )}
                       </div>
                     </div>
                   </div>
@@ -1021,19 +1041,56 @@ const AdminInventoryManagement = () => {
                           <option value="Shipped">Shipped</option>
                           <option value="Delivered">Delivered</option>
                           <option value="Cancelled">Cancelled</option>
+                          <option value="Returned">Returned</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block mb-1 text-xs font-medium text-slate-700">Payment Status</label>
+                        <label className="block mb-1 text-xs font-medium text-slate-700">
+                          Payment Status
+                          {(selectedOrder.paymentStatus === 'Failed' || selectedOrder.paymentStatus === 'Refunded') && (
+                            <span className="ml-2 text-[10px] text-slate-500">(Locked)</span>
+                          )}
+                        </label>
                         <select
                           value={selectedOrder.paymentStatus}
                           onChange={(e) => handleUpdateOrderStatus(selectedOrder._id, selectedOrder.status, e.target.value)}
-                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                          disabled={selectedOrder.paymentStatus === 'Failed' || selectedOrder.paymentStatus === 'Refunded'}
+                          title={
+                            selectedOrder.paymentStatus === 'Failed' 
+                              ? 'Failed payment status is locked and cannot be changed'
+                              : selectedOrder.paymentStatus === 'Refunded'
+                              ? 'Refunded payment status is locked and cannot be changed'
+                              : ''
+                          }
                         >
-                          <option value="Pending">Pending</option>
-                          <option value="Paid">Paid</option>
-                          <option value="Failed">Failed</option>
-                          <option value="Refunded">Refunded</option>
+                          {/* Pending can change to any status */}
+                          {selectedOrder.paymentStatus === 'Pending' && (
+                            <>
+                              <option value="Pending">Pending</option>
+                              <option value="Paid">Paid</option>
+                              <option value="Failed">Failed (Auto-cancels order)</option>
+                              <option value="Refunded">Refunded (Auto-returns order)</option>
+                            </>
+                          )}
+                          
+                          {/* Paid can only change to Refunded */}
+                          {selectedOrder.paymentStatus === 'Paid' && (
+                            <>
+                              <option value="Paid">Paid</option>
+                              <option value="Refunded">Refunded (Auto-returns order)</option>
+                            </>
+                          )}
+                          
+                          {/* Failed is locked */}
+                          {selectedOrder.paymentStatus === 'Failed' && (
+                            <option value="Failed">Failed (Locked)</option>
+                          )}
+                          
+                          {/* Refunded is locked */}
+                          {selectedOrder.paymentStatus === 'Refunded' && (
+                            <option value="Refunded">Refunded (Locked)</option>
+                          )}
                         </select>
                       </div>
                     </div>
@@ -1041,7 +1098,9 @@ const AdminInventoryManagement = () => {
 
                   {/* Actions */}
                   <div className="flex justify-between pt-4 border-t border-slate-200">
-                    {selectedOrder.status !== 'Cancelled' && selectedOrder.status !== 'Delivered' && (
+                    {selectedOrder.status !== 'Cancelled' && 
+                     selectedOrder.status !== 'Delivered' && 
+                     selectedOrder.status !== 'Returned' && (
                       <button
                         onClick={() => handleCancelOrder(selectedOrder._id)}
                         className="px-4 py-2 rounded-full border border-red-200 text-sm text-red-600 hover:bg-red-50"

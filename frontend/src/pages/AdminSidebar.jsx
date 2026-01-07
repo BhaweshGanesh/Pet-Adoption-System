@@ -15,7 +15,7 @@ const items = [
   { label: "Logout", to: "#" },
 ];
 
-const AdminSidebar = () => {
+const AdminSidebar = () => {  
   const location = useLocation();
 
   return (

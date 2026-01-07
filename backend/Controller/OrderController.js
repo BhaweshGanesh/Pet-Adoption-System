@@ -1,7 +1,7 @@
 import Order from '../model/Ordermodel.js';
 import Product from '../model/Productmodel.js';
 import User from '../model/Usermodel.js';
-import { sendOrderConfirmationEmail } from '../utils/emailService.js';
+import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } from '../utils/emailService.js';
 
 // @desc    Get all orders
 // @route   GET /api/orders
@@ -195,7 +195,7 @@ export const updateOrderStatus = async (req, res) => {
   try {
     const { status, paymentStatus } = req.body;
 
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('items.product', 'name');
 
     if (!order) {
       return res.status(404).json({
@@ -204,14 +204,81 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
+    const oldPaymentStatus = order.paymentStatus;
+    const oldStatus = order.status;
+    let stockRestored = false;
+
+    // Update status and payment status first
     if (status) order.status = status;
     if (paymentStatus) order.paymentStatus = paymentStatus;
 
+    // Auto-update order status to "Cancelled" when payment is "Failed"
+    if (paymentStatus === 'Failed' && order.status !== 'Cancelled') {
+      order.status = 'Cancelled';
+      console.log('✅ Order status automatically updated to "Cancelled" due to payment failure');
+    }
+
+    // Auto-update order status to "Returned" when payment is "Refunded"
+    if (paymentStatus === 'Refunded' && order.status !== 'Returned') {
+      order.status = 'Returned';
+      console.log('✅ Order status automatically updated to "Returned" due to refund');
+    }
+
+    // Auto-update payment status to "Paid" when order is NEWLY delivered
+    // Only if payment status wasn't explicitly changed
+    if (status === 'Delivered' && oldStatus !== 'Delivered' && !paymentStatus && order.paymentStatus !== 'Paid') {
+      order.paymentStatus = 'Paid';
+      console.log('✅ Payment status automatically updated to "Paid" for delivered order');
+    }
+
+    // Restore stock for Failed, Cancelled, Refunded, or Returned orders
+    const shouldRestoreStock = 
+      (paymentStatus === 'Failed' && oldPaymentStatus !== 'Failed') ||
+      (paymentStatus === 'Refunded' && oldPaymentStatus !== 'Refunded') ||
+      (order.status === 'Cancelled' && status === 'Cancelled') ||
+      (order.status === 'Returned' && status === 'Returned');
+
+    if (shouldRestoreStock) {
+      console.log('🔄 Restoring stock for order:', order.orderNumber);
+      for (const item of order.items) {
+        const product = await Product.findById(item.product);
+        if (product) {
+          product.stock += item.quantity;
+          await product.save();
+          console.log(`✅ Restored ${item.quantity} units of ${product.name}`);
+        }
+      }
+      stockRestored = true;
+    }
+
     await order.save();
+
+    // Send email notification to customer
+    try {
+      await sendOrderStatusUpdateEmail(
+        order.customer.email,
+        order.customer.name,
+        {
+          orderNumber: order.orderNumber,
+          status: order.status,
+          paymentStatus: order.paymentStatus,
+          items: order.items,
+          subtotal: order.subtotal,
+          shippingFee: order.shippingFee,
+          totalAmount: order.totalAmount,
+          orderDate: order.createdAt,
+          stockRestored: stockRestored,
+        }
+      );
+      console.log(`✅ Status update email sent to ${order.customer.email}`);
+    } catch (emailError) {
+      console.error('⚠️ Failed to send status update email:', emailError);
+      // Don't fail the status update if email fails
+    }
 
     res.status(200).json({
       success: true,
-      message: 'Order status updated successfully',
+      message: `Order status updated successfully${stockRestored ? ' and stock restored' : ''}`,
       data: order,
     });
   } catch (error) {

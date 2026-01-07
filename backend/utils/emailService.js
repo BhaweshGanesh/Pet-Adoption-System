@@ -526,6 +526,265 @@ export const sendHostelBookingConfirmationEmail = async (email, fullName, bookin
   }
 };
 
+// Send order status update email
+export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) => {
+  try {
+    const transporter = createTransporter();
+
+    const statusMessages = {
+      'Pending': {
+        title: 'Order Received',
+        message: 'We have received your order and it is being processed.',
+        icon: '📋',
+        color: '#f59e0b'
+      },
+      'Processing': {
+        title: 'Order Processing',
+        message: 'Your order is being prepared for shipment.',
+        icon: '📦',
+        color: '#3b82f6'
+      },
+      'Shipped': {
+        title: 'Order Shipped',
+        message: 'Your order has been shipped and is on its way!',
+        icon: '🚚',
+        color: '#8b5cf6'
+      },
+      'Delivered': {
+        title: 'Order Delivered',
+        message: 'Your order has been successfully delivered!',
+        icon: '✅',
+        color: '#10b981'
+      },
+      'Cancelled': {
+        title: 'Order Cancelled',
+        message: orderDetails.paymentStatus === 'Failed' 
+          ? 'Your order has been cancelled due to payment failure. The amount will not be charged, and stock has been restored.'
+          : 'Your order has been cancelled. Stock has been restored to our inventory.',
+        icon: '❌',
+        color: '#ef4444'
+      },
+      'Returned': {
+        title: 'Order Returned',
+        message: 'Your order has been returned and refund has been processed. Stock has been restored to our inventory.',
+        icon: '↩️',
+        color: '#6366f1'
+      }
+    };
+
+    const statusInfo = statusMessages[orderDetails.status] || statusMessages['Pending'];
+
+    const mailOptions = {
+      from: `"PetAdopt+" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `${statusInfo.icon} Order ${orderDetails.status} - ${orderDetails.orderNumber}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              margin: 0;
+              padding: 0;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+              color: white;
+              padding: 30px;
+              text-align: center;
+              border-radius: 10px 10px 0 0;
+            }
+            .status-banner {
+              background: ${statusInfo.color};
+              color: white;
+              padding: 20px;
+              text-align: center;
+              font-size: 24px;
+              font-weight: bold;
+            }
+            .content {
+              background: #f9fafb;
+              padding: 30px;
+            }
+            .order-box {
+              background: white;
+              border: 2px solid #e5e7eb;
+              border-radius: 10px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .order-item {
+              display: flex;
+              justify-content: space-between;
+              padding: 10px 0;
+              border-bottom: 1px solid #e5e7eb;
+            }
+            .order-item:last-child {
+              border-bottom: none;
+            }
+            .total-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 15px 0;
+              font-size: 18px;
+              font-weight: bold;
+              border-top: 2px solid #f97316;
+              margin-top: 10px;
+            }
+            .info-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 8px 0;
+              font-size: 14px;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              color: #666;
+              font-size: 12px;
+              padding: 20px;
+              border-radius: 0 0 10px 10px;
+            }
+            .badge {
+              display: inline-block;
+              padding: 5px 12px;
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: bold;
+            }
+            .badge-paid { background: #d1fae5; color: #065f46; }
+            .badge-pending { background: #fef3c7; color: #92400e; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>${statusInfo.icon} Order Status Update</h1>
+            </div>
+            <div class="status-banner">
+              ${statusInfo.title}
+            </div>
+            <div class="content">
+              <h2>Hi ${fullName},</h2>
+              <p>${statusInfo.message}</p>
+              
+              <div class="order-box">
+                <h3 style="margin-top: 0; color: #f97316;">Order Details</h3>
+                <div class="info-row">
+                  <span><strong>Order Number:</strong></span>
+                  <span>${orderDetails.orderNumber}</span>
+                </div>
+                <div class="info-row">
+                  <span><strong>Order Status:</strong></span>
+                  <span style="color: ${statusInfo.color}; font-weight: bold;">${orderDetails.status}</span>
+                </div>
+                <div class="info-row">
+                  <span><strong>Payment Status:</strong></span>
+                  <span class="badge badge-${orderDetails.paymentStatus.toLowerCase()}">${orderDetails.paymentStatus}</span>
+                </div>
+                <div class="info-row">
+                  <span><strong>Order Date:</strong></span>
+                  <span>${new Date(orderDetails.orderDate).toLocaleDateString('en-IN', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
+                </div>
+              </div>
+
+              <div class="order-box">
+                <h3 style="margin-top: 0; color: #1f2937;">Order Items</h3>
+                ${orderDetails.items.map(item => `
+                  <div class="order-item">
+                    <div>
+                      <strong>${item.productName}</strong><br>
+                      <span style="color: #666; font-size: 13px;">Quantity: ${item.quantity} × Rs ${item.price}</span>
+                    </div>
+                    <div style="font-weight: bold;">Rs ${item.subtotal}</div>
+                  </div>
+                `).join('')}
+                
+                <div style="margin-top: 15px;">
+                  <div class="info-row">
+                    <span>Subtotal:</span>
+                    <span>Rs ${orderDetails.subtotal}</span>
+                  </div>
+                  <div class="info-row">
+                    <span>Shipping Fee:</span>
+                    <span style="color: ${orderDetails.shippingFee === 0 ? '#10b981' : '#333'}; font-weight: ${orderDetails.shippingFee === 0 ? 'bold' : 'normal'};">
+                      ${orderDetails.shippingFee === 0 ? 'FREE' : `Rs ${orderDetails.shippingFee}`}
+                    </span>
+                  </div>
+                  <div class="total-row">
+                    <span>Total Amount:</span>
+                    <span style="color: #f97316;">Rs ${orderDetails.totalAmount}</span>
+                  </div>
+                </div>
+              </div>
+
+              ${orderDetails.status === 'Delivered' ? `
+                <div style="background: #d1fae5; border: 2px solid #10b981; border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
+                  <p style="margin: 0; color: #065f46; font-weight: bold;">
+                    🎉 Thank you for shopping with PetAdopt+! We hope your pets love their new items!
+                  </p>
+                </div>
+              ` : ''}
+
+              ${orderDetails.status === 'Cancelled' ? `
+                <div style="background: #fee2e2; border: 2px solid #ef4444; border-radius: 10px; padding: 15px; margin-top: 20px;">
+                  <p style="margin: 0; color: #991b1b; font-weight: bold;">
+                    ⚠️ Order Cancelled
+                  </p>
+                  <p style="margin: 10px 0 0 0; color: #991b1b;">
+                    ${orderDetails.paymentStatus === 'Failed' 
+                      ? 'Your order has been automatically cancelled due to payment failure. You will not be charged. Stock has been restored to our inventory.'
+                      : 'Your order has been cancelled. Stock has been restored to our inventory. If you have any questions, please contact our support team.'}
+                  </p>
+                </div>
+              ` : ''}
+
+              ${orderDetails.status === 'Returned' ? `
+                <div style="background: #ede9fe; border: 2px solid #6366f1; border-radius: 10px; padding: 15px; margin-top: 20px;">
+                  <p style="margin: 0; color: #4338ca; font-weight: bold;">
+                    ↩️ Order Returned & Refunded
+                  </p>
+                  <p style="margin: 10px 0 0 0; color: #4338ca;">
+                    Your order has been successfully returned. The refund of <strong>Rs ${orderDetails.totalAmount}</strong> has been processed and will be credited to your account within 5-7 business days. Stock has been restored to our inventory.
+                  </p>
+                </div>
+              ` : ''}
+
+              <p style="margin-top: 20px;">If you have any questions about your order, please don't hesitate to contact us.</p>
+              
+              <p>Best regards,<br>The PetAdopt+ Team 🐕🐱</p>
+            </div>
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} PetAdopt+. All rights reserved.</p>
+              <p>This is an automated email. Please do not reply to this message.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Order status update email sent to ${email}`);
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending order status update email:', error);
+    return false;
+  }
+};
+
 // Send order confirmation email
 export const sendOrderConfirmationEmail = async (email, fullName, orderDetails) => {
   try {
