@@ -392,7 +392,7 @@ const BrowsePets = () => {
                       </p>
                       <p className="flex justify-between gap-2">
                         <span>Gender: {pet.gender}</span>
-                        <span>Size: {pet.size}</span>
+                        <span>Size: {pet.size}</span>  
                       </p>
                       <p className="flex justify-between gap-2">
                         <span>In shelter: {pet.inShelter}</span>
