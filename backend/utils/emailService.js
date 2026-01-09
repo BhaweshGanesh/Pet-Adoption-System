@@ -1371,7 +1371,7 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
                   <li>Valid government-issued photo ID</li>
                   <li>Proof of address (utility bill, lease agreement, etc.)</li>
                   <li>Pet carrier or leash (depending on the pet)</li>
-                  <li>Payment for any applicable adoption fees</li>
+                  <li>No adoption fee is required</li>
                   <li>A lot of love and excitement! ❤️</li>
                 </ul>
               </div>
@@ -1414,6 +1414,173 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
     return true;
   } catch (error) {
     console.error('❌ Error sending adoption approval email:', error);
+    return false;
+  }
+};
+
+// Send adoption rejection email
+export const sendAdoptionRejectionEmail = async (email, fullName, rejectionDetails) => {
+  try {
+    const transporter = createTransporter();
+
+    const {
+      petName,
+      petBreed,
+      petAge,
+      reviewNotes
+    } = rejectionDetails;
+
+    const mailOptions = {
+      from: `"PetAdopt+" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `Adoption Application Update for ${petName} - PetAdopt+`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+              color: white;
+              padding: 30px;
+              text-align: center;
+              border-radius: 10px 10px 0 0;
+            }
+            .content {
+              background: #f9fafb;
+              padding: 30px;
+              border-radius: 0 0 10px 10px;
+            }
+            .pet-box {
+              background: white;
+              border: 2px solid #f97316;
+              border-radius: 10px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .pet-name {
+              font-size: 24px;
+              font-weight: bold;
+              color: #f97316;
+              text-align: center;
+              margin-bottom: 15px;
+            }
+            .info-box {
+              background: #fef3c7;
+              border-left: 4px solid #f59e0b;
+              padding: 15px;
+              margin: 20px 0;
+              border-radius: 5px;
+            }
+            .message-box {
+              background: #ffe4e6;
+              border-left: 4px solid #f43f5e;
+              padding: 15px;
+              margin: 20px 0;
+              border-radius: 5px;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              color: #666;
+              font-size: 12px;
+            }
+            .info-label {
+              font-weight: bold;
+              color: #666;
+            }
+            .browse-button {
+              display: inline-block;
+              background: #f97316;
+              color: white;
+              padding: 12px 24px;
+              text-decoration: none;
+              border-radius: 8px;
+              font-weight: bold;
+              margin: 20px 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🐾 Adoption Application Update</h1>
+            </div>
+            <div class="content">
+              <h2>Dear ${fullName},</h2>
+              <p>Thank you for your interest in adopting from PetAdopt+. We appreciate the time and effort you put into your adoption application.</p>
+              
+              <div class="pet-box">
+                <div class="pet-name">🐕 ${petName}</div>
+                <div style="margin: 15px 0; text-align: center;">
+                  <span class="info-label">Breed:</span> ${petBreed || 'Mixed'}
+                  <span class="info-label" style="margin-left: 20px;">Age:</span> ${petAge || 'Unknown'}
+                </div>
+              </div>
+
+              <div class="message-box">
+                <p style="margin: 0; font-weight: bold; color: #991b1b;">Application Status: Not Approved</p>
+                <p style="margin: 10px 0 0 0; color: #991b1b;">
+                  After careful review, we regret to inform you that we are unable to approve your adoption application for ${petName} at this time.
+                </p>
+              </div>
+
+              ${reviewNotes ? `
+              <div class="info-box">
+                <p style="margin: 0; font-weight: bold; color: #92400e;">Review Notes:</p>
+                <p style="margin: 10px 0 0 0; color: #78350f;">
+                  ${reviewNotes}
+                </p>
+              </div>
+              ` : ''}
+
+              <p>Please don't be discouraged! We have many wonderful pets waiting for their forever homes. Each pet has unique needs, and we're committed to finding the perfect match for both our pets and adopters.</p>
+
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/browse-pets" class="browse-button" style="color: white;">
+                  🐾 Browse Other Pets
+                </a>
+              </div>
+
+              <div class="info-box">
+                <p style="margin: 0; font-weight: bold; color: #92400e;">💡 Tips for Future Applications:</p>
+                <ul style="margin: 10px 0; padding-left: 20px; color: #78350f;">
+                  <li>Ensure your home environment is suitable for the specific pet type</li>
+                  <li>Provide detailed information about your pet care experience</li>
+                  <li>Consider visiting our adoption center to meet pets in person</li>
+                  <li>You're welcome to apply for other pets that may be a better match</li>
+                </ul>
+              </div>
+
+              <p>If you have any questions or would like to discuss your application further, please don't hesitate to contact us. We're here to help you find your perfect companion!</p>
+              
+              <p>Best regards,<br><strong>The PetAdopt+ Team</strong> 🐕🐱</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
+              <p>Making tails wag and hearts happy! 🐾</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Adoption rejection email sent to:', email);
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending adoption rejection email:', error);
     return false;
   }
 };

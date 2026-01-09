@@ -1,6 +1,6 @@
 import AdoptionApplication from '../model/AdoptionApplicationmodel.js';
 import Pet from '../model/Petmodel.js';
-import { sendAdoptionConfirmationEmail, sendAdoptionApprovalEmail } from '../utils/emailService.js';
+import { sendAdoptionConfirmationEmail, sendAdoptionApprovalEmail, sendAdoptionRejectionEmail } from '../utils/emailService.js';
 
 // @desc    Submit adoption application
 // @route   POST /api/adoptions
@@ -258,6 +258,20 @@ export const updateApplicationStatus = async (req, res) => {
       pet.status = 'Available';
       await pet.save();
       console.log(`✅ Pet ${pet.name} status updated to Available (Application Rejected)`);
+
+      // Send rejection email to applicant
+      try {
+        await sendAdoptionRejectionEmail(application.email, application.fullName, {
+          petName: pet.name,
+          petBreed: pet.breed,
+          petAge: pet.age,
+          reviewNotes: reviewNotes || 'Thank you for your interest. Please browse other available pets.',
+        });
+        console.log(`✅ Rejection email sent to ${application.email}`);
+      } catch (emailError) {
+        console.error('⚠️ Failed to send rejection email:', emailError);
+        // Don't fail the rejection if email fails
+      }
     }
 
     res.status(200).json({

@@ -227,7 +227,7 @@ const Shop = () => {
               <h3 className="text-sm font-semibold text-slate-800">Filters</h3>
               <button
                 onClick={resetFilters}
-                className="text-xs text-orange-500 hover:text-orange-600"
+                className="text-xs text-orange-500 hover:text-orange-600 cursor-pointer"
               >
                 Reset
               </button>
@@ -314,7 +314,7 @@ const Shop = () => {
                 <p>No products match the selected filters.</p>
                 <button
                   onClick={resetFilters}
-                  className="mt-3 inline-flex items-center justify-center px-3 py-1.5 rounded-full border border-orange-400 text-orange-500 text-xs hover:bg-orange-50"
+                  className="mt-3 inline-flex items-center justify-center px-3 py-1.5 rounded-full border border-orange-400 text-orange-500 text-xs hover:bg-orange-50 cursor-pointer"
                 >
                   Clear filters
                 </button>
@@ -379,7 +379,7 @@ const Shop = () => {
                           className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-[11px] font-medium ${
                             product.status === 'Out of Stock'
                               ? 'bg-slate-300 text-slate-600 cursor-not-allowed'
-                              : 'bg-orange-500 text-white hover:bg-orange-600'
+                              : 'bg-orange-500 text-white hover:bg-orange-600 cursor-pointer'
                           }`}
                         >
                           {product.status === 'Out of Stock' ? 'Unavailable' : '🛒 Add'}

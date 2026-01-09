@@ -359,8 +359,8 @@ const UserHostelPage = () => {
         <div className="max-w-7xl mx-auto flex gap-4">
           <button
             onClick={() => setActiveTab("rooms")}
-            className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors ${
-              activeTab === "rooms"
+            className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
+              activeTab === "rooms"}
                 ? "bg-orange-500 text-white"
                 : "bg-white text-slate-600 border border-slate-200 hover:border-orange-300"
             }`}
@@ -370,7 +370,7 @@ const UserHostelPage = () => {
           {user && (
             <button
               onClick={() => setActiveTab("bookings")}
-              className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors ${
+              className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
                 activeTab === "bookings"
                   ? "bg-orange-500 text-white"
                   : "bg-white text-slate-600 border border-slate-200 hover:border-orange-300"
@@ -512,7 +512,7 @@ const UserHostelPage = () => {
                       </div>
                       <button
                         onClick={() => openBookingModal(room)}
-                        className="px-4 py-2 bg-green-500 text-white rounded-full font-semibold text-sm hover:bg-green-600 transition-colors"
+                        className="px-4 py-2 bg-green-500 text-white rounded-full font-semibold text-sm hover:bg-green-600 transition-colors cursor-pointer"
                       >
                         Book Now
                       </button>
@@ -559,7 +559,7 @@ const UserHostelPage = () => {
                   <p className="text-slate-600 text-lg mb-4">No bookings found</p>
                   <button
                     onClick={() => setActiveTab("rooms")}
-                    className="px-6 py-2 rounded-full bg-orange-500 text-white font-semibold hover:bg-orange-600"
+                    className="px-6 py-2 rounded-full bg-orange-500 text-white font-semibold hover:bg-orange-600 cursor-pointer"
                   >
                     Book a Room
                   </button>
@@ -617,14 +617,14 @@ const UserHostelPage = () => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => setSelectedBookingDetail(booking)}
-                            className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                            className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
                           >
                             View Details
                           </button>
                           {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
                             <button
                               onClick={() => handleCancelBooking(booking._id)}
-                              className="px-4 py-2 rounded-lg border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50"
+                              className="px-4 py-2 rounded-lg border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50 cursor-pointer"
                             >
                               Cancel
                             </button>
@@ -648,7 +648,7 @@ const UserHostelPage = () => {
               <h2 className="text-xl font-bold text-slate-900">Book {selectedRoom.roomName}</h2>
               <button
                 onClick={closeBookingModal}
-                className="text-slate-400 hover:text-slate-600 text-2xl"
+                className="text-slate-400 hover:text-slate-600 text-2xl cursor-pointer"
               >
                 ×
               </button>
@@ -829,14 +829,14 @@ const UserHostelPage = () => {
                 <button
                   type="button"
                   onClick={closeBookingModal}
-                  className="flex-1 px-6 py-3 border-2 border-slate-200 text-slate-700 rounded-full font-semibold hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-6 py-3 border-2 border-slate-200 text-slate-700 rounded-full font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={bookingLoading}
-                  className="flex-1 px-6 py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-6 py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {bookingLoading ? 'Booking...' : 'Confirm Booking'}
                 </button>
@@ -854,7 +854,7 @@ const UserHostelPage = () => {
               <h2 className="text-xl font-bold text-slate-900">Booking Details</h2>
               <button
                 onClick={() => setSelectedBookingDetail(null)}
-                className="text-slate-400 hover:text-slate-600 text-2xl"
+                className="text-slate-400 hover:text-slate-600 text-2xl cursor-pointer"
               >
                 ×
               </button>
@@ -966,7 +966,7 @@ const UserHostelPage = () => {
 
               <button
                 onClick={() => setSelectedBookingDetail(null)}
-                className="w-full px-6 py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200"
+                className="w-full px-6 py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 cursor-pointer"
               >
                 Close
               </button>

@@ -307,7 +307,7 @@ const AdminPetsManagement = () => {
           <div className="flex gap-2 border-b border-slate-200 pb-2">
             <button
               onClick={() => setActiveTab("pets")}
-              className={`px-6 py-2 rounded-t-lg font-semibold text-sm transition-colors ${
+              className={`px-6 py-2 rounded-t-lg font-semibold text-sm transition-colors cursor-pointer ${
                 activeTab === "pets"
                   ? "bg-orange-500 text-white"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -317,7 +317,7 @@ const AdminPetsManagement = () => {
             </button>
             <button
               onClick={() => setActiveTab("adoptions")}
-              className={`px-6 py-2 rounded-t-lg font-semibold text-sm transition-colors ${
+              className={`px-6 py-2 rounded-t-lg font-semibold text-sm transition-colors cursor-pointer ${
                 activeTab === "adoptions"
                   ? "bg-orange-500 text-white"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -357,7 +357,7 @@ const AdminPetsManagement = () => {
 
               <button
                 onClick={openAddPetModal}
-                className="inline-flex items-center gap-1 rounded-full bg-orange-500 text-white text-xs font-semibold px-4 py-2 hover:bg-orange-600 shadow-sm"
+                className="inline-flex items-center gap-1 rounded-full bg-orange-500 text-white text-xs font-semibold px-4 py-2 hover:bg-orange-600 shadow-sm cursor-pointer"
               >
                 <span className="text-lg leading-none">+</span>
                 <span>Add Pet</span>
@@ -439,13 +439,13 @@ const AdminPetsManagement = () => {
                           <div className="inline-flex gap-2">
                             <button
                               onClick={() => openEditPetModal(pet)}
-                              className="px-3 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100"
+                              className="px-3 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100 cursor-pointer"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => confirmDeletePet(pet)}
-                              className="px-3 py-1 rounded-full border border-red-200 text-[11px] text-red-600 hover:bg-red-50"
+                              className="px-3 py-1 rounded-full border border-red-200 text-[11px] text-red-600 hover:bg-red-50 cursor-pointer"
                             >
                               Delete
                             </button>
@@ -469,7 +469,7 @@ const AdminPetsManagement = () => {
                   </h3>
                   <button
                     onClick={closeModals}
-                    className="text-slate-400 hover:text-slate-600 text-2xl leading-none"
+                    className="text-slate-400 hover:text-slate-600 text-2xl leading-none cursor-pointer"
                   >
                     ×
                   </button>
@@ -726,14 +726,14 @@ const AdminPetsManagement = () => {
                     <button
                       type="button"
                       onClick={closeModals}
-                      className="px-5 py-2 rounded-full border border-slate-200 text-sm text-slate-700 hover:bg-slate-50"
+                      className="px-5 py-2 rounded-full border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={uploading}
-                      className="px-6 py-2 rounded-full bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:bg-orange-300 disabled:cursor-not-allowed"
+                      className="px-6 py-2 rounded-full bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:bg-orange-300 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {uploading ? "Uploading..." : (editingPet ? "Save Changes" : "Add Pet")}
                     </button>
@@ -858,7 +858,7 @@ const AdminPetsManagement = () => {
                                   setSelectedAdoption(adoption);
                                   setIsAdoptionModalOpen(true);
                                 }}
-                                className="px-3 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100"
+                                className="px-3 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100 cursor-pointer"
                               >
                                 View Details
                               </button>
@@ -992,7 +992,7 @@ const AdminPetsManagement = () => {
                               alert('Failed to approve application');
                             }
                           }}
-                          className="flex-1 py-2 bg-emerald-500 text-white rounded-full font-semibold text-sm hover:bg-emerald-600"
+                          className="flex-1 py-2 bg-emerald-500 text-white rounded-full font-semibold text-sm hover:bg-emerald-600 cursor-pointer"
                         >
                           ✓ Approve Application
                         </button>
@@ -1020,7 +1020,7 @@ const AdminPetsManagement = () => {
                               alert('Failed to reject application');
                             }
                           }}
-                          className="flex-1 py-2 bg-red-500 text-white rounded-full font-semibold text-sm hover:bg-red-600"
+                          className="flex-1 py-2 bg-red-500 text-white rounded-full font-semibold text-sm hover:bg-red-600 cursor-pointer"
                         >
                           ✗ Reject Application
                         </button>
@@ -1053,7 +1053,7 @@ const AdminPetsManagement = () => {
                           alert('Failed to delete application');
                         }
                       }}
-                      className="py-2 px-6 border-2 border-red-200 text-red-600 rounded-full font-semibold text-sm hover:bg-red-50"
+                      className="py-2 px-6 border-2 border-red-200 text-red-600 rounded-full font-semibold text-sm hover:bg-red-50 cursor-pointer"
                     >
                       Delete
                     </button>

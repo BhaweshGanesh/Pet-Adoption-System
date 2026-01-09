@@ -113,7 +113,7 @@ const Signup = () => {
             <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center space-x-3 animate-bounce">
               <div className="text-2xl">✅</div>
               <div>
-                <p className="text-green-800 font-semibold">Registration Successful!</p>
+                
                 <p className="text-green-600 text-sm">Check your email for verification code...</p>
               </div>
             </div>
