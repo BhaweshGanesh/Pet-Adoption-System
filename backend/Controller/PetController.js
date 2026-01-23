@@ -5,18 +5,38 @@ import Pet from '../model/Petmodel.js';
 // @access  Public
 export const getAllPets = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, page = 1, limit = 20, search } = req.query;
     
     let filter = {};
     if (status && status !== 'all') {
       filter.status = status === 'available' ? 'Available' : 'Unavailable';
     }
 
-    const pets = await Pet.find(filter).sort({ createdAt: -1 });
+    // Text search if provided
+    if (search) {
+      filter.$text = { $search: search };
+    }
+
+    // Calculate skip value for pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Use lean() for faster queries when you don't need mongoose documents
+    const [pets, total] = await Promise.all([
+      Pet.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean()
+        .exec(),
+      Pet.countDocuments(filter)
+    ]);
     
     res.status(200).json({
       success: true,
       count: pets.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
       data: pets,
     });
   } catch (error) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import UserNavbar from "../components/UserNavbar";
 
 const Shop = () => {
   const navigate = useNavigate();
@@ -145,54 +146,7 @@ const Shop = () => {
   return (
     <div className="min-h-screen bg-[#fff7f0] flex flex-col">
       {/* NAVBAR */}
-      <header className="sticky top-0 z-20 bg-white border-b border-orange-100/80 px-6 lg:px-16 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-12">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">🐾</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-900">
-              Pet<span className="text-orange-500">Adopt+</span>
-            </span>
-          </div>
-
-          <nav className="hidden md:flex gap-6 text-sm text-slate-500">
-            <Link to="/" className="hover:text-slate-900">Home</Link>
-            <Link to="/browse-pets" className="hover:text-slate-900">Browse Pets</Link>
-            <Link to="/shop" className="text-orange-500 border-b-2 border-orange-400 pb-0.5">Shop</Link>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            to="/cart"
-            className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors"
-          >
-            <span>🛒</span>
-            <span>Cart</span>
-            {cartItemCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
-                {cartItemCount}
-              </span>
-            )}
-          </Link>
-          {user ? (
-            <Link
-              to={user.role === 'admin' ? '/admin-dashboard' : '/dashboard'}
-              className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white transition-colors"
-            >
-              {user.fullName || 'Dashboard'}
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white transition-colors"
-            >
-              Login
-            </Link>
-          )}
-        </div>
-      </header>
+      <UserNavbar />
 
       {/* Cart Preview Toast */}
       {showCartPreview && (

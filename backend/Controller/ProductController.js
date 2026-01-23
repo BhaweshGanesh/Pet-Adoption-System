@@ -5,26 +5,39 @@ import Product from '../model/Productmodel.js';
 // @access  Public
 export const getAllProducts = async (req, res) => {
   try {
-    const { category, petType, status, search } = req.query;
+    const { category, petType, status, search, page = 1, limit = 20 } = req.query;
     
     let filter = {};
     
     if (category) filter.category = category;
     if (petType) filter.petType = petType;
     if (status) filter.status = status;
+    
+    // Use text index for search instead of $regex - much faster!
     if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { brand: { $regex: search, $options: 'i' } },
-      ];
+      filter.$text = { $search: search };
     }
 
-    const products = await Product.find(filter).sort({ createdAt: -1 });
+    // Calculate skip value for pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Parallel execution of queries for better performance
+    const [products, total] = await Promise.all([
+      Product.find(filter)
+        .sort(search ? { score: { $meta: 'textScore' } } : { createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean() // Use lean for faster queries
+        .exec(),
+      Product.countDocuments(filter)
+    ]);
 
     res.status(200).json({
       success: true,
       count: products.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
       data: products,
     });
   } catch (error) {

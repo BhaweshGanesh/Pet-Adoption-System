@@ -18,7 +18,7 @@ const Checkout = () => {
 
   useEffect(() => {
     loadCart();
-    loadUserData(); 
+    loadUserData();    
   }, []);
 
   const loadUserData = () => {
@@ -33,7 +33,7 @@ const Checkout = () => {
         setToken(storedToken);
         
         // Pre-fill form with user data
-        setFormData(prev => ({
+        setFormData(prev => ({  
           ...prev,
           name: parsedUser.fullName || "",
           email: parsedUser.email || "",

@@ -69,6 +69,13 @@ const productSchema = new mongoose.Schema(
   }
 );
 
+// Create indexes for frequently queried fields
+productSchema.index({ category: 1, petType: 1 }); // Compound index for filtering
+productSchema.index({ status: 1 }); // Index for status filtering
+productSchema.index({ createdAt: -1 }); // Index for sorting by date
+productSchema.index({ name: 'text', description: 'text', brand: 'text' }); // Text search index
+productSchema.index({ stock: 1, lowStockThreshold: 1 }); // For low stock queries
+
 // Virtual field to check if stock is low
 productSchema.virtual('isLowStock').get(function() {
   return this.stock <= this.lowStockThreshold && this.stock > 0;

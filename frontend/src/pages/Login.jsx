@@ -10,6 +10,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [userRole, setUserRole] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -53,19 +54,22 @@ const Login = () => {
         throw new Error(data.message || 'Login failed');
       }
 
-      // Store token in localStorage
+      // Store token and user data in localStorage
       localStorage.setItem('token', data.data.token);
       localStorage.setItem('user', JSON.stringify(data.data.user));
 
-      // Show success message
+      // Show success message with role
+      setUserRole(data.data.user.role);
       setSuccess(true);
       
       // Redirect based on user role after 1.5 seconds
       setTimeout(() => {
         if (data.data.user.role === 'admin') {
           navigate('/admin-dashboard');
+        } else if (data.data.user.role === 'staff') {
+          navigate('/staff-dashboard');
         } else {
-          navigate('/dashboard');
+          navigate('/browse-pets');
         }
       }, 1500);
     } catch (err) {
@@ -119,7 +123,11 @@ const Login = () => {
               <div className="text-2xl">✅</div>
               <div>
                 <p className="text-green-800 font-semibold">Login Successful!</p>
-                <p className="text-green-600 text-sm">Redirecting to dashboard...</p>
+                <p className="text-green-600 text-sm">
+                  {userRole === 'admin' && 'Redirecting to Admin Dashboard...'}
+                  {userRole === 'staff' && 'Redirecting to Staff Dashboard...'}
+                  {userRole !== 'admin' && userRole !== 'staff' && 'Redirecting you now...'}
+                </p>
               </div>
             </div>
           )}

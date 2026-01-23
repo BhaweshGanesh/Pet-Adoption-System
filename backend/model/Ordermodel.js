@@ -110,6 +110,13 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+// Create indexes for frequently queried fields
+orderSchema.index({ user: 1, createdAt: -1 }); // User orders sorted by date
+orderSchema.index({ status: 1, createdAt: -1 }); // Orders by status
+orderSchema.index({ paymentStatus: 1 }); // Payment status filtering
+// Note: orderNumber already has index from unique: true in schema
+orderSchema.index({ 'customer.email': 1 }); // Customer email lookup
+
 // Generate order number before saving
 orderSchema.pre('save', async function(next) {
   if (!this.orderNumber) {

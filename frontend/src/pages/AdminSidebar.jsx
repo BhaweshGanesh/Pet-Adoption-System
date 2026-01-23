@@ -8,11 +8,8 @@ const items = [
   { label: "Inventory", to: "/admin-inventory-management" },
   { label: "Hostel Rooms", to: "/admin-hostel-management" },
   { label: "Hostel Bookings", to: "/hostel-bookings" },
-  { label: "Staff", to: "#" },
-  { label: "Adoption Requests", to: "#" },
-  { label: "Orders", to: "#" },
-  { label: "Settings", to: "#" },
-  { label: "Logout", to: "#" },
+  { label: "Staff", to: "/admin-staff-management" },
+ 
 ];
 
 const AdminSidebar = () => {  

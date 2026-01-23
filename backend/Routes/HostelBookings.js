@@ -9,21 +9,22 @@ import {
   cancelBooking,
   deleteBooking,
 } from '../Controller/HostelBookingController.js';
-import { protect } from '../Middleware/Auth.js';
+import { protect, adminOnly, staffOrAdmin, logStaffAction } from '../Middleware/Auth.js';
 
 const router = express.Router();
 
-// Protected routes - require authentication (must come before generic routes)
+// User routes - require authentication only
 router.get('/my-bookings', protect, getMyBookings);
 router.post('/', protect, createBooking);
 router.patch('/:id/cancel', protect, cancelBooking);
 
-// Admin routes (no protection for now)
-router.post('/admin', createAdminBooking); // Admin booking creation
-router.get('/', getAllBookings);
-router.get('/:id', getBooking);
-router.patch('/:id/status', updateBookingStatus);
-router.delete('/:id', deleteBooking);
+// Staff and Admin routes - hostel management
+router.get('/', protect, staffOrAdmin, logStaffAction, getAllBookings);
+router.get('/:id', protect, staffOrAdmin, getBooking);
+router.patch('/:id/status', protect, staffOrAdmin, logStaffAction, updateBookingStatus);
+
+// Admin only routes
+router.post('/admin', protect, adminOnly, createAdminBooking);
+router.delete('/:id', protect, adminOnly, deleteBooking);
 
 export default router;
-

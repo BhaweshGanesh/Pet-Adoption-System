@@ -86,6 +86,11 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// Create indexes for frequently queried fields
+// Note: email already has index from unique: true in schema
+userSchema.index({ role: 1 }); // Index for role-based queries
+userSchema.index({ isVerified: 1 }); // Index for verification status
+
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {

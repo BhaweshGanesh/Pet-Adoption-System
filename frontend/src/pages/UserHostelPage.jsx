@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import UserNavbar from "../components/UserNavbar";
 
 const UserHostelPage = () => {
   const navigate = useNavigate();
@@ -294,53 +295,8 @@ const UserHostelPage = () => {
 
   return (
     <div className="min-h-screen bg-[#fff7f0]">
-      {/* NAVBAR - Matching BrowsePets style */}
-      <header className="sticky top-0 z-20 bg-white border-b border-orange-100/80 px-6 lg:px-16 py-4 flex items-center justify-between">
-        {/* Left: logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-            <span className="text-2xl">🐾</span>
-          </div>
-          <span className="text-2xl font-bold text-slate-900">
-            Pet<span className="text-orange-500">Adopt+</span>
-          </span>
-        </div>
-
-        <nav className="hidden md:flex gap-12 text-sm text-slate-500">
-          <Link to="/" className="hover:text-slate-900">
-            Home
-          </Link>
-          <Link to="/browse-pets" className="hover:text-slate-900">
-            Browse Pets
-          </Link>
-          <Link to="/hostel" className="text-orange-500 border-b-2 border-orange-400 pb-0.5">
-            Pet Hotel
-          </Link>
-          <Link to="/shop" className="hover:text-slate-900">
-            Shop
-          </Link>
-          <a href="#" className="hover:text-slate-900">
-            About
-          </a>
-          {user ? (
-            <Link to="/user-profile" className="hover:text-slate-900">
-              Profile
-            </Link>
-          ) : (
-            <Link to="/login" className="hover:text-slate-900">
-              Login
-            </Link>
-          )}
-        </nav>
-
-        <div className="flex items-center gap-3">
-          {user && (
-            <span className="text-sm text-slate-600 hidden lg:block">
-              Welcome, {user.fullName}
-            </span>
-          )}
-        </div>
-      </header>
+      {/* NAVBAR */}
+      <UserNavbar />
 
       {/* HERO SECTION */}
       <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 px-6 lg:px-16 py-12">

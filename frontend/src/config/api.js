@@ -1,7 +1,7 @@
 // API Configuration
 // Centralized API base URL for easy environment switching
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 export const API_ENDPOINTS = {
   // Auth
@@ -32,6 +32,17 @@ export const API_ENDPOINTS = {
   
   // Upload
   UPLOAD: `${API_BASE_URL}/api/upload`,
+  
+  // Dashboard (Admin)
+  DASHBOARD_STATS: `${API_BASE_URL}/api/dashboard/stats`,
+  DASHBOARD_REVENUE: `${API_BASE_URL}/api/dashboard/revenue`,
+  DASHBOARD_ACTIVITIES: `${API_BASE_URL}/api/dashboard/activities`,
+  DASHBOARD_USERS: `${API_BASE_URL}/api/dashboard/users`,
+  DASHBOARD_ROOMS_OVERVIEW: `${API_BASE_URL}/api/dashboard/rooms-overview`,
+  DASHBOARD_BOOKINGS_OVERVIEW: `${API_BASE_URL}/api/dashboard/bookings-overview`,
+  
+  // Staff Management
+  STAFF: `${API_BASE_URL}/api/staff`,
 };
 
 export default API_BASE_URL;

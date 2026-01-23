@@ -88,6 +88,12 @@ const petSchema = new mongoose.Schema(
   }
 );
 
+// Create indexes for frequently queried fields
+petSchema.index({ status: 1, createdAt: -1 }); // Compound index for status and sorting
+petSchema.index({ type: 1 }); // Index for filtering by type
+petSchema.index({ breed: 1 }); // Index for filtering by breed
+petSchema.index({ name: 'text', description: 'text' }); // Text search index
+
 const Pet = mongoose.model('Pet', petSchema);
 
 export default Pet;

@@ -60,7 +60,12 @@ const AdminPetsManagement = () => {
 
   const fetchAdoptionRequests = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/adoptions');
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:4000/api/adoptions', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       if (data.success) {
         setAdoptionRequests(data.data);
@@ -74,10 +79,14 @@ const AdminPetsManagement = () => {
     if (!deleteTarget) return;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(
         `http://localhost:4000/api/pets/${deleteTarget._id}`,
         {
           method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
         }
       );
 
@@ -247,11 +256,13 @@ const AdminPetsManagement = () => {
         : 'http://localhost:4000/api/pets';
       
       const method = editingPet ? 'PUT' : 'POST';
+      const token = localStorage.getItem('token');
 
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ ...form, image: imageUrl, vaccinated: isVaccinated }),
       });
@@ -972,11 +983,15 @@ const AdminPetsManagement = () => {
                         <button
                           onClick={async () => {
                             try {
+                              const token = localStorage.getItem('token');
                               const response = await fetch(
                                 `http://localhost:4000/api/adoptions/${selectedAdoption._id}/status`,
                                 {
                                   method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
+                                  headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`,
+                                  },
                                   body: JSON.stringify({ status: 'approved' }),
                                 }
                               );
@@ -1000,11 +1015,15 @@ const AdminPetsManagement = () => {
                           onClick={async () => {
                             if (!window.confirm('Are you sure you want to reject this application?')) return;
                             try {
+                              const token = localStorage.getItem('token');
                               const response = await fetch(
                                 `http://localhost:4000/api/adoptions/${selectedAdoption._id}/status`,
                                 {
                                   method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
+                                  headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`,
+                                  },
                                   body: JSON.stringify({ status: 'rejected' }),
                                 }
                               );

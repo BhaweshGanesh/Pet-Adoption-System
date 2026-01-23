@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import UserNavbar from "../components/UserNavbar";
 
 const BrowsePets = () => {
   const [pets, setPets] = useState([]);
@@ -127,41 +128,7 @@ const BrowsePets = () => {
   return (
     <div className="min-h-screen bg-[#fff7f0] flex flex-col">
         {/* NAVBAR */}
-  <header className="sticky top-0 z-20 bg-white border-b border-orange-100/80 px-6 lg:px-16 py-4 flex items-center justify-between">
-    {/* Left: logo same as Login */}
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-        <span className="text-2xl">🐾</span>
-      </div>
-      <span className="text-2xl font-bold text-slate-900">
-        Pet<span className="text-orange-500">Adopt+</span>
-      </span>
-    </div>
-
-        <nav className="hidden md:flex gap-6 text-sm text-slate-500">
-          <Link to="/" className="hover:text-slate-900">
-            Home
-          </Link>
-          <Link
-            to="/browse-pets"
-            className="text-orange-500 border-b-2 border-orange-400 pb-0.5"
-          >
-            Browse Pets
-          </Link>
-          <a href="#" className="hover:text-slate-900">
-            Pet Hotel
-          </a>
-          <Link to="/shop" className="hover:text-slate-900">
-            Shop
-          </Link>
-          <a href="#" className="hover:text-slate-900">
-            About
-          </a>
-          <Link to="/user-profile" className="hover:text-slate-900">
-            Profile
-          </Link>
-        </nav>
-      </header>
+      <UserNavbar />
 
       {/* SEARCH BAR */}
       <section className="px-6 lg:px-16 pt-4 pb-2 bg-[#fff7f0]">

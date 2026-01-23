@@ -65,7 +65,12 @@ const AdminInventoryManagement = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/orders');
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:4000/api/orders', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       if (data.success) {
         setOrders(data.data);
@@ -220,9 +225,13 @@ const AdminInventoryManagement = () => {
         ? `http://localhost:4000/api/products/${editingProduct._id}`
         : 'http://localhost:4000/api/products';
 
+      const token = localStorage.getItem('token');
       const response = await fetch(url, {
         method: editingProduct ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify(productData),
       });
 
@@ -252,9 +261,15 @@ const AdminInventoryManagement = () => {
     if (!deleteTarget) return;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(
         `http://localhost:4000/api/products/${deleteTarget._id}`,
-        { method: 'DELETE' }
+        { 
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
       );
 
       const data = await response.json();
@@ -274,10 +289,12 @@ const AdminInventoryManagement = () => {
 
   const handleUpdateOrderStatus = async (orderId, newStatus, newPaymentStatus) => {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           status: newStatus,
@@ -313,8 +330,12 @@ const AdminInventoryManagement = () => {
     if (!confirm('Are you sure you want to cancel this order? Stock will be restored.')) return;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/orders/${orderId}/cancel`, {
         method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       const data = await response.json();

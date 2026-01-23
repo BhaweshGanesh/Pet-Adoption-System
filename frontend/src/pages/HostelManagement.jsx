@@ -73,7 +73,12 @@ const HostelManagement = () => {
 
   const fetchBookings = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/hostel-bookings');
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:4000/api/hostel-bookings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -209,10 +214,12 @@ const HostelManagement = () => {
         status: roomForm.status,
       };
 
+      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:4000/api/hostel-rooms', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(roomData),
       });
@@ -302,10 +309,12 @@ const HostelManagement = () => {
         status: roomForm.status,
       };
 
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/hostel-rooms/${editRoom._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(roomData),
       });
@@ -335,8 +344,12 @@ const HostelManagement = () => {
     if (!deleteTarget) return;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/hostel-rooms/${deleteTarget._id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       const data = await response.json();
@@ -374,10 +387,12 @@ const HostelManagement = () => {
         }
       };
 
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/hostel-rooms/${checkInRoom._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(roomData),
       });
@@ -413,10 +428,12 @@ const HostelManagement = () => {
         }
       };
 
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/hostel-rooms/${room._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(roomData),
       });

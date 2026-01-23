@@ -7,6 +7,7 @@ import {
   deleteRoom,
   checkRoomAvailability,
 } from '../Controller/HostelRoomController.js';
+import { protect, adminOnly, staffOrAdmin } from '../Middleware/Auth.js';
 
 const router = express.Router();
 
@@ -15,10 +16,12 @@ router.get('/', getAllRooms);
 router.get('/:id', getRoom);
 router.post('/:id/check-availability', checkRoomAvailability);
 
-// Admin routes (add protect middleware when implementing admin routes)
-router.post('/', createRoom);
-router.put('/:id', updateRoom);
-router.delete('/:id', deleteRoom);
+// Staff and Admin routes - viewing rooms
+router.get('/', protect, staffOrAdmin, getAllRooms);
+
+// Admin only routes - room management
+router.post('/', protect, adminOnly, createRoom);
+router.put('/:id', protect, adminOnly, updateRoom);
+router.delete('/:id', protect, adminOnly, deleteRoom);
 
 export default router;
-

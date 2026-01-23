@@ -1,11 +1,11 @@
-// src/components/admin/AdminNavbar.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
-const AdminNavbar = ({ subtitle, title }) => {
+const StaffNavbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [adminProfile, setAdminProfile] = useState(null);
+  const [staffProfile, setStaffProfile] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -26,9 +26,9 @@ const AdminNavbar = ({ subtitle, title }) => {
     confirmPassword: '',
   });
 
-  // Fetch admin profile
+  // Fetch staff profile
   useEffect(() => {
-    fetchAdminProfile();
+    fetchStaffProfile();
   }, []);
 
   // Close dropdown when clicking outside
@@ -43,7 +43,7 @@ const AdminNavbar = ({ subtitle, title }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchAdminProfile = async () => {
+  const fetchStaffProfile = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -61,23 +61,21 @@ const AdminNavbar = ({ subtitle, title }) => {
       if (data.success) {
         const user = data.data.user;
         
-        // Check if user role is admin
-        console.log('[AdminNavbar] Fetched profile:', { role: user.role, name: user.fullName });
+        // Check if user role matches - only staff and admin can access staff pages
+        console.log('[StaffNavbar] Fetched profile:', { role: user.role, name: user.fullName });
         
         if (user.role === 'user') {
-          console.log('[AdminNavbar] Regular user detected, redirecting to browse pets');
+          console.log('[StaffNavbar] Regular user detected, redirecting to browse pets');
           navigate('/browse-pets');
           return;
-        } else if (user.role === 'staff') {
-          console.log('[AdminNavbar] Staff user detected, redirecting to staff dashboard');
-          navigate('/staff-dashboard');
-          return;
         } else if (user.role === 'admin') {
-          console.log('[AdminNavbar] Admin user confirmed');
+          console.log('[StaffNavbar] Admin can access staff pages');
+        } else if (user.role === 'staff') {
+          console.log('[StaffNavbar] Staff user confirmed');
         }
         
-        // Set profile for admin users only
-        setAdminProfile(user);
+        // Set profile for staff/admin users
+        setStaffProfile(user);
         
         // Update localStorage with correct user data
         localStorage.setItem('user', JSON.stringify(user));
@@ -91,7 +89,7 @@ const AdminNavbar = ({ subtitle, title }) => {
         });
       }
     } catch (error) {
-      console.error('Error fetching admin profile:', error);
+      console.error('Error fetching staff profile:', error);
     }
   };
 
@@ -122,10 +120,10 @@ const AdminNavbar = ({ subtitle, title }) => {
       const data = await response.json();
       if (data.success) {
         alert('Profile updated successfully!');
-        setAdminProfile(data.data.user);
+        setStaffProfile(data.data.user);
         localStorage.setItem('userName', data.data.user.fullName);
         setIsEditModalOpen(false);
-        fetchAdminProfile();
+        fetchStaffProfile();
       } else {
         alert(data.message || 'Failed to update profile');
       }
@@ -177,7 +175,7 @@ const AdminNavbar = ({ subtitle, title }) => {
   };
 
   const getInitials = (name) => {
-    if (!name) return 'A';
+    if (!name) return 'S';
     return name
       .split(' ')
       .map(word => word[0])
@@ -192,98 +190,128 @@ const AdminNavbar = ({ subtitle, title }) => {
       : 'bg-orange-100 text-orange-700';
   };
 
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <nav className="sticky top-0 z-30 bg-white border-b border-slate-200 h-20">
-      <div className="flex items-center justify-between px-6 lg:px-10 h-full">
-        <div>
-          <p className="text-xs text-slate-500 uppercase tracking-[0.2em]">
-            {subtitle || "Admin Panel – Pet Hostel"}
-          </p>
-          <h1 className="text-lg font-semibold text-slate-900">
-            {title || "Hostel Management"}
-          </h1>
-        </div>
-
-        {/* Admin Profile Button */}
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center hover:opacity-90 transition-opacity"
-          >
-            <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center font-semibold text-sm shadow-sm">
-              {getInitials(adminProfile?.fullName || 'Admin')}
+    <>
+      <nav className="bg-white border-b border-gray-200 px-8 py-4">
+        <div className="max-w-full mx-auto flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">🐾</span>
             </div>
-          </button>
+            <span className="text-2xl font-bold">
+              Pet<span className="text-orange-500">Adopt+</span>
+            </span>
+          </Link>
 
-          {/* Dropdown Menu */}
-          {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
-              {/* Profile Info */}
-              <div className="px-4 py-3 border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-orange-500 text-white flex items-center justify-center font-semibold">
-                    {getInitials(adminProfile?.fullName || 'Admin')}
+          {/* Navigation Links + Profile */}
+          <div className="flex items-center gap-16 pr-8">
+            {/* Navigation Links */}
+            <div className="flex items-center space-x-8">
+              <Link 
+                to="/staff-dashboard" 
+                className={`font-medium ${isActive('/staff-dashboard') ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'} transition-colors`}
+              >
+                Dashboard
+              </Link>
+              <Link 
+                to="/staff-rooms" 
+                className={`font-medium ${isActive('/staff-rooms') ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'} transition-colors`}
+              >
+                Rooms
+              </Link>
+              <Link 
+                to="/staff-bookings" 
+                className={`font-medium ${isActive('/staff-bookings') ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'} transition-colors`}
+              >
+                Bookings
+              </Link>
+            </div>
+
+            {/* Profile Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center hover:opacity-90 transition-opacity"
+              >
+                <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold text-sm shadow-sm">
+                  {getInitials(staffProfile?.fullName || 'Staff')}
+                </div>
+              </button>
+
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
+                  {/* Profile Info */}
+                  <div className="px-4 py-3 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+                        {getInitials(staffProfile?.fullName || 'Staff')}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-900 text-sm">
+                          {staffProfile?.fullName || 'Staff User'}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {staffProfile?.email || 'staff@example.com'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                        {staffProfile?.role || 'Staff'}
+                      </span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(staffProfile?.isVerified)}`}>
+                        {staffProfile?.isVerified ? 'Active' : 'Pending'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900 text-sm">
-                      {adminProfile?.fullName || 'Admin User'}
-                    </p>
-                    <p className="text-xs text-slate-500 truncate">
-                      {adminProfile?.email || 'admin@example.com'}
-                    </p>
+
+                  {/* Menu Items */}
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setIsEditModalOpen(true);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsChangePasswordOpen(true);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                      </svg>
+                      Change Password
+                    </button>
+                    <hr className="my-1 border-slate-100" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Logout
+                    </button>
                   </div>
                 </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                    {adminProfile?.role || 'Admin'}
-                  </span>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(adminProfile?.isVerified)}`}>
-                    {adminProfile?.isVerified ? 'Active' : 'Pending'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Menu Items */}
-              <div className="py-1">
-                <button
-                  onClick={() => {
-                    setIsEditModalOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Edit Profile
-                </button>
-                <button
-                  onClick={() => {
-                    setIsChangePasswordOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                  </svg>
-                  Change Password
-                </button>
-                <hr className="my-1 border-slate-100" />
-                <button
-                  onClick={handleLogout}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Logout
-                </button>
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      </nav>
 
       {/* Edit Profile Modal */}
       {isEditModalOpen && (
@@ -308,7 +336,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                   type="text"
                   value={profileForm.fullName}
                   onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -321,7 +349,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                   type="tel"
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -333,7 +361,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                   type="text"
                   value={profileForm.address}
                   onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -346,7 +374,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                     type="text"
                     value={profileForm.city}
                     onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -357,7 +385,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                     type="text"
                     value={profileForm.country}
                     onChange={(e) => setProfileForm({ ...profileForm, country: e.target.value })}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -372,7 +400,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 font-medium text-sm"
+                  className="flex-1 px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 font-medium text-sm"
                 >
                   Save Changes
                 </button>
@@ -405,7 +433,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                   type="password"
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -418,7 +446,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                   type="password"
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                   minLength={6}
                 />
@@ -433,7 +461,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                   type="password"
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -451,7 +479,7 @@ const AdminNavbar = ({ subtitle, title }) => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 font-medium text-sm"
+                  className="flex-1 px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 font-medium text-sm"
                 >
                   Change Password
                 </button>
@@ -460,8 +488,8 @@ const AdminNavbar = ({ subtitle, title }) => {
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 };
 
-export default AdminNavbar;
+export default StaffNavbar;
