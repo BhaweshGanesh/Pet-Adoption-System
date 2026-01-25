@@ -45,10 +45,24 @@ export const getDashboardStats = async (req, res) => {
       HostelBooking.countDocuments(),
       HostelBooking.countDocuments({ status: { $in: ['Confirmed', 'Checked-In'] } }),
       
-      // Orders
-      Order.countDocuments(),
+      // Orders - Only count delivered and paid orders
+      Order.countDocuments({ 
+        status: 'Delivered',
+        paymentStatus: 'Paid'
+      }),
       Order.aggregate([
-        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+        {
+          $match: {
+            status: 'Delivered',
+            paymentStatus: 'Paid'
+          }
+        },
+        { 
+          $group: { 
+            _id: null, 
+            total: { $sum: '$totalAmount' } 
+          } 
+        }
       ]),
       
       // Adoptions
@@ -71,9 +85,11 @@ export const getDashboardStats = async (req, res) => {
       createdAt: { $gte: sevenDaysAgo }
     });
 
-    // Get recent orders (last 7 days)
+    // Get recent orders (last 7 days) - only delivered and paid
     const recentOrders = await Order.countDocuments({
-      createdAt: { $gte: sevenDaysAgo }
+      createdAt: { $gte: sevenDaysAgo },
+      status: 'Delivered',
+      paymentStatus: 'Paid'
     });
 
     res.status(200).json({
@@ -183,7 +199,7 @@ export const getMonthlyRevenue = async (req, res) => {
   try {
     const year = parseInt(req.query.year) || new Date().getFullYear();
 
-    // Get monthly revenue from orders
+    // Get monthly revenue from orders - only delivered and paid
     const monthlyRevenue = await Order.aggregate([
       {
         $match: {
@@ -191,12 +207,14 @@ export const getMonthlyRevenue = async (req, res) => {
             $gte: new Date(year, 0, 1),
             $lt: new Date(year + 1, 0, 1),
           },
+          status: 'Delivered',
+          paymentStatus: 'Paid'
         },
       },
       {
         $group: {
           _id: { $month: '$createdAt' },
-          revenue: { $sum: '$totalAmount' },
+          revenue: { $sum: '$totalAmount' },         
           count: { $sum: 1 },
         },
       },
