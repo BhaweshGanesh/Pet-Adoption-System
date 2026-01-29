@@ -25,7 +25,7 @@ const StaffRooms = () => {
       }
     } catch (error) {
       console.error('Error fetching rooms:', error);
-      alert('Failed to fetch rooms');
+      alert('Failed to fetch rooms');  
     } finally {
       setLoading(false);
     }

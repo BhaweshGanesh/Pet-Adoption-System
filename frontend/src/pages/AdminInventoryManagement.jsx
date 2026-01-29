@@ -1050,12 +1050,26 @@ const AdminInventoryManagement = () => {
                     <h4 className="font-semibold text-sm text-slate-900 mb-3">Update Order Status</h4>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block mb-1 text-xs font-medium text-slate-700">Order Status</label>
+                        <label className="block mb-1 text-xs font-medium text-slate-700">
+                          Order Status
+                          {(selectedOrder.status === 'Cancelled' || selectedOrder.status === 'Delivered' || selectedOrder.status === 'Returned') && (
+                            <span className="ml-2 text-[10px] text-slate-500">(Locked)</span>
+                          )}
+                        </label>
                         <select
                           value={selectedOrder.status}
                           onChange={(e) => handleUpdateOrderStatus(selectedOrder._id, e.target.value, selectedOrder.paymentStatus)}
-                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                          disabled={selectedOrder.status === 'Cancelled' || selectedOrder.status === 'Delivered'}
+                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          disabled={selectedOrder.status === 'Cancelled' || selectedOrder.status === 'Delivered' || selectedOrder.status === 'Returned'}
+                          title={
+                            selectedOrder.status === 'Cancelled'
+                              ? 'Cancelled order status is locked and cannot be changed'
+                              : selectedOrder.status === 'Delivered'
+                              ? 'Delivered order status is locked and cannot be changed'
+                              : selectedOrder.status === 'Returned'
+                              ? 'Returned order status is locked and cannot be changed'
+                              : ''
+                          }
                         >
                           <option value="Pending">Pending</option>
                           <option value="Processing">Processing</option>
@@ -1068,7 +1082,7 @@ const AdminInventoryManagement = () => {
                       <div>
                         <label className="block mb-1 text-xs font-medium text-slate-700">
                           Payment Status
-                          {(selectedOrder.paymentStatus === 'Failed' || selectedOrder.paymentStatus === 'Refunded') && (
+                          {(selectedOrder.paymentStatus === 'Failed' || selectedOrder.paymentStatus === 'Refunded' || selectedOrder.paymentStatus === 'Unpaid') && (
                             <span className="ml-2 text-[10px] text-slate-500">(Locked)</span>
                           )}
                         </label>
@@ -1076,12 +1090,14 @@ const AdminInventoryManagement = () => {
                           value={selectedOrder.paymentStatus}
                           onChange={(e) => handleUpdateOrderStatus(selectedOrder._id, selectedOrder.status, e.target.value)}
                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
-                          disabled={selectedOrder.paymentStatus === 'Failed' || selectedOrder.paymentStatus === 'Refunded'}
+                          disabled={selectedOrder.paymentStatus === 'Failed' || selectedOrder.paymentStatus === 'Refunded' || selectedOrder.paymentStatus === 'Unpaid'}
                           title={
                             selectedOrder.paymentStatus === 'Failed' 
                               ? 'Failed payment status is locked and cannot be changed'
                               : selectedOrder.paymentStatus === 'Refunded'
                               ? 'Refunded payment status is locked and cannot be changed'
+                              : selectedOrder.paymentStatus === 'Unpaid'
+                              ? 'Unpaid payment status is locked for cancelled orders'
                               : ''
                           }
                         >
@@ -1112,26 +1128,21 @@ const AdminInventoryManagement = () => {
                           {selectedOrder.paymentStatus === 'Refunded' && (
                             <option value="Refunded">Refunded (Locked)</option>
                           )}
+                          
+                          {/* Unpaid is locked (auto-set for cancelled orders) */}
+                          {selectedOrder.paymentStatus === 'Unpaid' && (
+                            <option value="Unpaid">Unpaid (Locked)</option>
+                          )}
                         </select>
                       </div>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex justify-between pt-4 border-t border-slate-200">
-                    {selectedOrder.status !== 'Cancelled' && 
-                     selectedOrder.status !== 'Delivered' && 
-                     selectedOrder.status !== 'Returned' && (
-                      <button
-                        onClick={() => handleCancelOrder(selectedOrder._id)}
-                        className="px-4 py-2 rounded-full border border-red-200 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        Cancel Order
-                      </button>
-                    )}
+                  <div className="flex justify-end pt-4 border-t border-slate-200">
                     <button
                       onClick={closeModals}
-                      className="ml-auto px-5 py-2 rounded-full bg-slate-100 text-sm text-slate-700 hover:bg-slate-200"
+                      className="px-5 py-2 rounded-full bg-slate-100 text-sm text-slate-700 hover:bg-slate-200"
                     >
                       Close
                     </button>

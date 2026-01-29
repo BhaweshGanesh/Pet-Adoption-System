@@ -66,16 +66,12 @@ const Cart = () => {
         </div>
 
         <nav className="hidden md:flex gap-6 text-sm text-slate-500">
-          <Link to="/" className="hover:text-slate-900">Home</Link>
+         
           <Link to="/browse-pets" className="hover:text-slate-900">Browse Pets</Link>
           <Link to="/shop" className="hover:text-slate-900">Shop</Link>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <Link to="/login" className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white">
-            Login
-          </Link>
-        </div>
+       
       </header>
 
       {/* BREADCRUMB */}

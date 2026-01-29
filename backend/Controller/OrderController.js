@@ -212,6 +212,18 @@ export const updateOrderStatus = async (req, res) => {
     if (status) order.status = status;
     if (paymentStatus) order.paymentStatus = paymentStatus;
 
+    // Auto-update payment status to "Unpaid" when order is cancelled
+    if (status === 'Cancelled' && order.paymentStatus !== 'Failed') {
+      order.paymentStatus = 'Unpaid';
+      console.log('✅ Payment status automatically updated to "Unpaid" due to order cancellation');
+    }
+
+    // Auto-update payment status to "Refunded" when order is returned
+    if (status === 'Returned' && order.paymentStatus !== 'Refunded') {
+      order.paymentStatus = 'Refunded';
+      console.log('✅ Payment status automatically updated to "Refunded" due to order return');
+    }
+
     // Auto-update order status to "Cancelled" when payment is "Failed"
     if (paymentStatus === 'Failed' && order.status !== 'Cancelled') {
       order.status = 'Cancelled';

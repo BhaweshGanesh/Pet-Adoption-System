@@ -79,10 +79,7 @@ const StaffDashboard = () => {
               <span className="text-green-500 mr-3">✓</span>
               <span>You can update booking statuses (Check-in/Check-out)</span>
             </div>
-            <div className="flex items-start text-gray-500">
-              <span className="mr-3">✗</span>
-              <span>Admin features, payments, and reports are restricted</span>
-            </div>
+            
           </div>
         </div>
       </main>
