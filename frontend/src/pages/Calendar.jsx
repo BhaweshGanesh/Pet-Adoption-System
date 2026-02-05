@@ -18,7 +18,7 @@ const Calendar = ({
       return date >= start && date <= end;
     });
 
-    if (!hasBooking) return null;
+    if (!hasBooking) return null;        
 
     return (
       <div className="mt-1 flex justify-center">

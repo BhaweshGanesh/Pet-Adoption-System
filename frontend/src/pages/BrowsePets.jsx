@@ -395,7 +395,7 @@ const BrowsePets = () => {
                     </div>
                   </article>
                 ))}
-              </div>
+              </div>           
             )}
           </main>
         </div>

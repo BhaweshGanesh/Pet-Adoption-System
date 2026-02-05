@@ -22,7 +22,7 @@ const Cart = () => {
   };
 
   const updateQuantity = (productId, newQuantity) => {
-    const item = cart.find(item => item._id === productId);
+    const item = cart.find(item => item._id === productId);    
     if (newQuantity > item.stock) {
       alert(`Only ${item.stock} items available`);
       return;
