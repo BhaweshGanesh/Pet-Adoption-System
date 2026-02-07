@@ -20,7 +20,7 @@ const MyHostelBookings = () => {
     
     if (!userData || !token) {
       alert("Please login to view your bookings");
-      navigate('/login');
+      navigate('/login');    
       return;
     }
 
