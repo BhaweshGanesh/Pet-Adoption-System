@@ -394,6 +394,25 @@ export const createAdminBooking = async (req, res) => {
       });
     }
 
+    // Check for overlapping bookings
+    const overlappingBookings = await HostelBooking.find({
+      room: room,
+      status: { $nin: ['Cancelled', 'Checked-Out'] },
+      $or: [
+        {
+          checkInDate: { $lte: checkOut },
+          checkOutDate: { $gte: checkIn },
+        },
+      ],
+    });
+
+    if (overlappingBookings.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Room is already booked for the selected dates. Please choose different dates or another room.',
+      });
+    }
+
     // Calculate days and total amount
     const numberOfDays = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
     const totalAmount = numberOfDays * roomDetails.pricePerDay;
@@ -422,9 +441,9 @@ export const createAdminBooking = async (req, res) => {
       totalAmount,
       specialInstructions: specialInstructions || '',
       contactInfo: {
+        email: customerEmail,
         phone: contactInfo.phone,
-        emergencyContactName: contactInfo.emergencyContactName || '',
-        emergencyContactPhone: contactInfo.emergencyContactPhone || '',
+        emergencyContact: `${contactInfo.emergencyContactName || ''} ${contactInfo.emergencyContactPhone || ''}`.trim() || '',
       },
       status: 'Confirmed',
     });

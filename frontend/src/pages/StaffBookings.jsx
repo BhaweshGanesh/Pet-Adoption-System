@@ -13,6 +13,32 @@ const StaffBookings = () => {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
 
+  // Notification state
+  const [notification, setNotification] = useState({
+    show: false,
+    type: 'success', // 'success' | 'error' | 'info'
+    message: '',
+    details: ''
+  });
+
+  // Show notification function
+  const showNotification = (type, message, details = '') => {
+    setNotification({
+      show: true,
+      type,
+      message,
+      details
+    });
+  };
+
+  // Close notification function
+  const closeNotification = () => {
+    setNotification({
+      ...notification,
+      show: false
+    });
+  };
+
   useEffect(() => {
     fetchBookings();
   }, []);
@@ -35,14 +61,16 @@ const StaffBookings = () => {
         setBookings(data.data || []);
       } else {
         if (response.status === 403 || response.status === 401) {
-          alert('Access denied. Staff privileges required.');
-          localStorage.clear();
-          navigate('/login');
+          showNotification('error', 'Access denied', 'Staff privileges required');
+          setTimeout(() => {
+            localStorage.clear();
+            navigate('/login');
+          }, 2000);
         }
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
-      alert('Failed to fetch bookings');
+      showNotification('error', 'Failed to fetch bookings', 'Please try again later');
     } finally {
       setLoading(false);
     }
@@ -69,23 +97,25 @@ const StaffBookings = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert('Booking status updated successfully!');
+        showNotification('success', `Booking status updated to "${newStatus}"`, 'Email notification sent to customer!');
         setIsStatusModalOpen(false);
         setSelectedBooking(null);
         setNewStatus("");
         fetchBookings();
       } else {
         if (response.status === 403 || response.status === 401) {
-          alert('Access denied. Staff privileges required.');
-          localStorage.clear();
-          navigate('/login');
+          showNotification('error', 'Access denied', 'Staff privileges required');
+          setTimeout(() => {
+            localStorage.clear();
+            navigate('/login');
+          }, 2000);
         } else {
-          alert(data.message || 'Failed to update booking status');
+          showNotification('error', data.message || 'Failed to update booking status', 'Please try again');
         }
       }
     } catch (error) {
       console.error('Error updating booking:', error);
-      alert('Failed to update booking status');
+      showNotification('error', 'Failed to update booking status', 'Please try again later');
     }
   };
 
@@ -260,8 +290,8 @@ const StaffBookings = () => {
 
       {/* Booking Details Modal */}
       {selectedBooking && !isStatusModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-gray-300 shadow-2xl">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-gray-900">Booking Details</h3>
@@ -343,8 +373,8 @@ const StaffBookings = () => {
 
       {/* Update Status Modal */}
       {isStatusModalOpen && selectedBooking && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full">
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full border-2 border-gray-300 shadow-2xl">
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-900">Update Booking Status</h3>
               <p className="text-sm text-gray-600 mt-1">Booking #{selectedBooking.bookingNumber}</p>
@@ -392,6 +422,62 @@ const StaffBookings = () => {
                 className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
               >
                 Update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Notification Modal */}
+      {notification.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-md px-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
+            {/* Content */}
+            <div className="p-8">
+              {/* Message */}
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                {notification.message}
+              </h3>
+
+              {/* Details with Icon */}
+              {notification.details && (
+                <div className="flex items-start gap-2 mb-6">
+                  {notification.type === 'success' && (
+                    <div className="flex-shrink-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                  {notification.type === 'error' && (
+                    <div className="flex-shrink-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                  )}
+                  {notification.type === 'info' && (
+                    <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  )}
+                  <p className="text-base text-gray-700 whitespace-pre-line flex-1">
+                    {notification.details}
+                  </p>
+                </div>
+              )}
+
+              {/* Divider */}
+              <div className="border-t border-gray-200 mb-4"></div>
+
+              {/* Close Button */}
+              <button
+                onClick={closeNotification}
+                className="w-full text-center py-3 text-blue-600 font-semibold text-lg hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

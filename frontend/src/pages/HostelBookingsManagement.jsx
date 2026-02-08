@@ -12,6 +12,14 @@ const HostelBookingsManagement = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
+  // Notification state
+  const [notification, setNotification] = useState({
+    show: false,
+    type: 'success', // 'success' | 'error' | 'info'
+    message: '',
+    details: ''
+  });
+
   const [bookingForm, setBookingForm] = useState({
     roomId: "",
     customerEmail: "",
@@ -29,6 +37,24 @@ const HostelBookingsManagement = () => {
     specialInstructions: "",
   });
 
+  // Show notification function
+  const showNotification = (type, message, details = '') => {
+    setNotification({
+      show: true,
+      type,
+      message,
+      details
+    });
+  };
+
+  // Close notification function
+  const closeNotification = () => {
+    setNotification({
+      ...notification,
+      show: false
+    });
+  };
+
   useEffect(() => {
     fetchBookings();
     fetchRooms();
@@ -37,7 +63,12 @@ const HostelBookingsManagement = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:4000/api/hostel-bookings');
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:4000/api/hostel-bookings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -45,7 +76,7 @@ const HostelBookingsManagement = () => {
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
-      alert('Failed to fetch bookings');
+      showNotification('error', 'Failed to fetch bookings', 'Please try again later');
     } finally {
       setLoading(false);
     }
@@ -53,7 +84,12 @@ const HostelBookingsManagement = () => {
 
   const fetchRooms = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/hostel-rooms');
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:4000/api/hostel-rooms', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -95,7 +131,7 @@ const HostelBookingsManagement = () => {
     if (!bookingForm.roomId || !bookingForm.customerEmail || !bookingForm.customerName ||
         !bookingForm.petName || !bookingForm.checkInDate || !bookingForm.checkOutDate ||
         !bookingForm.phone) {
-      alert('Please fill in all required fields');
+      showNotification('error', 'Please fill in all required fields', 'All fields marked with * are required');
       return;
     }
 
@@ -114,6 +150,7 @@ const HostelBookingsManagement = () => {
         checkInDate: bookingForm.checkInDate,
         checkOutDate: bookingForm.checkOutDate,
         contactInfo: {
+          email: bookingForm.customerEmail,
           phone: bookingForm.phone,
           emergencyContactName: bookingForm.emergencyContactName,
           emergencyContactPhone: bookingForm.emergencyContactPhone,
@@ -125,6 +162,7 @@ const HostelBookingsManagement = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify(bookingData),
       });
@@ -132,15 +170,16 @@ const HostelBookingsManagement = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert(`✅ Booking created successfully! Booking Number: ${data.data.bookingNumber}`);
+        showNotification('success', 'Booking confirmed!', `Booking Number: ${data.data.bookingNumber}\n\nA confirmation email has been sent to ${bookingForm.customerEmail}`);
         setIsBookingModalOpen(false);
         fetchBookings();
       } else {
-        alert(data.message || 'Failed to create booking');
+        // Show specific error message from backend
+        showNotification('error', data.message || 'Failed to create booking', 'Please check your details and try again');
       }
     } catch (error) {
       console.error('Error creating booking:', error);
-      alert('Failed to create booking. Please try again.');
+      showNotification('error', 'Failed to create booking', 'Please try again later');
     }
   };
 
@@ -159,10 +198,12 @@ const HostelBookingsManagement = () => {
     if (!window.confirm(confirmMessage)) return;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/hostel-bookings/${bookingId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -170,14 +211,14 @@ const HostelBookingsManagement = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert(`✅ Booking status updated to ${newStatus}! Confirmation email sent to customer.`);
+        showNotification('success', `Order status updated to "${newStatus}"`, 'Email notification sent to customer!');
         fetchBookings();
       } else {
-        alert(data.message || 'Failed to update status');
+        showNotification('error', data.message || 'Failed to update status', 'Please try again');
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Failed to update status');
+      showNotification('error', 'Failed to update status', 'Please try again later');
     }
   };
 
@@ -185,21 +226,25 @@ const HostelBookingsManagement = () => {
     if (!window.confirm('Are you sure you want to delete this booking?')) return;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/hostel-bookings/${bookingId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       const data = await response.json();
 
       if (data.success) {
-        alert('Booking deleted successfully!');
+        showNotification('success', 'Booking deleted successfully!', 'The booking has been removed from the system');
         fetchBookings();
       } else {
-        alert(data.message || 'Failed to delete booking');
+        showNotification('error', data.message || 'Failed to delete booking', 'Please try again');
       }
     } catch (error) {
       console.error('Error deleting booking:', error);
-      alert('Failed to delete booking');
+      showNotification('error', 'Failed to delete booking', 'Please try again later');
     }
   };
 
@@ -789,6 +834,62 @@ const HostelBookingsManagement = () => {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Notification Modal */}
+      {notification.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-md px-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
+            {/* Content */}
+            <div className="p-8">
+              {/* Message */}
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                {notification.message}
+              </h3>
+
+              {/* Details with Icon */}
+              {notification.details && (
+                <div className="flex items-start gap-2 mb-6">
+                  {notification.type === 'success' && (
+                    <div className="flex-shrink-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                  {notification.type === 'error' && (
+                    <div className="flex-shrink-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                  )}
+                  {notification.type === 'info' && (
+                    <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  )}
+                  <p className="text-base text-gray-700 whitespace-pre-line flex-1">
+                    {notification.details}
+                  </p>
+                </div>
+              )}
+
+              {/* Divider */}
+              <div className="border-t border-gray-200 mb-4"></div>
+
+              {/* Close Button */}
+              <button
+                onClick={closeNotification}
+                className="w-full text-center py-3 text-blue-600 font-semibold text-lg hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                {notification.type === 'success' ? 'OK' : 'Close'}
+              </button>
             </div>
           </div>
         </div>

@@ -35,6 +35,32 @@ const UserHostelPage = () => {
   const [bookingFilter, setBookingFilter] = useState("All");
   const [selectedBookingDetail, setSelectedBookingDetail] = useState(null);
 
+  // Notification state
+  const [notification, setNotification] = useState({
+    show: false,
+    type: 'success', // 'success' | 'error' | 'info'
+    message: '',
+    details: ''
+  });
+
+  // Show notification function
+  const showNotification = (type, message, details = '') => {
+    setNotification({
+      show: true,
+      type,
+      message,
+      details
+    });
+  };
+
+  // Close notification function
+  const closeNotification = () => {
+    setNotification({
+      ...notification,
+      show: false
+    });
+  };
+
   useEffect(() => {
     loadUserData();
     fetchRooms();
@@ -96,8 +122,8 @@ const UserHostelPage = () => {
 
   const openBookingModal = (room) => {
     if (!user) {
-      alert("Please login to book a hostel room");
-      navigate('/login');
+      showNotification('info', 'Please login to book a hostel room', 'You need to be logged in to make a booking');
+      setTimeout(() => navigate('/login'), 2000);
       return;
     }
     setSelectedRoom(room);
@@ -126,8 +152,8 @@ const UserHostelPage = () => {
     setBookingError("");
 
     if (!user) {
-      alert("Please login to book");
-      navigate('/login');
+      showNotification('info', 'Please login to book', 'You need to be logged in to make a booking');
+      setTimeout(() => navigate('/login'), 2000);
       return;
     }
 
@@ -157,8 +183,8 @@ const UserHostelPage = () => {
 
       const token = localStorage.getItem('token');
       if (!token) {
-        alert("Please login to continue");
-        navigate('/login');
+        showNotification('info', 'Please login to continue', 'Your session has expired');
+        setTimeout(() => navigate('/login'), 2000);
         return;
       }
 
@@ -190,7 +216,7 @@ const UserHostelPage = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert(`Booking confirmed! Booking Number: ${data.data.bookingNumber}\n\nA confirmation email has been sent to ${user.email}`);
+        showNotification('success', 'Booking confirmed!', `Booking Number: ${data.data.bookingNumber}\n\nA confirmation email has been sent to ${user.email}`);
         closeBookingModal();
         setActiveTab("bookings"); // Switch to bookings tab
         fetchMyBookings(); // Refresh bookings
@@ -282,14 +308,14 @@ const UserHostelPage = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert('Booking cancelled successfully!');
+        showNotification('success', 'Booking cancelled successfully!', 'A confirmation email has been sent');
         fetchMyBookings();
       } else {
-        alert(data.message || 'Failed to cancel booking');
+        showNotification('error', data.message || 'Failed to cancel booking', 'Please try again later');
       }
     } catch (error) {
       console.error('Error cancelling booking:', error);
-      alert('Failed to cancel booking');
+      showNotification('error', 'Failed to cancel booking', 'Please try again later');
     }
   };
 
@@ -925,6 +951,62 @@ const UserHostelPage = () => {
                 className="w-full px-6 py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 cursor-pointer"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Notification Modal */}
+      {notification.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-md px-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
+            {/* Content */}
+            <div className="p-8">
+              {/* Message */}
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                {notification.message}
+              </h3>
+
+              {/* Details with Icon */}
+              {notification.details && (
+                <div className="flex items-start gap-2 mb-6">
+                  {notification.type === 'success' && (
+                    <div className="flex-shrink-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                  {notification.type === 'error' && (
+                    <div className="flex-shrink-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                  )}
+                  {notification.type === 'info' && (
+                    <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  )}
+                  <p className="text-base text-gray-700 whitespace-pre-line flex-1">
+                    {notification.details}
+                  </p>
+                </div>
+              )}
+
+              {/* Divider */}
+              <div className="border-t border-gray-200 mb-4"></div>
+
+              {/* Close Button */}
+              <button
+                onClick={closeNotification}
+                className="w-full text-center py-3 text-blue-600 font-semibold text-lg hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                OK
               </button>
             </div>
           </div>

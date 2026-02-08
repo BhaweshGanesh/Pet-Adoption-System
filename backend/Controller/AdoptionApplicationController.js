@@ -353,3 +353,57 @@ export const getApplicationsByEmail = async (req, res) => {
   }
 };
 
+// @desc    Get logged-in user's adoption history
+// @route   GET /api/adoptions/my-adoptions
+// @access  Private
+export const getMyAdoptions = async (req, res) => {
+  try {
+    console.log('🔍 [getMyAdoptions] Request received');
+    console.log('👤 User:', req.user ? `${req.user.fullName} (${req.user.email})` : 'No user');
+    
+    if (!req.user) {
+      console.log('❌ [getMyAdoptions] No user found in request');
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      });
+    }
+
+    // Find applications by userId or email
+    const applications = await AdoptionApplication.find({
+      $or: [
+        { userId: req.user._id },
+        { email: req.user.email }
+      ]
+    })
+      .populate('petId', 'name type breed image age gender color')
+      .populate('reviewedBy', 'fullName')
+      .sort({ createdAt: -1 });
+
+    console.log(`📊 [getMyAdoptions] Found ${applications.length} applications`);
+
+    // Separate by status for easier display
+    const adoptionHistory = {
+      approved: applications.filter(app => app.status === 'approved'),
+      pending: applications.filter(app => app.status === 'pending'),
+      rejected: applications.filter(app => app.status === 'rejected'),
+      withdrawn: applications.filter(app => app.status === 'withdrawn'),
+      all: applications
+    };
+
+    console.log('✅ [getMyAdoptions] Response sent successfully');
+    
+    res.status(200).json({
+      success: true,
+      count: applications.length,
+      data: adoptionHistory,
+    });
+  } catch (error) {
+    console.error('💥 [getMyAdoptions] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching adoption history',
+      error: error.message,
+    });
+  }
+};

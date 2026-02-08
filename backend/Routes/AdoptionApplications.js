@@ -6,20 +6,24 @@ import {
   updateApplicationStatus,
   deleteApplication,
   getApplicationsByEmail,
+  getMyAdoptions,
 } from '../Controller/AdoptionApplicationController.js';
-// import { protect, adminOnly } from '../Middleware/Auth.js'; // Uncomment when ready
+import { protect, adminOnly } from '../Middleware/Auth.js';
 
 const router = express.Router();
+
+// Protected user routes (must be FIRST to avoid conflicts)
+router.get('/my-adoptions', protect, getMyAdoptions);
 
 // Public routes
 router.post('/', submitApplication);
 router.get('/user/:email', getApplicationsByEmail);
 
-// Admin routes (add auth middleware when ready)
-router.get('/', getAllApplications); // Add: protect, adminOnly
-router.get('/:id', getApplicationById); // Add: protect, adminOnly
-router.put('/:id/status', updateApplicationStatus); // Add: protect, adminOnly
-router.delete('/:id', deleteApplication); // Add: protect, adminOnly
+// Admin routes
+router.get('/', protect, adminOnly, getAllApplications);
+router.get('/:id', protect, adminOnly, getApplicationById);
+router.put('/:id/status', protect, adminOnly, updateApplicationStatus);
+router.delete('/:id', protect, adminOnly, deleteApplication);
 
 export default router;
 

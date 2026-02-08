@@ -27,6 +27,7 @@ import AdoptionService from './pages/AdoptionService';
 import PetHostelService from './pages/PetHostelService';
 import PetStoreService from './pages/PetStoreService';
 import UserHostelPage from './pages/UserHostelPage';
+import MyAdoptions from './pages/MyAdoptions';
 
 // Staff Pages
 import StaffDashboard from './pages/StaffDashboard';
@@ -118,6 +119,14 @@ function App() {
           element={
             <ProtectedRoute requireAuth={true}>
               <UserHostelPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/my-adoptions" 
+          element={
+            <ProtectedRoute requireAuth={true}>
+              <MyAdoptions />
             </ProtectedRoute>
           } 
         />
