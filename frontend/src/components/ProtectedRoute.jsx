@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { validateSession, getCurrentUser, getUserRole, logout } from '../utils/auth';
+import { validateSession, getCurrentUser, getUserRole } from '../utils/auth';
 
 /**
  * ProtectedRoute Component

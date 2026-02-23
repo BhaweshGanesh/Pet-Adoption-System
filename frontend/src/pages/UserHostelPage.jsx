@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import UserNavbar from "../components/UserNavbar";
+import { loadKhaltiScript, initKhaltiBookingCheckout, verifyKhaltiPayment } from "../utils/khaltiConfig";
 
 const UserHostelPage = () => {
   const navigate = useNavigate();
@@ -8,6 +9,7 @@ const UserHostelPage = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [khaltiLoaded, setKhaltiLoaded] = useState(false);
   const [filters, setFilters] = useState({
     petType: "All",
     roomType: "All",
@@ -25,6 +27,7 @@ const UserHostelPage = () => {
     phone: "",
     emergencyContact: "",
     specialInstructions: "",
+    paymentMethod: "Cash", // Default payment method
   });
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState("");
@@ -64,6 +67,11 @@ const UserHostelPage = () => {
   useEffect(() => {
     loadUserData();
     fetchRooms();
+    
+    // Load Khalti script
+    loadKhaltiScript()
+      .then(() => setKhaltiLoaded(true))
+      .catch(err => console.error('Khalti load error:', err));
   }, []);
 
   useEffect(() => {
@@ -178,15 +186,111 @@ const UserHostelPage = () => {
       return;
     }
 
-    try {
-      setBookingLoading(true);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showNotification('info', 'Please login to continue', 'Your session has expired');
+      setTimeout(() => navigate('/login'), 2000);
+      return;
+    }
 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showNotification('info', 'Please login to continue', 'Your session has expired');
-        setTimeout(() => navigate('/login'), 2000);
+    // Handle Khalti Payment
+    if (bookingForm.paymentMethod === 'Khalti') {
+      if (!khaltiLoaded) {
+        setBookingError('Khalti payment gateway is not loaded. Please try again.');
         return;
       }
+
+      try {
+        setBookingLoading(true);
+
+        // Create booking with pending payment
+        const bookingData = {
+          roomId: selectedRoom._id,
+          petDetails: {
+            petName: bookingForm.petName,
+            petType: bookingForm.petType,
+            age: bookingForm.age,
+            breed: bookingForm.breed,
+            specialNeeds: bookingForm.specialNeeds,
+          },
+          checkInDate: bookingForm.checkInDate,
+          checkOutDate: bookingForm.checkOutDate,
+          phone: bookingForm.phone,
+          emergencyContact: bookingForm.emergencyContact,
+          specialInstructions: bookingForm.specialInstructions,
+          paymentMethod: 'Khalti',
+        };
+
+        const response = await fetch('http://localhost:4000/api/hostel-bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(bookingData),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const bookingId = data.data._id;
+          const totalAmount = data.data.totalAmount;
+
+          // Initiate Khalti payment
+          initKhaltiBookingCheckout(
+            {
+              bookingId: bookingId,
+              productName: `Hostel Booking - ${selectedRoom.roomNumber}`,
+              amount: totalAmount,
+            },
+            async (payload) => {
+              // Payment success - verify with backend
+              try {
+                setBookingLoading(true);
+                const verifyResponse = await verifyKhaltiPayment(
+                  payload.token,
+                  payload.amount,
+                  bookingId,
+                  'booking',
+                  token
+                );
+
+                if (verifyResponse.success) {
+                  showNotification('success', 'Payment successful!', `Booking Number: ${data.data.bookingNumber}\n\nA confirmation email has been sent to ${user.email}`);
+                  closeBookingModal();
+                  setActiveTab("bookings");
+                  fetchMyBookings();
+                } else {
+                  showNotification('error', 'Payment verification failed', 'Please contact support.');
+                }
+              } catch (error) {
+                console.error('Verification error:', error);
+                showNotification('error', 'Payment verification failed', error.message);
+              } finally {
+                setBookingLoading(false);
+              }
+            },
+            (error) => {
+              console.error('Khalti payment error:', error);
+              showNotification('error', 'Payment failed', 'Your booking is saved but payment is pending.');
+              setBookingLoading(false);
+            }
+          );
+        } else {
+          setBookingError(data.message || 'Failed to create booking');
+          setBookingLoading(false);
+        }
+      } catch (error) {
+        console.error('Error creating booking:', error);
+        setBookingError('Failed to create booking. Please try again.');
+        setBookingLoading(false);
+      }
+      return; // Exit for Khalti payment
+    }
+
+    // Handle Cash payment
+    try {
+      setBookingLoading(true);
 
       const bookingData = {
         roomId: selectedRoom._id,
@@ -788,6 +892,60 @@ const UserHostelPage = () => {
                   placeholder="Any additional instructions for pet care..."
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 resize-none"
                 />
+              </div>
+
+              {/* Payment Method Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Payment Method *
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-green-400 transition-colors">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Cash"
+                      checked={bookingForm.paymentMethod === "Cash"}
+                      onChange={(e) => setBookingForm({...bookingForm, paymentMethod: e.target.value})}
+                      className="w-4 h-4 text-green-500"
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold text-slate-900">Pay at Check-in</p>
+                      <p className="text-xs text-slate-600">Pay when you arrive</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-green-400 transition-colors">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Khalti"
+                      checked={bookingForm.paymentMethod === "Khalti"}
+                      onChange={(e) => setBookingForm({...bookingForm, paymentMethod: e.target.value})}
+                      className="w-4 h-4 text-green-500"
+                      disabled={!khaltiLoaded}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-slate-900">Khalti Payment</p>
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                          Secure
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600">Pay now with Khalti</p>
+                      {!khaltiLoaded && (
+                        <p className="text-xs text-orange-600 mt-1">Loading payment gateway...</p>
+                      )}
+                    </div>
+                    {khaltiLoaded && (
+                      <img 
+                        src="https://khalti.com/static/khalti_logo.png" 
+                        alt="Khalti" 
+                        className="h-5"
+                      />
+                    )}
+                  </label>
+                </div>
               </div>
 
               {priceInfo && (

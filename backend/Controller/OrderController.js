@@ -117,9 +117,12 @@ export const createOrder = async (req, res) => {
         subtotal: itemSubtotal,
       });
 
-      // Reduce stock
-      product.stock -= item.quantity;
-      await product.save();
+      // Only reduce stock for Cash on Delivery (instant confirmation)
+      // For Khalti payment, stock will be reduced after payment verification
+      if (paymentMethod === 'Cash on Delivery') {
+        product.stock -= item.quantity;
+        await product.save();
+      }
     }
 
     // Calculate shipping fee (free if subtotal >= 10000)

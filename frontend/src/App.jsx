@@ -183,7 +183,7 @@ function App() {
         <Route 
           path="/vaccinations/:id" 
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={['admin', 'staff', 'user']}>
               <VaccinationDetails />
             </ProtectedRoute>
           } 

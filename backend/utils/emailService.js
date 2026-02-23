@@ -2,14 +2,16 @@ import nodemailer from 'nodemailer';
 
 // Create transporter
 const createTransporter = () => {
-  // For development, use Gmail or other SMTP service
-  // For production, use services like SendGrid, AWS SES, etc.
-  
+  // Use Gmail SMTP with STARTTLS on port 587
+  // Support EMAIL_PASS or EMAIL_PASSWORD; strip spaces (Gmail App Password is 16 chars, no spaces)
+  const emailPass = (process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || '').replace(/\s/g, '');
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
+      pass: emailPass,
     },
   });
 };
@@ -111,7 +113,18 @@ export const sendVerificationEmail = async (email, fullName, verificationCode) =
     console.log('✅ Verification email sent to:', email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending verification email:', error);
+    const code = error.responseCode || error.code;
+    const is535 = String(code) === '535' || (error.response && String(error.response).includes('535'));
+    if (is535) {
+      console.error('❌ Gmail authentication failed (535). Fix: use a Gmail App Password.');
+      console.error('   1. Go to https://myaccount.google.com/apppasswords');
+      console.error(`   2. Sign in with ${process.env.EMAIL_USER}, turn on 2-Step Verification if needed`);
+      console.error('   3. Create an App Password for "Mail", copy the 16-character password');
+      console.error('   4. In backend/.env set either EMAIL_PASS or EMAIL_PASSWORD to that 16-char password');
+      console.error('   5. Restart the backend server.');
+    } else {
+      console.error('❌ Error sending verification email:', error.message || error);
+    }
     throw new Error('Failed to send verification email');
   }
 };

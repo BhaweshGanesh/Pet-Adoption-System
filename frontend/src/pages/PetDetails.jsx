@@ -164,7 +164,7 @@ const PetDetails = () => {
                       state: { petName: pet.name, petImage: pet.image },
                     })
                   }
-                  className="bg-[#fff7f0] rounded-xl px-3 py-2 text-left hover:bg-[#ffe8d6] transition col-span-2"
+                  className="bg-[#fff7f0] rounded-xl px-3 py-2 text-left hover:bg-[#ffe8d6] transition col-span-2 cursor-pointer"
                 >
                   <p className="text-[11px] text-slate-500 uppercase">
                     Vaccination Status

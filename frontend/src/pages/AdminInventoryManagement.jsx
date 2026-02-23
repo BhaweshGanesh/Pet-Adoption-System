@@ -326,35 +326,6 @@ const AdminInventoryManagement = () => {
     }
   };
 
-  const handleCancelOrder = async (orderId) => {
-    if (!confirm('Are you sure you want to cancel this order? Stock will be restored.')) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/api/orders/${orderId}/cancel`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        alert(data.message);
-        fetchOrders();
-        fetchProducts(); // Refresh to show updated stock
-        setIsOrderModalOpen(false);
-        setSelectedOrder(null);
-      } else {
-        alert(data.message || 'Failed to cancel order');
-      }
-    } catch (error) {
-      console.error('Error cancelling order:', error);
-      alert('Failed to cancel order');
-    }
-  };
-
   const closeModals = () => {
     setIsProductModalOpen(false);
     setEditingProduct(null);

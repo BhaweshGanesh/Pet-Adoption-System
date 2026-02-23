@@ -91,8 +91,17 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['Cash on Delivery', 'Online Payment', 'Bank Transfer'],
+      enum: ['Cash on Delivery', 'Online Payment', 'Bank Transfer', 'Khalti'],
       default: 'Cash on Delivery',
+    },
+    khaltiPayment: {
+      idx: { type: String }, // Khalti payment identifier
+      token: { type: String }, // Khalti token
+      amount: { type: Number }, // Amount in paisa (Khalti uses paisa)
+      mobile: { type: String }, // Payer's mobile number
+      productIdentity: { type: String }, // Product identity
+      productName: { type: String }, // Product name
+      verifiedAt: { type: Date }, // When payment was verified
     },
     notes: {
       type: String,

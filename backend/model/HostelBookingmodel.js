@@ -77,6 +77,20 @@ const hostelBookingSchema = new mongoose.Schema(
       enum: ['Pending', 'Partial', 'Paid', 'Refunded'],
       default: 'Pending',
     },
+    paymentMethod: {
+      type: String,
+      enum: ['Cash', 'Khalti', 'Bank Transfer'],
+      default: 'Cash',
+    },
+    khaltiPayment: {
+      idx: { type: String }, // Khalti payment identifier
+      token: { type: String }, // Khalti token
+      amount: { type: Number }, // Amount in paisa (Khalti uses paisa)
+      mobile: { type: String }, // Payer's mobile number
+      productIdentity: { type: String }, // Product identity (booking number)
+      productName: { type: String }, // Product name (room name)
+      verifiedAt: { type: Date }, // When payment was verified
+    },
     contactInfo: {
       email: {
         type: String,

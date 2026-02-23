@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { loadKhaltiScript, initKhaltiCheckout, verifyKhaltiPayment } from "../utils/khaltiConfig";
+import UserNavbar from "../components/UserNavbar";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -7,6 +9,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [khaltiLoaded, setKhaltiLoaded] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,7 +21,12 @@ const Checkout = () => {
 
   useEffect(() => {
     loadCart();
-    loadUserData();    
+    loadUserData();
+    
+    // Load Khalti script
+    loadKhaltiScript()
+      .then(() => setKhaltiLoaded(true))
+      .catch(err => console.error('Khalti load error:', err));
   }, []);
 
   const loadUserData = () => {
@@ -80,6 +88,111 @@ const Checkout = () => {
       return;
     }
 
+    // If Khalti payment, initiate Khalti checkout first
+    if (formData.paymentMethod === 'Khalti') {
+      if (!khaltiLoaded) {
+        alert('Khalti payment gateway is not loaded. Please try again.');
+        return;
+      }
+
+      if (!user || !token) {
+        alert('Please log in to use Khalti payment');
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        // First create the order with pending payment
+        const orderData = {
+          customer: {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+          },
+          items: cart.map(item => ({
+            product: item._id,
+            quantity: item.quantity,
+          })),
+          subtotal: subtotal,
+          shippingFee: shipping,
+          totalAmount: total,
+          paymentMethod: 'Khalti',
+          notes: formData.notes,
+        };
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        };
+
+        const response = await fetch('http://localhost:4000/api/orders', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(orderData),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const orderId = data.data._id;
+          
+          // Initiate Khalti payment
+          initKhaltiCheckout(
+            {
+              orderId: orderId,
+              productName: `Order ${data.data.orderNumber}`,
+              amount: total, // Amount in Rs
+            },
+            async (payload) => {
+              // Payment success - verify with backend
+              try {
+                setLoading(true);
+                const verifyResponse = await verifyKhaltiPayment(
+                  payload.token,
+                  payload.amount,
+                  orderId,
+                  'order',
+                  token
+                );
+
+                if (verifyResponse.success) {
+                  // Clear cart
+                  localStorage.removeItem('petshop_cart');
+                  
+                  // Redirect to success page
+                  navigate('/order-success', { state: { order: verifyResponse.data.order } });
+                } else {
+                  alert('Payment verification failed. Please contact support.');
+                }
+              } catch (error) {
+                console.error('Verification error:', error);
+                alert(`Payment verification failed: ${error.message}`);
+              } finally {
+                setLoading(false);
+              }
+            },
+            (error) => {
+              // Payment error
+              console.error('Khalti payment error:', error);
+              alert('Payment failed. Your order is saved but payment is pending.');
+              setLoading(false);
+            }
+          );
+        } else {
+          alert(`Error creating order: ${data.message || 'Unknown error'}`);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error placing order:', error);
+        alert(`Failed to place order: ${error.message || 'Please try again.'}`);
+        setLoading(false);
+      }
+      return; // Exit here for Khalti payment
+    }
+
+    // For other payment methods (Cash on Delivery, Bank Transfer)
     try {
       setLoading(true);
 
@@ -141,26 +254,7 @@ const Checkout = () => {
   return (
     <div className="min-h-screen bg-[#fff7f0]">
       {/* NAVBAR */}
-      <header className="sticky top-0 z-20 bg-white border-b border-orange-100/80 px-6 lg:px-16 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-            <span className="text-2xl">🐾</span>
-          </div>
-          <span className="text-2xl font-bold text-slate-900">
-            Pet<span className="text-orange-500">Adopt+</span>
-          </span>
-        </div>
-
-        <nav className="hidden md:flex gap-6 text-sm text-slate-500">
-          <Link to="/" className="hover:text-slate-900">Home</Link>
-          <Link to="/browse-pets" className="hover:text-slate-900">Browse Pets</Link>
-          <Link to="/shop" className="hover:text-slate-900">Shop</Link>
-        </nav>
-
-        <Link to="/login" className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white">
-          Login
-        </Link>
-      </header>
+      <UserNavbar />
 
       {/* BREADCRUMB */}
       <div className="bg-white border-b border-slate-100 px-6 lg:px-16 py-3">
@@ -274,6 +368,39 @@ const Checkout = () => {
                       </div>
                     </label>
 
+                    <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="Khalti"
+                        checked={formData.paymentMethod === "Khalti"}
+                        onChange={handleInputChange}
+                        className="w-5 h-5 text-orange-500"
+                        disabled={!user || !khaltiLoaded}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-slate-900">Khalti Payment</p>
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                            Recommended
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-600">Pay securely with Khalti</p>
+                        {(!user || !token) && (
+                          <p className="text-xs text-red-600 mt-1">⚠️ Login required for Khalti payment</p>
+                        )}
+                        {user && !khaltiLoaded && (
+                          <p className="text-xs text-orange-600 mt-1">Loading payment gateway...</p>
+                        )}
+                      </div>
+                      {khaltiLoaded && (
+                        <img 
+                          src="https://khalti.com/static/khalti_logo.png" 
+                          alt="Khalti" 
+                          className="h-6"
+                        />
+                      )}
+                    </label>
                     
                     <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
                       <input

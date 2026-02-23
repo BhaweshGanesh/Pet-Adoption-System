@@ -10,8 +10,8 @@ const AdminPetsManagement = () => {
   const [activeTab, setActiveTab] = useState("pets"); // pets or adoptions
   const [pets, setPets] = useState([]);
   const [adoptionRequests, setAdoptionRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [_loading, setLoading] = useState(true);
+  const [_error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
   const [adoptionStatusFilter, setAdoptionStatusFilter] = useState("all");
   const [isPetModalOpen, setIsPetModalOpen] = useState(false);

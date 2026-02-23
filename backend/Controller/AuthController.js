@@ -39,8 +39,15 @@ export const signup = async (req, res) => {
       verificationCodeExpiry,
     });
 
-    // Send verification email
-    await sendVerificationEmail(email, fullName, verificationCode);
+    // Send verification email — non-blocking so signup always succeeds
+    try {
+      await sendVerificationEmail(email, fullName, verificationCode);
+      console.log(`✅ Verification email sent to: ${email}`);
+    } catch (emailErr) {
+      console.error('❌ Email failed:', emailErr.message);
+      console.log(`📋 Verification code for ${email}: ${verificationCode}`);
+      console.log('   → To fix 535: set EMAIL_PASS in backend/.env to a Gmail App Password (https://myaccount.google.com/apppasswords)');
+    }
 
     res.status(201).json({
       success: true,
