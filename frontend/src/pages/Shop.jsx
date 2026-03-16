@@ -18,7 +18,7 @@ const Shop = () => {
   useEffect(() => {
     const savedCart = localStorage.getItem('petshop_cart');
     if (savedCart) {
-      setCart(JSON.parse(savedCart));
+      setCart(JSON.parse(savedCart));       
     }
   }, []);
 
