@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loadKhaltiScript, initKhaltiCheckout, verifyKhaltiPayment } from "../utils/khaltiConfig";
+import { initiateKhaltiOrderPayment } from "../utils/khaltiConfig";
 import UserNavbar from "../components/UserNavbar";
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -9,7 +11,6 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [khaltiLoaded, setKhaltiLoaded] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,15 +23,9 @@ const Checkout = () => {
   useEffect(() => {
     loadCart();
     loadUserData();
-    
-    // Load Khalti script
-    loadKhaltiScript()
-      .then(() => setKhaltiLoaded(true))
-      .catch(err => console.error('Khalti load error:', err));
   }, []);
 
   const loadUserData = () => {
-    // Check if user is logged in
     const storedToken = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
 
@@ -39,9 +34,7 @@ const Checkout = () => {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         setToken(storedToken);
-        
-        // Pre-fill form with user data
-        setFormData(prev => ({  
+        setFormData(prev => ({
           ...prev,
           name: parsedUser.fullName || "",
           email: parsedUser.email || "",
@@ -75,8 +68,6 @@ const Checkout = () => {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const SHIPPING_FEE = 100;
   const FREE_SHIPPING_THRESHOLD = 10000;
-  
-  // Calculate shipping: free if subtotal > 10,000, otherwise 100
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const total = subtotal + shipping;
 
@@ -88,13 +79,7 @@ const Checkout = () => {
       return;
     }
 
-    // If Khalti payment, initiate Khalti checkout first
     if (formData.paymentMethod === 'Khalti') {
-      if (!khaltiLoaded) {
-        alert('Khalti payment gateway is not loaded. Please try again.');
-        return;
-      }
-
       if (!user || !token) {
         alert('Please log in to use Khalti payment');
         return;
@@ -103,7 +88,7 @@ const Checkout = () => {
       try {
         setLoading(true);
 
-        // First create the order with pending payment
+        // Step 1: Create order with pending payment status
         const orderData = {
           customer: {
             name: formData.name,
@@ -115,88 +100,48 @@ const Checkout = () => {
             product: item._id,
             quantity: item.quantity,
           })),
-          subtotal: subtotal,
+          subtotal,
           shippingFee: shipping,
           totalAmount: total,
           paymentMethod: 'Khalti',
           notes: formData.notes,
         };
 
-        const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        };
-
-        const response = await fetch('http://localhost:4000/api/orders', {
+        const response = await fetch(`${API_URL}/api/orders`, {
           method: 'POST',
-          headers: headers,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(orderData),
         });
 
         const data = await response.json();
 
-        if (data.success) {
-          const orderId = data.data._id;
-          
-          // Initiate Khalti payment
-          initKhaltiCheckout(
-            {
-              orderId: orderId,
-              productName: `Order ${data.data.orderNumber}`,
-              amount: total, // Amount in Rs
-            },
-            async (payload) => {
-              // Payment success - verify with backend
-              try {
-                setLoading(true);
-                const verifyResponse = await verifyKhaltiPayment(
-                  payload.token,
-                  payload.amount,
-                  orderId,
-                  'order',
-                  token
-                );
-
-                if (verifyResponse.success) {
-                  // Clear cart
-                  localStorage.removeItem('petshop_cart');
-                  
-                  // Redirect to success page
-                  navigate('/order-success', { state: { order: verifyResponse.data.order } });
-                } else {
-                  alert('Payment verification failed. Please contact support.');
-                }
-              } catch (error) {
-                console.error('Verification error:', error);
-                alert(`Payment verification failed: ${error.message}`);
-              } finally {
-                setLoading(false);
-              }
-            },
-            (error) => {
-              // Payment error
-              console.error('Khalti payment error:', error);
-              alert('Payment failed. Your order is saved but payment is pending.');
-              setLoading(false);
-            }
-          );
-        } else {
+        if (!data.success) {
           alert(`Error creating order: ${data.message || 'Unknown error'}`);
           setLoading(false);
+          return;
         }
+
+        const orderId = data.data._id;
+
+        // Step 2: Initiate Khalti payment — redirects to pay.khalti.com
+        await initiateKhaltiOrderPayment(orderId, token);
+        // execution stops here because browser navigates away
+
       } catch (error) {
         console.error('Error placing order:', error);
         alert(`Failed to place order: ${error.message || 'Please try again.'}`);
         setLoading(false);
       }
-      return; // Exit here for Khalti payment
+      return;
     }
 
-    // For other payment methods (Cash on Delivery, Bank Transfer)
+    // Cash on Delivery / Bank Transfer
     try {
       setLoading(true);
 
-      // Prepare order data
       const orderData = {
         customer: {
           name: formData.name,
@@ -208,36 +153,26 @@ const Checkout = () => {
           product: item._id,
           quantity: item.quantity,
         })),
-        subtotal: subtotal,
+        subtotal,
         shippingFee: shipping,
         totalAmount: total,
         paymentMethod: formData.paymentMethod,
         notes: formData.notes,
       };
 
-      // Prepare headers with optional authentication
-      const headers = {
-        'Content-Type': 'application/json',
-      };
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      // Add authentication token if user is logged in
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('http://localhost:4000/api/orders', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(orderData),
-      });
+      const response = await fetch(`${API_URL}/api/orders`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(orderData),
+        });
 
       const data = await response.json();
 
       if (data.success) {
-        // Clear cart
         localStorage.removeItem('petshop_cart');
-        
-        // Redirect to success page with order number
         navigate('/order-success', { state: { order: data.data } });
       } else {
         console.error('Order creation failed:', data);
@@ -253,10 +188,8 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-[#fff7f0]">
-      {/* NAVBAR */}
       <UserNavbar />
 
-      {/* BREADCRUMB */}
       <div className="bg-white border-b border-slate-100 px-6 lg:px-16 py-3">
         <div className="flex items-center gap-2 text-sm text-slate-600">
           <Link to="/shop" className="hover:text-orange-500">Shop</Link>
@@ -267,7 +200,6 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* CHECKOUT FORM */}
       <div className="px-6 lg:px-16 py-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-slate-900 mb-8">Checkout</h1>
@@ -276,10 +208,9 @@ const Checkout = () => {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Billing Information */}
               <div className="lg:col-span-2 space-y-6">
-                {/* Customer Information */}
                 <div className="bg-white rounded-2xl border border-slate-100 p-6">
                   <h2 className="text-xl font-bold text-slate-900 mb-4">Customer Information</h2>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -351,7 +282,7 @@ const Checkout = () => {
                 {/* Payment Method */}
                 <div className="bg-white rounded-2xl border border-slate-100 p-6">
                   <h2 className="text-xl font-bold text-slate-900 mb-4">Payment Method</h2>
-                  
+
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
                       <input
@@ -368,15 +299,15 @@ const Checkout = () => {
                       </div>
                     </label>
 
-                    <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
+                    <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-purple-400 transition-colors">
                       <input
                         type="radio"
                         name="paymentMethod"
                         value="Khalti"
                         checked={formData.paymentMethod === "Khalti"}
                         onChange={handleInputChange}
-                        className="w-5 h-5 text-orange-500"
-                        disabled={!user || !khaltiLoaded}
+                        className="w-5 h-5 text-purple-600"
+                        disabled={!user}
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -385,23 +316,19 @@ const Checkout = () => {
                             Recommended
                           </span>
                         </div>
-                        <p className="text-sm text-slate-600">Pay securely with Khalti</p>
-                        {(!user || !token) && (
-                          <p className="text-xs text-red-600 mt-1">⚠️ Login required for Khalti payment</p>
-                        )}
-                        {user && !khaltiLoaded && (
-                          <p className="text-xs text-orange-600 mt-1">Loading payment gateway...</p>
+                        <p className="text-sm text-slate-600">Pay securely with Khalti — you'll be redirected to Khalti</p>
+                        {!user && (
+                          <p className="text-xs text-red-600 mt-1">Login required for Khalti payment</p>
                         )}
                       </div>
-                      {khaltiLoaded && (
-                        <img 
-                          src="https://khalti.com/static/khalti_logo.png" 
-                          alt="Khalti" 
-                          className="h-6"
-                        />
-                      )}
+                      <img
+                        src="https://khalti.com/static/khalti_logo.png"
+                        alt="Khalti"
+                        className="h-6"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
                     </label>
-                    
+
                     <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
                       <input
                         type="radio"
@@ -438,7 +365,6 @@ const Checkout = () => {
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 sticky top-24">
                   <h2 className="text-xl font-bold text-slate-900 mb-4">Order Summary</h2>
 
-                  {/* Cart Items */}
                   <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
                     {cart.map((item) => (
                       <div key={item._id} className="flex gap-3 pb-3 border-b border-slate-100">
@@ -458,7 +384,6 @@ const Checkout = () => {
                     ))}
                   </div>
 
-                  {/* Price Breakdown */}
                   <div className="space-y-3 mb-6 pb-6 border-b border-slate-200">
                     <div className="flex justify-between text-slate-700">
                       <span>Subtotal</span>
@@ -480,7 +405,7 @@ const Checkout = () => {
                     {subtotal >= FREE_SHIPPING_THRESHOLD && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                         <p className="text-xs text-green-800 font-semibold">
-                          🎉 You've qualified for FREE shipping!
+                          You've qualified for FREE shipping!
                         </p>
                       </div>
                     )}
@@ -503,7 +428,11 @@ const Checkout = () => {
                     disabled={loading}
                     className="w-full py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-3"
                   >
-                    {loading ? 'Placing Order...' : 'Place Order'}
+                    {loading
+                      ? formData.paymentMethod === 'Khalti'
+                        ? 'Redirecting to Khalti...'
+                        : 'Placing Order...'
+                      : 'Place Order'}
                   </button>
 
                   <Link
@@ -514,7 +443,7 @@ const Checkout = () => {
                   </Link>
 
                   <div className="mt-6 p-4 bg-blue-50 rounded-xl text-sm text-blue-700">
-                    <p className="font-semibold mb-1">🔒 Secure Checkout</p>
+                    <p className="font-semibold mb-1">Secure Checkout</p>
                     <p className="text-xs">Your information is protected and secure</p>
                   </div>
                 </div>
@@ -528,4 +457,3 @@ const Checkout = () => {
 };
 
 export default Checkout;
-

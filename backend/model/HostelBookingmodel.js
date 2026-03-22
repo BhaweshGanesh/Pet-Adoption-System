@@ -83,13 +83,16 @@ const hostelBookingSchema = new mongoose.Schema(
       default: 'Cash',
     },
     khaltiPayment: {
-      idx: { type: String }, // Khalti payment identifier
-      token: { type: String }, // Khalti token
-      amount: { type: Number }, // Amount in paisa (Khalti uses paisa)
-      mobile: { type: String }, // Payer's mobile number
-      productIdentity: { type: String }, // Product identity (booking number)
-      productName: { type: String }, // Product name (room name)
-      verifiedAt: { type: Date }, // When payment was verified
+      pidx: { type: String },         // Khalti e-Payment unique payment ID
+      transactionId: { type: String }, // Khalti transaction ID after completion
+      amount: { type: Number },        // Amount in paisa
+      mobile: { type: String },        // Payer's mobile number
+      verifiedAt: { type: Date },      // When payment was verified
+      // Legacy v1 fields (kept for backward compatibility)
+      idx: { type: String },
+      token: { type: String },
+      productIdentity: { type: String },
+      productName: { type: String },
     },
     contactInfo: {
       email: {

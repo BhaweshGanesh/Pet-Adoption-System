@@ -259,10 +259,34 @@ export const updateBookingStatus = async (req, res) => {
 
     // Store old status for comparison
     const oldStatus = booking.status;
-    
+
     // Update status
     booking.status = status;
     await booking.save();
+
+    // Sync room status based on booking status
+    if (booking.room && status !== oldStatus) {
+      const roomId = booking.room._id || booking.room;
+      if (status === 'Checked-In') {
+        await HostelRoom.findByIdAndUpdate(roomId, {
+          status: 'Occupied',
+          'currentOccupant.petName': booking.petDetails?.petName || '',
+          'currentOccupant.userId': booking.user?._id || null,
+          'currentOccupant.checkIn': new Date(),
+          'currentOccupant.checkOut': null,
+        });
+        console.log(`✅ Room ${booking.room?.roomNumber} marked as Occupied`);
+      } else if (status === 'Checked-Out' || status === 'Cancelled') {
+        await HostelRoom.findByIdAndUpdate(roomId, {
+          status: 'Available',
+          'currentOccupant.petName': '',
+          'currentOccupant.userId': null,
+          'currentOccupant.checkIn': null,
+          'currentOccupant.checkOut': null,
+        });
+        console.log(`✅ Room ${booking.room?.roomNumber} marked as Available`);
+      }
+    }
 
     // Get customer email - either from user or contactInfo
     const customerEmail = booking.user?.email || booking.contactInfo?.email;

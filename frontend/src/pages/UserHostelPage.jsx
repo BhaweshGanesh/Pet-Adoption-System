@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import UserNavbar from "../components/UserNavbar";
-import { loadKhaltiScript, initKhaltiBookingCheckout, verifyKhaltiPayment } from "../utils/khaltiConfig";
+import { initiateKhaltiBookingPayment } from "../utils/khaltiConfig";
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 const UserHostelPage = () => {
   const navigate = useNavigate();
@@ -9,7 +11,6 @@ const UserHostelPage = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [khaltiLoaded, setKhaltiLoaded] = useState(false);
   const [filters, setFilters] = useState({
     petType: "All",
     roomType: "All",
@@ -67,11 +68,6 @@ const UserHostelPage = () => {
   useEffect(() => {
     loadUserData();
     fetchRooms();
-    
-    // Load Khalti script
-    loadKhaltiScript()
-      .then(() => setKhaltiLoaded(true))
-      .catch(err => console.error('Khalti load error:', err));
   }, []);
 
   useEffect(() => {
@@ -99,7 +95,7 @@ const UserHostelPage = () => {
   const fetchRooms = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:4000/api/hostel-rooms?status=Available');
+      const response = await fetch(`${API_URL}/api/hostel-rooms?status=Available`);
       const data = await response.json();
 
       if (data.success) {
@@ -195,15 +191,10 @@ const UserHostelPage = () => {
 
     // Handle Khalti Payment
     if (bookingForm.paymentMethod === 'Khalti') {
-      if (!khaltiLoaded) {
-        setBookingError('Khalti payment gateway is not loaded. Please try again.');
-        return;
-      }
-
       try {
         setBookingLoading(true);
 
-        // Create booking with pending payment
+        // Step 1: Create booking with pending payment
         const bookingData = {
           roomId: selectedRoom._id,
           petDetails: {
@@ -221,71 +212,33 @@ const UserHostelPage = () => {
           paymentMethod: 'Khalti',
         };
 
-        const response = await fetch('http://localhost:4000/api/hostel-bookings', {
+        const response = await fetch(`${API_URL}/api/hostel-bookings`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(bookingData),
         });
 
         const data = await response.json();
 
-        if (data.success) {
-          const bookingId = data.data._id;
-          const totalAmount = data.data.totalAmount;
-
-          // Initiate Khalti payment
-          initKhaltiBookingCheckout(
-            {
-              bookingId: bookingId,
-              productName: `Hostel Booking - ${selectedRoom.roomNumber}`,
-              amount: totalAmount,
-            },
-            async (payload) => {
-              // Payment success - verify with backend
-              try {
-                setBookingLoading(true);
-                const verifyResponse = await verifyKhaltiPayment(
-                  payload.token,
-                  payload.amount,
-                  bookingId,
-                  'booking',
-                  token
-                );
-
-                if (verifyResponse.success) {
-                  showNotification('success', 'Payment successful!', `Booking Number: ${data.data.bookingNumber}\n\nA confirmation email has been sent to ${user.email}`);
-                  closeBookingModal();
-                  setActiveTab("bookings");
-                  fetchMyBookings();
-                } else {
-                  showNotification('error', 'Payment verification failed', 'Please contact support.');
-                }
-              } catch (error) {
-                console.error('Verification error:', error);
-                showNotification('error', 'Payment verification failed', error.message);
-              } finally {
-                setBookingLoading(false);
-              }
-            },
-            (error) => {
-              console.error('Khalti payment error:', error);
-              showNotification('error', 'Payment failed', 'Your booking is saved but payment is pending.');
-              setBookingLoading(false);
-            }
-          );
-        } else {
+        if (!data.success) {
           setBookingError(data.message || 'Failed to create booking');
           setBookingLoading(false);
+          return;
         }
+
+        // Step 2: Initiate Khalti payment — redirects to pay.khalti.com
+        await initiateKhaltiBookingPayment(data.data._id, token);
+        // execution stops here because browser navigates away
+
       } catch (error) {
         console.error('Error creating booking:', error);
-        setBookingError('Failed to create booking. Please try again.');
+        setBookingError(`Failed to create booking: ${error.message}`);
         setBookingLoading(false);
       }
-      return; // Exit for Khalti payment
+      return;
     }
 
     // Handle Cash payment
@@ -308,7 +261,7 @@ const UserHostelPage = () => {
         specialInstructions: bookingForm.specialInstructions,
       };
 
-      const response = await fetch('http://localhost:4000/api/hostel-bookings', {
+      const response = await fetch(`${API_URL}/api/hostel-bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -361,7 +314,7 @@ const UserHostelPage = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:4000/api/hostel-bookings/my-bookings', {
+      const response = await fetch(`${API_URL}/api/hostel-bookings/my-bookings`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -402,7 +355,7 @@ const UserHostelPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/api/hostel-bookings/${bookingId}/cancel`, {
+      const response = await fetch(`${API_URL}/api/hostel-bookings/${bookingId}/cancel`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -915,15 +868,14 @@ const UserHostelPage = () => {
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-green-400 transition-colors">
+                  <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-purple-400 transition-colors">
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="Khalti"
                       checked={bookingForm.paymentMethod === "Khalti"}
                       onChange={(e) => setBookingForm({...bookingForm, paymentMethod: e.target.value})}
-                      className="w-4 h-4 text-green-500"
-                      disabled={!khaltiLoaded}
+                      className="w-4 h-4 text-purple-600"
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -932,18 +884,14 @@ const UserHostelPage = () => {
                           Secure
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600">Pay now with Khalti</p>
-                      {!khaltiLoaded && (
-                        <p className="text-xs text-orange-600 mt-1">Loading payment gateway...</p>
-                      )}
+                      <p className="text-xs text-slate-600">Pay now with Khalti — you'll be redirected to Khalti</p>
                     </div>
-                    {khaltiLoaded && (
-                      <img 
-                        src="https://khalti.com/static/khalti_logo.png" 
-                        alt="Khalti" 
-                        className="h-5"
-                      />
-                    )}
+                    <img
+                      src="https://khalti.com/static/khalti_logo.png"
+                      alt="Khalti"
+                      className="h-5"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
                   </label>
                 </div>
               </div>
@@ -978,7 +926,9 @@ const UserHostelPage = () => {
                   disabled={bookingLoading}
                   className="flex-1 px-6 py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  {bookingLoading ? 'Booking...' : 'Confirm Booking'}
+                  {bookingLoading
+                    ? (bookingForm.paymentMethod === 'Khalti' ? 'Redirecting to Khalti...' : 'Booking...')
+                    : 'Confirm Booking'}
                 </button>
               </div>
             </form>

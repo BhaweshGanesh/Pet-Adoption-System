@@ -1,229 +1,367 @@
 import axios from 'axios';
 import Order from '../model/Ordermodel.js';
 import HostelBooking from '../model/HostelBookingmodel.js';
-import Product from '../model/Productmodel.js';
 
-// Khalti API Configuration
 const KHALTI_SECRET_KEY = process.env.KHALTI_SECRET_KEY;
-const KHALTI_VERIFY_URL = 'https://khalti.com/api/v2/payment/verify/';
+// Use dev.khalti.com for sandbox (test-admin.khalti.com keys), khalti.com for production
+const KHALTI_BASE_URL = process.env.KHALTI_BASE_URL || 'https://dev.khalti.com/api/v2';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-// @desc    Verify Khalti payment for Order
+// @desc    Test Khalti API key connectivity (development use only)
+// @route   GET /api/payments/test-key
+// @access  Public (remove in production)
+export const testKhaltiKey = async (req, res) => {
+  try {
+    const maskedKey = KHALTI_SECRET_KEY
+      ? `${KHALTI_SECRET_KEY.substring(0, 20)}...`
+      : 'NOT SET';
+    console.log(`🔑 Testing Khalti key: ${maskedKey}`);
+    console.log(`🌐 Khalti base URL: ${KHALTI_BASE_URL}`);
+
+    // Make a minimal test call to Khalti to verify the key works
+    const testPayload = {
+      return_url: 'http://localhost:5173/payment-callback?type=order&orderId=test',
+      website_url: 'http://localhost:5173',
+      amount: 1000,
+      purchase_order_id: 'test-order-001',
+      purchase_order_name: 'Test Order',
+    };
+
+    const response = await axios.post(
+      `${KHALTI_BASE_URL}/epayment/initiate/`,
+      testPayload,
+      {
+        headers: {
+          Authorization: `Key ${KHALTI_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return res.json({
+      success: true,
+      message: 'Khalti key is valid!',
+      keyPrefix: maskedKey,
+      baseUrl: KHALTI_BASE_URL,
+      khaltiResponse: response.data,
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: 'Khalti key test failed',
+      keyPrefix: KHALTI_SECRET_KEY ? `${KHALTI_SECRET_KEY.substring(0, 20)}...` : 'NOT SET',
+      baseUrl: KHALTI_BASE_URL,
+      khaltiError: error.response?.data || error.message,
+    });
+  }
+};
+
+// @desc    Initiate Khalti payment for Order
+// @route   POST /api/payments/initiate-order
+// @access  Private
+export const initiateOrderPayment = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ success: false, message: 'orderId is required' });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const returnUrl = `${FRONTEND_URL}/payment-callback?type=order&orderId=${orderId}`;
+
+    const payload = {
+      return_url: returnUrl,
+      website_url: FRONTEND_URL,
+      amount: Math.round(order.totalAmount * 100), // convert Rs to paisa
+      purchase_order_id: orderId,
+      purchase_order_name: `Order ${order.orderNumber}`,
+      customer_info: {
+        name: order.customer.name,
+        email: order.customer.email,
+        phone: order.customer.phone,
+      },
+    };
+
+    const khaltiResponse = await axios.post(
+      `${KHALTI_BASE_URL}/epayment/initiate/`,
+      payload,
+      {
+        headers: {
+          Authorization: `Key ${KHALTI_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Save pidx to order for later verification
+    order.khaltiPayment = {
+      ...(order.khaltiPayment || {}),
+      pidx: khaltiResponse.data.pidx,
+    };
+    await order.save();
+
+    console.log(`✅ Khalti payment initiated for order ${order.orderNumber}, pidx: ${khaltiResponse.data.pidx}`);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        pidx: khaltiResponse.data.pidx,
+        payment_url: khaltiResponse.data.payment_url,
+        expires_at: khaltiResponse.data.expires_at,
+      },
+    });
+  } catch (error) {
+    const khaltiError = error.response?.data;
+    console.error('❌ Khalti initiate error:', khaltiError || error.message);
+    return res.status(500).json({
+      success: false,
+      message: khaltiError
+        ? `Khalti error: ${JSON.stringify(khaltiError)}`
+        : `Failed to initiate payment: ${error.message}`,
+    });
+  }
+};
+
+// @desc    Initiate Khalti payment for Hostel Booking
+// @route   POST /api/payments/initiate-booking
+// @access  Private
+export const initiateBookingPayment = async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+
+    if (!bookingId) {
+      return res.status(400).json({ success: false, message: 'bookingId is required' });
+    }
+
+    const booking = await HostelBooking.findById(bookingId).populate('room', 'roomNumber roomType');
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    const returnUrl = `${FRONTEND_URL}/payment-callback?type=booking&bookingId=${bookingId}`;
+
+    const payload = {
+      return_url: returnUrl,
+      website_url: FRONTEND_URL,
+      amount: Math.round(booking.totalAmount * 100), // convert Rs to paisa
+      purchase_order_id: bookingId,
+      purchase_order_name: `Hostel Booking ${booking.bookingNumber}`,
+      customer_info: {
+        name: booking.petDetails?.petName || 'Pet Owner',
+        email: booking.contactInfo.email,
+        phone: booking.contactInfo.phone,
+      },
+    };
+
+    const khaltiResponse = await axios.post(
+      `${KHALTI_BASE_URL}/epayment/initiate/`,
+      payload,
+      {
+        headers: {
+          Authorization: `Key ${KHALTI_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Save pidx to booking for later verification
+    booking.khaltiPayment = {
+      ...(booking.khaltiPayment || {}),
+      pidx: khaltiResponse.data.pidx,
+    };
+    await booking.save();
+
+    console.log(`✅ Khalti payment initiated for booking ${booking.bookingNumber}, pidx: ${khaltiResponse.data.pidx}`);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        pidx: khaltiResponse.data.pidx,
+        payment_url: khaltiResponse.data.payment_url,
+        expires_at: khaltiResponse.data.expires_at,
+      },
+    });
+  } catch (error) {
+    const khaltiError = error.response?.data;
+    console.error('❌ Khalti initiate error:', khaltiError || error.message);
+    return res.status(500).json({
+      success: false,
+      message: khaltiError
+        ? `Khalti error: ${JSON.stringify(khaltiError)}`
+        : `Failed to initiate payment: ${error.message}`,
+    });
+  }
+};
+
+// @desc    Verify Khalti payment for Order (using lookup API)
 // @route   POST /api/payments/verify-order
 // @access  Private
 export const verifyOrderPayment = async (req, res) => {
   try {
-    const { token, amount, orderId } = req.body;
+    const { pidx, orderId } = req.body;
 
-    if (!token || !amount || !orderId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Token, amount, and orderId are required',
-      });
+    if (!pidx || !orderId) {
+      return res.status(400).json({ success: false, message: 'pidx and orderId are required' });
     }
 
-    // Find the order
     const order = await Order.findById(orderId).populate('items.product');
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found',
-      });
+      return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    // Verify payment with Khalti
+    // Use Khalti lookup API to verify payment
     const khaltiResponse = await axios.post(
-      KHALTI_VERIFY_URL,
-      {
-        token,
-        amount, // Amount in paisa
-      },
+      `${KHALTI_BASE_URL}/epayment/lookup/`,
+      { pidx },
       {
         headers: {
           Authorization: `Key ${KHALTI_SECRET_KEY}`,
+          'Content-Type': 'application/json',
         },
       }
     );
 
-    if (khaltiResponse.data) {
-      const paymentData = khaltiResponse.data;
+    const paymentData = khaltiResponse.data;
 
-      // Reduce stock for each item in the order (now that payment is confirmed)
-      for (const item of order.items) {
-        const product = await Product.findById(item.product);
-        if (product) {
-          product.stock -= item.quantity;
-          await product.save();
-          console.log(`✅ Reduced stock for ${product.name}: -${item.quantity} (New stock: ${product.stock})`);
-        }
-      }
-
-      // Update order with payment info
-      order.paymentMethod = 'Khalti';
-      order.paymentStatus = 'Paid';
-      order.khaltiPayment = {
-        idx: paymentData.idx,
-        token: token,
-        amount: paymentData.amount,
-        mobile: paymentData.mobile || '',
-        productIdentity: paymentData.product_identity || order.orderNumber,
-        productName: paymentData.product_name || 'Pet Shop Order',
-        verifiedAt: new Date(),
-      };
-
-      await order.save();
-
-      console.log(`✅ Khalti payment verified for order ${order.orderNumber}`);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Payment verified successfully',
-        data: {
-          order: order,
-          payment: paymentData,
-        },
+    if (paymentData.status !== 'Completed') {
+      return res.status(400).json({
+        success: false,
+        message: `Payment not completed. Status: ${paymentData.status}`,
+        status: paymentData.status,
       });
     }
+
+    // Prevent double-processing: if already paid, return success
+    if (order.paymentStatus === 'Paid') {
+      return res.status(200).json({
+        success: true,
+        message: 'Payment already verified',
+        data: { order },
+      });
+    }
+
+    // Reduce stock for each ordered item
+    for (const item of order.items) {
+      const product = item.product; // already populated via .populate('items.product')
+      if (product) {
+        product.stock = Math.max(0, product.stock - item.quantity);
+        await product.save();
+        console.log(`✅ Reduced stock for ${product.name}: -${item.quantity} (New stock: ${product.stock})`);
+      }
+    }
+
+    // Update order with payment info
+    order.paymentStatus = 'Paid';
+    order.paymentMethod = 'Khalti';
+    order.khaltiPayment = {
+      pidx: paymentData.pidx,
+      transactionId: paymentData.transaction_id,
+      amount: paymentData.total_amount,
+      verifiedAt: new Date(),
+    };
+
+    await order.save();
+
+    console.log(`✅ Khalti payment verified for order ${order.orderNumber}`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Payment verified successfully',
+      data: { order, payment: paymentData },
+    });
   } catch (error) {
     console.error('❌ Khalti payment verification error:', error.response?.data || error.message);
-    
     return res.status(500).json({
       success: false,
       message: 'Payment verification failed',
-      error: error.response?.data?.detail || error.message,
+      error: error.response?.data || error.message,
     });
   }
 };
 
-// @desc    Verify Khalti payment for Hostel Booking
+// @desc    Verify Khalti payment for Hostel Booking (using lookup API)
 // @route   POST /api/payments/verify-booking
 // @access  Private
 export const verifyBookingPayment = async (req, res) => {
   try {
-    const { token, amount, bookingId } = req.body;
+    const { pidx, bookingId } = req.body;
 
-    if (!token || !amount || !bookingId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Token, amount, and bookingId are required',
-      });
+    if (!pidx || !bookingId) {
+      return res.status(400).json({ success: false, message: 'pidx and bookingId are required' });
     }
 
-    // Find the booking
     const booking = await HostelBooking.findById(bookingId).populate('room', 'roomNumber roomType');
     if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found',
-      });
+      return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    // Verify payment with Khalti
+    // Use Khalti lookup API to verify payment
     const khaltiResponse = await axios.post(
-      KHALTI_VERIFY_URL,
-      {
-        token,
-        amount, // Amount in paisa
-      },
+      `${KHALTI_BASE_URL}/epayment/lookup/`,
+      { pidx },
       {
         headers: {
           Authorization: `Key ${KHALTI_SECRET_KEY}`,
+          'Content-Type': 'application/json',
         },
       }
     );
 
-    if (khaltiResponse.data) {
-      const paymentData = khaltiResponse.data;
+    const paymentData = khaltiResponse.data;
 
-      // Update booking with payment info
-      booking.paymentMethod = 'Khalti';
-      booking.paymentStatus = 'Paid';
-      booking.status = 'Confirmed'; // Auto-confirm on payment
-      booking.khaltiPayment = {
-        idx: paymentData.idx,
-        token: token,
-        amount: paymentData.amount,
-        mobile: paymentData.mobile || '',
-        productIdentity: paymentData.product_identity || booking.bookingNumber,
-        productName: paymentData.product_name || `Hostel Room - ${booking.room.roomNumber}`,
-        verifiedAt: new Date(),
-      };
-
-      await booking.save();
-
-      console.log(`✅ Khalti payment verified for booking ${booking.bookingNumber}`);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Payment verified successfully',
-        data: {
-          booking: booking,
-          payment: paymentData,
-        },
-      });
-    }
-  } catch (error) {
-    console.error('❌ Khalti payment verification error:', error.response?.data || error.message);
-    
-    return res.status(500).json({
-      success: false,
-      message: 'Payment verification failed',
-      error: error.response?.data?.detail || error.message,
-    });
-  }
-};
-
-// @desc    Initiate refund for Order (admin only)
-// @route   POST /api/payments/refund-order/:orderId
-// @access  Private/Admin
-export const refundOrderPayment = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { amount } = req.body; // Amount in paisa
-
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found',
-      });
-    }
-
-    if (order.paymentMethod !== 'Khalti' || !order.khaltiPayment.idx) {
+    if (paymentData.status !== 'Completed') {
       return res.status(400).json({
         success: false,
-        message: 'This order was not paid via Khalti',
+        message: `Payment not completed. Status: ${paymentData.status}`,
+        status: paymentData.status,
       });
     }
 
-    // Note: Khalti doesn't have automated refund API
-    // Refunds need to be processed manually through Khalti merchant dashboard
-    // This endpoint marks the order as refund requested
-    
-    order.paymentStatus = 'Refunded';
-    await order.save();
+    // Prevent double-processing
+    if (booking.paymentStatus === 'Paid') {
+      return res.status(200).json({
+        success: true,
+        message: 'Payment already verified',
+        data: { booking },
+      });
+    }
 
-    console.log(`⚠️ Refund requested for order ${order.orderNumber}. Process manually in Khalti dashboard.`);
+    // Update booking with payment info
+    booking.paymentStatus = 'Paid';
+    booking.paymentMethod = 'Khalti';
+    booking.status = 'Confirmed';
+    booking.khaltiPayment = {
+      pidx: paymentData.pidx,
+      transactionId: paymentData.transaction_id,
+      amount: paymentData.total_amount,
+      verifiedAt: new Date(),
+    };
+
+    await booking.save();
+
+    console.log(`✅ Khalti payment verified for booking ${booking.bookingNumber}`);
 
     return res.status(200).json({
       success: true,
-      message: 'Refund initiated. Please process manually in Khalti merchant dashboard.',
-      data: {
-        order: order,
-        khaltiPaymentIdx: order.khaltiPayment.idx,
-      },
+      message: 'Payment verified successfully',
+      data: { booking, payment: paymentData },
     });
   } catch (error) {
-    console.error('❌ Refund error:', error);
-    
+    console.error('❌ Khalti payment verification error:', error.response?.data || error.message);
     return res.status(500).json({
       success: false,
-      message: 'Failed to initiate refund',
-      error: error.message,
+      message: 'Payment verification failed',
+      error: error.response?.data || error.message,
     });
   }
 };
 
-// @desc    Get payment details
+// @desc    Get payment details for an order
 // @route   GET /api/payments/order/:orderId
 // @access  Private
 export const getOrderPaymentDetails = async (req, res) => {
@@ -232,10 +370,7 @@ export const getOrderPaymentDetails = async (req, res) => {
 
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found',
-      });
+      return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
     return res.status(200).json({
@@ -249,10 +384,48 @@ export const getOrderPaymentDetails = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error fetching payment details:', error);
-    
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch payment details',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Initiate refund for Order (admin only - manual process via Khalti dashboard)
+// @route   POST /api/payments/refund-order/:orderId
+// @access  Private/Admin
+export const refundOrderPayment = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.paymentMethod !== 'Khalti' || !order.khaltiPayment?.pidx) {
+      return res.status(400).json({ success: false, message: 'This order was not paid via Khalti' });
+    }
+
+    order.paymentStatus = 'Refunded';
+    await order.save();
+
+    console.log(`⚠️ Refund requested for order ${order.orderNumber}. Process manually in Khalti dashboard.`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Refund initiated. Please process manually in Khalti merchant dashboard.',
+      data: {
+        order,
+        khaltiPidx: order.khaltiPayment.pidx,
+      },
+    });
+  } catch (error) {
+    console.error('❌ Refund error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to initiate refund',
       error: error.message,
     });
   }

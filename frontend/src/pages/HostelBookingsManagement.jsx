@@ -1,5 +1,5 @@
 // src/pages/HostelBookingsManagement.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
 
@@ -12,13 +12,35 @@ const HostelBookingsManagement = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  // Notification state
-  const [notification, setNotification] = useState({
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, type: 'success', message: '', details: '' });
+  const toastTimer = useRef(null);
+
+  // Custom confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState({
     show: false,
-    type: 'success', // 'success' | 'error' | 'info'
     message: '',
-    details: ''
+    onConfirm: null,
   });
+
+  const showToast = (type, message, details = '') => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ show: true, type, message, details });
+    toastTimer.current = setTimeout(() => setToast(t => ({ ...t, show: false })), 4000);
+  };
+
+  const showConfirm = (message, onConfirm) => {
+    setConfirmDialog({ show: true, message, onConfirm });
+  };
+
+  const handleConfirm = () => {
+    if (confirmDialog.onConfirm) confirmDialog.onConfirm();
+    setConfirmDialog({ show: false, message: '', onConfirm: null });
+  };
+
+  const handleCancelConfirm = () => {
+    setConfirmDialog({ show: false, message: '', onConfirm: null });
+  };
 
   const [bookingForm, setBookingForm] = useState({
     roomId: "",
@@ -37,23 +59,6 @@ const HostelBookingsManagement = () => {
     specialInstructions: "",
   });
 
-  // Show notification function
-  const showNotification = (type, message, details = '') => {
-    setNotification({
-      show: true,
-      type,
-      message,
-      details
-    });
-  };
-
-  // Close notification function
-  const closeNotification = () => {
-    setNotification({
-      ...notification,
-      show: false
-    });
-  };
 
   useEffect(() => {
     fetchBookings();
@@ -76,7 +81,7 @@ const HostelBookingsManagement = () => {
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
-      showNotification('error', 'Failed to fetch bookings', 'Please try again later');
+      showToast('error', 'Failed to fetch bookings', 'Please try again later');
     } finally {
       setLoading(false);
     }
@@ -131,7 +136,7 @@ const HostelBookingsManagement = () => {
     if (!bookingForm.roomId || !bookingForm.customerEmail || !bookingForm.customerName ||
         !bookingForm.petName || !bookingForm.checkInDate || !bookingForm.checkOutDate ||
         !bookingForm.phone) {
-      showNotification('error', 'Please fill in all required fields', 'All fields marked with * are required');
+      showToast('error', 'Please fill in all required fields', 'All fields marked with * are required');
       return;
     }
 
@@ -170,16 +175,16 @@ const HostelBookingsManagement = () => {
       const data = await response.json();
 
       if (data.success) {
-        showNotification('success', 'Booking confirmed!', `Booking Number: ${data.data.bookingNumber}\n\nA confirmation email has been sent to ${bookingForm.customerEmail}`);
+        showToast('success', 'Booking confirmed!', `Booking #${data.data.bookingNumber} — confirmation email sent to ${bookingForm.customerEmail}`);
         setIsBookingModalOpen(false);
         fetchBookings();
       } else {
         // Show specific error message from backend
-        showNotification('error', data.message || 'Failed to create booking', 'Please check your details and try again');
+        showToast('error', data.message || 'Failed to create booking', 'Please check your details and try again');
       }
     } catch (error) {
       console.error('Error creating booking:', error);
-      showNotification('error', 'Failed to create booking', 'Please try again later');
+      showToast('error', 'Failed to create booking', 'Please try again later');
     }
   };
 
@@ -195,57 +200,55 @@ const HostelBookingsManagement = () => {
 
     const confirmMessage = confirmationMessages[newStatus] || `Are you sure you want to change status to ${newStatus}?`;
 
-    if (!window.confirm(confirmMessage)) return;
+    showConfirm(confirmMessage, async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:4000/api/hostel-bookings/${bookingId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: newStatus }),
+        });
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/api/hostel-bookings/${bookingId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
+        const data = await response.json();
 
-      const data = await response.json();
-
-      if (data.success) {
-        showNotification('success', `Order status updated to "${newStatus}"`, 'Email notification sent to customer!');
-        fetchBookings();
-      } else {
-        showNotification('error', data.message || 'Failed to update status', 'Please try again');
+        if (data.success) {
+          showToast('success', `Status updated to "${newStatus}"`, 'Email notification sent to customer!');
+          fetchBookings();
+        } else {
+          showToast('error', data.message || 'Failed to update status', 'Please try again');
+        }
+      } catch (error) {
+        console.error('Error updating status:', error);
+        showToast('error', 'Failed to update status', 'Please try again later');
       }
-    } catch (error) {
-      console.error('Error updating status:', error);
-      showNotification('error', 'Failed to update status', 'Please try again later');
-    }
+    });
   };
 
   const handleDeleteBooking = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    showConfirm('Are you sure you want to delete this booking? This action cannot be undone.', async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:4000/api/hostel-bookings/${bookingId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/api/hostel-bookings/${bookingId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+        const data = await response.json();
 
-      const data = await response.json();
-
-      if (data.success) {
-        showNotification('success', 'Booking deleted successfully!', 'The booking has been removed from the system');
-        fetchBookings();
-      } else {
-        showNotification('error', data.message || 'Failed to delete booking', 'Please try again');
+        if (data.success) {
+          showToast('success', 'Booking deleted successfully!', 'The booking has been removed from the system');
+          fetchBookings();
+        } else {
+          showToast('error', data.message || 'Failed to delete booking', 'Please try again');
+        }
+      } catch (error) {
+        console.error('Error deleting booking:', error);
+        showToast('error', 'Failed to delete booking', 'Please try again later');
       }
-    } catch (error) {
-      console.error('Error deleting booking:', error);
-      showNotification('error', 'Failed to delete booking', 'Please try again later');
-    }
+    });
   };
 
   const viewBookingDetails = (booking) => {
@@ -682,7 +685,7 @@ const HostelBookingsManagement = () => {
 
       {/* Booking Details Modal - Enhanced UI */}
       {isDetailsModalOpen && selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 overflow-y-auto py-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto py-8">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl my-8 overflow-hidden">
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-blue-500 to-cyan-600 px-8 py-6 flex items-center justify-between">
@@ -839,56 +842,58 @@ const HostelBookingsManagement = () => {
         </div>
       )}
 
-      {/* Custom Notification Modal */}
-      {notification.show && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-md px-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
-            {/* Content */}
-            <div className="p-8">
-              {/* Message */}
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                {notification.message}
-              </h3>
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed top-5 right-5 z-50 flex items-start gap-3 px-5 py-4 rounded-2xl shadow-xl text-white max-w-sm w-full transition-all duration-300 ${
+          toast.type === 'success' ? 'bg-emerald-500' :
+          toast.type === 'error'   ? 'bg-red-500' : 'bg-blue-500'
+        }`}>
+          <div className="flex-shrink-0 mt-0.5">
+            {toast.type === 'success' && (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+            {toast.type === 'error' && (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+            {toast.type === 'info' && (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{toast.message}</p>
+            {toast.details && <p className="text-xs mt-0.5 opacity-90">{toast.details}</p>}
+          </div>
+          <button onClick={() => setToast(t => ({ ...t, show: false }))} className="flex-shrink-0 opacity-80 hover:opacity-100">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
-              {/* Details with Icon */}
-              {notification.details && (
-                <div className="flex items-start gap-2 mb-6">
-                  {notification.type === 'success' && (
-                    <div className="flex-shrink-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                  {notification.type === 'error' && (
-                    <div className="flex-shrink-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </div>
-                  )}
-                  {notification.type === 'info' && (
-                    <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                  )}
-                  <p className="text-base text-gray-700 whitespace-pre-line flex-1">
-                    {notification.details}
-                  </p>
-                </div>
-              )}
-
-              {/* Divider */}
-              <div className="border-t border-gray-200 mb-4"></div>
-
-              {/* Close Button */}
+      {/* Custom Confirm Dialog */}
+      {confirmDialog.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <p className="text-slate-800 font-medium text-base mb-6 leading-relaxed">{confirmDialog.message}</p>
+            <div className="flex gap-3">
               <button
-                onClick={closeNotification}
-                className="w-full text-center py-3 text-blue-600 font-semibold text-lg hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={handleCancelConfirm}
+                className="flex-1 py-2.5 border-2 border-slate-200 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors"
               >
-                {notification.type === 'success' ? 'OK' : 'Close'}
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="flex-1 py-2.5 bg-green-500 text-white rounded-xl font-semibold text-sm hover:bg-green-600 transition-colors"
+              >
+                Confirm
               </button>
             </div>
           </div>

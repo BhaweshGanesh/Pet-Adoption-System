@@ -28,6 +28,7 @@ import PetHostelService from './pages/PetHostelService';
 import PetStoreService from './pages/PetStoreService';
 import UserHostelPage from './pages/UserHostelPage';
 import MyAdoptions from './pages/MyAdoptions';
+import PaymentCallback from './pages/PaymentCallback';
 
 // Staff Pages
 import StaffDashboard from './pages/StaffDashboard';
@@ -54,6 +55,7 @@ function App() {
         <Route path="/store-service" element={<PetStoreService />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/access-denied" element={<AccessDenied />} />
+        <Route path="/payment-callback" element={<PaymentCallback />} />
         
         {/* Semi-Protected Routes - Can view but need login for interactions */}
         <Route 

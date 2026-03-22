@@ -561,8 +561,6 @@ const HostelManagement = () => {
                 rooms={filteredRooms}
                 onEdit={openEditModal}
                 onDelete={confirmDeleteRoom}
-                onCheckIn={openCheckInModal}
-                onCheckOut={handleCheckOut}
               />
             </div>
 
