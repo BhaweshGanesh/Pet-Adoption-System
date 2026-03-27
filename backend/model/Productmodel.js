@@ -44,6 +44,12 @@ const productSchema = new mongoose.Schema(
       enum: ['Available', 'Unavailable', 'Out of Stock'],
       default: 'Available',
     },
+    discount: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
     image: {
       type: String,
       default: '',
@@ -79,6 +85,12 @@ productSchema.index({ stock: 1, lowStockThreshold: 1 }); // For low stock querie
 // Virtual field to check if stock is low
 productSchema.virtual('isLowStock').get(function() {
   return this.stock <= this.lowStockThreshold && this.stock > 0;
+});
+
+// Virtual field for discounted offer price
+productSchema.virtual('offerPrice').get(function() {
+  if (!this.discount || this.discount === 0) return this.price;
+  return Math.round(this.price * (1 - this.discount / 100));
 });
 
 // Automatically update status based on stock

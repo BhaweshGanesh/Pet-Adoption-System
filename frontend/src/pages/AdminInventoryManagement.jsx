@@ -35,6 +35,7 @@ const AdminInventoryManagement = () => {
     brand: "",
     weight: "",
     image: "",
+    discount: "0",
   });
 
   const [imagePreview, setImagePreview] = useState("");
@@ -159,6 +160,7 @@ const AdminInventoryManagement = () => {
       brand: "",
       weight: "",
       image: "",
+      discount: "0",
     });
     setImagePreview("");
     setImageFile(null);
@@ -179,6 +181,7 @@ const AdminInventoryManagement = () => {
       brand: product.brand || "",
       weight: product.weight || "",
       image: product.image || "",
+      discount: (product.discount ?? 0).toString(),
     });
     setImagePreview(product.image || "");
     setImageFile(null);
@@ -219,6 +222,7 @@ const AdminInventoryManagement = () => {
         brand: productForm.brand,
         weight: productForm.weight,
         image: imageUrl,
+        discount: Number(productForm.discount) || 0,
       };
 
       const url = editingProduct
@@ -524,8 +528,20 @@ const AdminInventoryManagement = () => {
                                   )}
                                 </span>
                         </td>
-                        <td className="px-4 py-3 text-slate-700">
-                                Rs {product.price}
+                        <td className="px-4 py-3">
+                          {product.discount > 0 ? (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[11px] text-slate-400 line-through">Rs {product.price}</span>
+                              <span className="text-sm font-semibold text-red-600">
+                                Rs {Math.round(product.price * (1 - product.discount / 100))}
+                              </span>
+                              <span className="inline-block text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-semibold w-fit">
+                                {product.discount}% OFF
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-700">Rs {product.price}</span>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <span
@@ -792,6 +808,37 @@ const AdminInventoryManagement = () => {
                             required
                         />
                       </div>
+                      </div>
+
+                      {/* Discount */}
+                      <div>
+                        <label className="block mb-1 text-sm font-medium text-slate-700">
+                          Offer Discount
+                        </label>
+                        <select
+                          name="discount"
+                          value={productForm.discount}
+                          onChange={handleProductFormChange}
+                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        >
+                          <option value="0">No Discount</option>
+                          <option value="10">10% Off</option>
+                          <option value="20">20% Off</option>
+                          <option value="30">30% Off</option>
+                          <option value="40">40% Off</option>
+                          <option value="50">50% Off</option>
+                        </select>
+                        {Number(productForm.discount) > 0 && Number(productForm.price) > 0 && (
+                          <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-100 rounded-lg">
+                            <span className="text-xs text-slate-500 line-through">Rs {Number(productForm.price)}</span>
+                            <span className="text-sm font-bold text-red-600">
+                              Rs {Math.round(Number(productForm.price) * (1 - Number(productForm.discount) / 100))}
+                            </span>
+                            <span className="ml-auto text-[11px] bg-red-500 text-white px-2 py-0.5 rounded-full font-semibold">
+                              {productForm.discount}% OFF
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">

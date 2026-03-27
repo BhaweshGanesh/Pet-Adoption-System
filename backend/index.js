@@ -1,10 +1,8 @@
-console.log("STARTED");
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import compression from 'compression';
-import { execSync } from 'child_process';
 import authRoutes from './Routes/Auth.js';
 import petRoutes from './Routes/Pets.js';
 import adoptionRoutes from './Routes/AdoptionApplications.js';
@@ -17,12 +15,9 @@ import staffRoutes from './Routes/Staff.js';
 import dashboardRoutes from './Routes/Dashboard.js';
 import paymentRoutes from './Routes/Payments.js';
 
-dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Allow any localhost port (Vite can use 5173, 5174, etc.)
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
@@ -51,25 +46,41 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/payments', paymentRoutes);
 
-// Kill stale process on port then start after MongoDB connects
-try { execSync(`lsof -ti:${PORT} | xargs kill -9`, { stdio: 'ignore' }); } catch { /* port was free */ }
+// Start server immediately — don't wait for DB
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} already in use. Kill the old process and restart.`);
+    process.exit(1);
+  }
+});
+
+// Connect to MongoDB with explicit timeouts so it never hangs
 console.log('🔄 Connecting to MongoDB...');
 mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/petadopt')
-  .then(() => {
-    console.log('✅ Connected to MongoDB successfully');
-    const server = app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-    server.on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        try { execSync(`lsof -ti:${PORT} | xargs kill -9`, { stdio: 'ignore' }); } catch { /* ignore */ }
-        setTimeout(() => server.listen(PORT), 1000);
-      }
-    });
-    process.on('SIGINT', () => server.close(() => mongoose.connection.close(false, () => process.exit(0))));
-    process.on('SIGTERM', () => server.close(() => mongoose.connection.close(false, () => process.exit(0))));
+  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/petadopt', {
+    serverSelectionTimeoutMS: 10000,  // fail fast after 10s
+    connectTimeoutMS: 10000,
+    socketTimeoutMS: 30000,
   })
+  .then(() => console.log('✅ Connected to MongoDB'))
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err.message);
+    console.error('   Check MONGODB_URI in backend/.env');
     process.exit(1);
   });
+
+process.on('SIGINT', () => {
+  server.close(() => {
+    mongoose.connection.close().then(() => process.exit(0));
+  });
+});
+
+process.on('SIGTERM', () => {
+  server.close(() => {
+    mongoose.connection.close().then(() => process.exit(0));
+  });
+});

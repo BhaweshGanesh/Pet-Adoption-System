@@ -193,13 +193,24 @@ const AdminNavbar = ({ subtitle, title }) => {
   };
 
   return (
-    <nav className="sticky top-0 z-30 bg-white border-b border-slate-200 h-20">
-      <div className="flex items-center justify-between px-6 lg:px-10 h-full">
-        <div>
-          <p className="text-xs text-slate-500 uppercase tracking-[0.2em]">
+    <nav className="sticky top-0 z-30 bg-white border-b border-slate-200 h-16 md:h-20">
+      <div className="flex items-center justify-between px-4 lg:px-10 h-full gap-3">
+        {/* Hamburger — only on mobile */}
+        <button
+          className="md:hidden shrink-0 p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition"
+          onClick={() => window.dispatchEvent(new CustomEvent("admin-sidebar-toggle"))}
+          aria-label="Open menu"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] md:text-xs text-slate-500 uppercase tracking-[0.2em] truncate">
             {subtitle || "Admin Panel – Pet Hostel"}
           </p>
-          <h1 className="text-lg font-semibold text-slate-900">
+          <h1 className="text-base md:text-lg font-semibold text-slate-900 truncate">
             {title || "Hostel Management"}
           </h1>
         </div>

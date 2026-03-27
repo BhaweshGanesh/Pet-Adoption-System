@@ -45,9 +45,15 @@ const ProductDetails = () => {
     }
   };
 
+  const getEffectivePrice = (p) => {
+    if (!p.discount || p.discount === 0) return p.price;
+    return Math.round(p.price * (1 - p.discount / 100));
+  };
+
   const addToCart = () => {
     const cart = JSON.parse(localStorage.getItem('petshop_cart') || '[]');
     const existing = cart.find(item => item._id === product._id);
+    const effectivePrice = getEffectivePrice(product);
 
     if (existing) {
       if (existing.quantity + quantity > product.stock) {
@@ -56,7 +62,7 @@ const ProductDetails = () => {
       }
       existing.quantity += quantity;
     } else {
-      cart.push({ ...product, quantity });
+      cart.push({ ...product, price: effectivePrice, originalPrice: product.price, quantity });
     }
 
     localStorage.setItem('petshop_cart', JSON.stringify(cart));
@@ -107,8 +113,8 @@ const ProductDetails = () => {
         </div>
 
         <nav className="hidden md:flex gap-6 text-sm text-slate-500">
-          <Link to="/" className="hover:text-slate-900">Home</Link>
-          <Link to="/browse-pets" className="hover:text-slate-900">Browse Pets</Link>
+          {/* <Link to="/" className="hover:text-slate-900">Home</Link> */}
+          {/* <Link to="/browse-pets" className="hover:text-slate-900">Browse Pets</Link> */}
           <Link to="/shop" className="text-orange-500">Shop</Link>
         </nav>
 
@@ -116,9 +122,7 @@ const ProductDetails = () => {
           <Link to="/cart" className="px-4 py-2 rounded-full bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600">
             🛒 Cart
           </Link>
-          <Link to="/login" className="px-4 py-2 rounded-full border-2 border-slate-900 text-slate-900 text-sm font-semibold hover:bg-slate-900 hover:text-white">
-            Login
-          </Link>
+          
         </div>
       </header>
 
@@ -138,7 +142,12 @@ const ProductDetails = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-12">
             {/* Product Image */}
-            <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 p-6">
+            <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 p-6 relative">
+              {product.discount > 0 && (
+                <div className="absolute top-4 left-4 z-10 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow">
+                  {product.discount}% OFF
+                </div>
+              )}
               <div className="aspect-square rounded-xl overflow-hidden bg-gray-50">
                 {product.image ? (
                   <img
@@ -174,11 +183,30 @@ const ProductDetails = () => {
               </div>
 
               <div className="mb-6">
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-bold text-orange-500">
-                    Rs {product.price}
-                  </span>
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                  {product.discount > 0 ? (
+                    <>
+                      <span className="text-4xl font-bold text-orange-500">
+                        Rs {getEffectivePrice(product)}
+                      </span>
+                      <span className="text-xl text-slate-400 line-through">
+                        Rs {product.price}
+                      </span>
+                      <span className="px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full">
+                        {product.discount}% OFF
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-4xl font-bold text-orange-500">
+                      Rs {product.price}
+                    </span>
+                  )}
                 </div>
+                {product.discount > 0 && (
+                  <p className="text-sm text-emerald-600 font-medium">
+                    You save Rs {product.price - getEffectivePrice(product)}!
+                  </p>
+                )}
                 <div className="flex items-center gap-4 text-sm">
                   <span className={`font-medium ${
                     product.status === 'Out of Stock' ? 'text-red-600' : 

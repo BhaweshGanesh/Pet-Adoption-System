@@ -49,6 +49,12 @@ const Cart = () => {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalSavings = cart.reduce((sum, item) => {
+    if (item.originalPrice && item.originalPrice > item.price) {
+      return sum + ((item.originalPrice - item.price) * item.quantity);
+    }
+    return sum;
+  }, 0);
   const shipping = cart.length > 0 ? 100 : 0; // Flat shipping rate
   const total = subtotal + shipping;
 
@@ -192,9 +198,18 @@ const Cart = () => {
                             <p className="text-lg font-bold text-orange-500">
                               Rs {item.price * item.quantity}
                             </p>
-                            {item.quantity > 1 && (
+                            {item.originalPrice && item.originalPrice > item.price ? (
+                              <p className="text-xs text-slate-400 line-through">
+                                Rs {item.originalPrice * item.quantity}
+                              </p>
+                            ) : item.quantity > 1 ? (
                               <p className="text-xs text-slate-500">
                                 Rs {item.price} each
+                              </p>
+                            ) : null}
+                            {item.originalPrice && item.originalPrice > item.price && (
+                              <p className="text-[11px] text-emerald-600 font-medium">
+                                Save Rs {(item.originalPrice - item.price) * item.quantity}
                               </p>
                             )}
                           </div>
@@ -222,6 +237,12 @@ const Cart = () => {
                       <span>Subtotal ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
                       <span className="font-semibold">Rs {subtotal}</span>
                     </div>
+                    {totalSavings > 0 && (
+                      <div className="flex justify-between text-emerald-600">
+                        <span className="text-sm">Discount savings</span>
+                        <span className="font-semibold text-sm">- Rs {totalSavings}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-slate-700">
                       <span>Shipping</span>
                       <span className="font-semibold">Rs {shipping}</span>

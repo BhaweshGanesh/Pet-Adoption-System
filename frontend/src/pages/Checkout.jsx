@@ -5,6 +5,9 @@ import UserNavbar from "../components/UserNavbar";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
+// Nepal mobile: 10 digits starting with 97 or 98
+const NEPAL_PHONE_REGEX = /^(97|98)\d{8}$/;
+
 const Checkout = () => {
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
@@ -19,6 +22,7 @@ const Checkout = () => {
     paymentMethod: "Cash on Delivery",
     notes: "",
   });
+  const [errors, setErrors] = useState({ phone: "", address: "" });
 
   useEffect(() => {
     loadCart();
@@ -63,6 +67,25 @@ const Checkout = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'phone') {
+      const digits = value.replace(/\D/g, '');
+      if (digits.length === 0) {
+        setErrors(prev => ({ ...prev, phone: "" }));
+      } else if (!NEPAL_PHONE_REGEX.test(digits)) {
+        setErrors(prev => ({ ...prev, phone: "Enter a valid Nepal mobile number (e.g. 98XXXXXXXX or 97XXXXXXXX)" }));
+      } else {
+        setErrors(prev => ({ ...prev, phone: "" }));
+      }
+    }
+
+    if (name === 'address') {
+      if (value.trim().length > 0 && value.trim().length < 10) {
+        setErrors(prev => ({ ...prev, address: "Address must be at least 10 characters (include street, city)" }));
+      } else {
+        setErrors(prev => ({ ...prev, address: "" }));
+      }
+    }
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -76,6 +99,19 @@ const Checkout = () => {
 
     if (!formData.name || !formData.email || !formData.phone || !formData.address) {
       alert('Please fill in all required fields');
+      return;
+    }
+
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (!NEPAL_PHONE_REGEX.test(phoneDigits)) {
+      setErrors(prev => ({ ...prev, phone: "Enter a valid Nepal mobile number (e.g. 98XXXXXXXX or 97XXXXXXXX)" }));
+      alert('Please enter a valid Nepal phone number');
+      return;
+    }
+
+    if (formData.address.trim().length < 10) {
+      setErrors(prev => ({ ...prev, address: "Address must be at least 10 characters (include street, city)" }));
+      alert('Please enter a complete delivery address');
       return;
     }
 
@@ -138,7 +174,7 @@ const Checkout = () => {
       return;
     }
 
-    // Cash on Delivery / Bank Transfer
+    // Cash on Delivery
     try {
       setLoading(true);
 
@@ -249,32 +285,48 @@ const Checkout = () => {
 
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Phone Number *
+                          Phone Number * <span className="text-xs font-normal text-slate-500">(Nepal)</span>
                         </label>
                         <input
                           type="tel"
                           name="phone"
                           value={formData.phone}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                          placeholder="98XXXXXXXX"
+                          maxLength={10}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                            errors.phone ? 'border-red-400 bg-red-50' : 'border-slate-200'
+                          }`}
                           required
                         />
+                        {errors.phone ? (
+                          <p className="text-xs text-red-500 mt-1">{errors.phone}</p>
+                        ) : (
+                          <p className="text-xs text-slate-400 mt-1">10-digit Nepal mobile (97/98XXXXXXXX)</p>
+                        )}
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Delivery Address *
+                        Delivery Address * <span className="text-xs font-normal text-slate-500">(Nepal)</span>
                       </label>
                       <textarea
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
                         rows={3}
-                        className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none"
-                        placeholder="House no, Street, City, State"
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none ${
+                          errors.address ? 'border-red-400 bg-red-50' : 'border-slate-200'
+                        }`}
+                        placeholder="e.g. Thamel, Kathmandu, Bagmati Province"
                         required
                       />
+                      {errors.address ? (
+                        <p className="text-xs text-red-500 mt-1">{errors.address}</p>
+                      ) : (
+                        <p className="text-xs text-slate-400 mt-1">Include street, city/district, and province</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -329,20 +381,6 @@ const Checkout = () => {
                       />
                     </label>
 
-                    <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="Bank Transfer"
-                        checked={formData.paymentMethod === "Bank Transfer"}
-                        onChange={handleInputChange}
-                        className="w-5 h-5 text-orange-500"
-                      />
-                      <div className="flex-1">
-                        <p className="font-semibold text-slate-900">Bank Transfer</p>
-                        <p className="text-sm text-slate-600">Transfer to our bank account</p>
-                      </div>
-                    </label>
                   </div>
                 </div>
 

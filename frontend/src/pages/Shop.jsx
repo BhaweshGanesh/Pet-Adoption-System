@@ -10,17 +10,18 @@ const Shop = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedPetTypes, setSelectedPetTypes] = useState([]);
   const [priceRange, setPriceRange] = useState("");
-  const [cart, setCart] = useState([]);
+  // Lazy initializer — reads localStorage once before the first render,
+  // so the save effect never fires with an accidental empty array.
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('petshop_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [showCartPreview, setShowCartPreview] = useState(false);
   const [user, setUser] = useState(null);
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem('petshop_cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
-  }, []);
 
   // Load user data
   useEffect(() => {
@@ -34,7 +35,7 @@ const Shop = () => {
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
+  // Persist cart whenever it changes
   useEffect(() => {
     localStorage.setItem('petshop_cart', JSON.stringify(cart));
   }, [cart]);
@@ -120,10 +121,10 @@ const Shop = () => {
   }, [search, selectedCategories, selectedPetTypes, priceRange, products]);
 
   const addToCart = (product) => {
+    const effectivePrice = getEffectivePrice(product);
     setCart(prev => {
       const existing = prev.find(item => item._id === product._id);
       if (existing) {
-        // Check if we can add more
         if (existing.quantity >= product.stock) {
           alert(`Only ${product.stock} items available in stock`);
           return prev;
@@ -134,14 +135,19 @@ const Shop = () => {
             : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, price: effectivePrice, originalPrice: product.price, quantity: 1 }];
     });
     setShowCartPreview(true);
     setTimeout(() => setShowCartPreview(false), 2000);
   };
 
+  const getEffectivePrice = (product) => {
+    if (!product.discount || product.discount === 0) return product.price;
+    return Math.round(product.price * (1 - product.discount / 100));
+  };
+
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartTotal = cart.reduce((sum, item) => sum + (getEffectivePrice(item) * item.quantity), 0);
 
   return (
     <div className="min-h-screen bg-[#fff7f0] flex flex-col">
@@ -294,9 +300,14 @@ const Shop = () => {
                           <span className="absolute top-2 right-2 bg-red-500 text-white text-[11px] px-2 py-0.5 rounded-full font-semibold">
                             Out of Stock
                           </span>
-                        ) : product.isLowStock && (
+                        ) : product.isLowStock ? (
                           <span className="absolute top-2 right-2 bg-amber-500 text-white text-[11px] px-2 py-0.5 rounded-full font-semibold">
                             Low Stock
+                          </span>
+                        ) : null}
+                        {product.discount > 0 && (
+                          <span className="absolute bottom-2 left-2 bg-red-500 text-white text-[11px] px-2 py-0.5 rounded-full font-bold">
+                            {product.discount}% OFF
                           </span>
                         )}
                       </div>
@@ -311,12 +322,21 @@ const Shop = () => {
                         <span>For {product.petType}</span>
                         {product.brand && <span>{product.brand}</span>}
                       </p>
-                      <p className="flex justify-between gap-2">
-                        <span className="text-orange-500 font-bold text-base">Rs {product.price}</span>
-                        <span className={product.status === 'Out of Stock' ? 'text-red-600 font-medium' : ''}>
+                      <div className="flex justify-between gap-2 items-end">
+                        <div>
+                          {product.discount > 0 ? (
+                            <>
+                              <span className="text-xs text-slate-400 line-through block">Rs {product.price}</span>
+                              <span className="text-orange-500 font-bold text-base">Rs {getEffectivePrice(product)}</span>
+                            </>
+                          ) : (
+                            <span className="text-orange-500 font-bold text-base">Rs {product.price}</span>
+                          )}
+                        </div>
+                        <span className={`text-xs ${product.status === 'Out of Stock' ? 'text-red-600 font-medium' : 'text-slate-500'}`}>
                           {product.status === 'Out of Stock' ? 'Out of Stock' : `${product.stock} in stock`}
                         </span>
-                      </p>
+                      </div>
                       <div className="pt-1 flex justify-between items-center">
                         <Link
                           to={`/product/${product._id}`}
