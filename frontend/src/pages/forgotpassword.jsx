@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const STRONG_PASSWORD_MESSAGE =
+  'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.';
+
 const ForgotPassword = () => {
   const [step, setStep] = useState(1); // 1 = email input, 2 = code verification, 3 = reset password
   const [email, setEmail] = useState('');
@@ -148,8 +153,8 @@ const ForgotPassword = () => {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (!STRONG_PASSWORD_REGEX.test(password)) {
+      setError(STRONG_PASSWORD_MESSAGE);
       return;
     }
 
@@ -203,6 +208,9 @@ const ForgotPassword = () => {
       handleResetPassword();
     }
   };
+
+  const showConfirmFeedback = confirmPassword.length > 0;
+  const passwordsMatch = password === confirmPassword;
 
   // Step 1: Email Input Page
   if (step === 1) {
@@ -470,7 +478,7 @@ const ForgotPassword = () => {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Must be at least 8 characters
+                Minimum 8 characters, including uppercase, lowercase, number, and special character.
               </p>
             </div>
 
@@ -500,6 +508,15 @@ const ForgotPassword = () => {
                   )}
                 </button>
               </div>
+              {showConfirmFeedback && (
+                <p
+                  className={`mt-2 text-xs font-medium ${
+                    passwordsMatch ? 'text-emerald-600' : 'text-red-500'
+                  }`}
+                >
+                  {passwordsMatch ? 'Password matches' : "Password doesn't match"}
+                </p>
+              )}
             </div>
 
             {/* Submit Button */}

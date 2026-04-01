@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
 const StaffNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -141,8 +144,8 @@ const StaffNavbar = () => {
       return;
     }
 
-    if (passwordForm.newPassword.length < 6) {
-      alert('New password must be at least 6 characters');
+    if (!STRONG_PASSWORD_REGEX.test(passwordForm.newPassword || '')) {
+      alert('Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.');
       return;
     }
 
@@ -450,7 +453,7 @@ const StaffNavbar = () => {
                   required
                   minLength={6}
                 />
-                <p className="text-xs text-slate-500 mt-1">Minimum 6 characters</p>
+                <p className="text-xs text-slate-500 mt-1">Minimum 8 characters, including uppercase, lowercase, number, and special character.</p>
               </div>
 
               <div>

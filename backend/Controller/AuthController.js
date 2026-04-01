@@ -2,6 +2,11 @@ import User from '../model/Usermodel.js';
 import jwt from 'jsonwebtoken';
 import { generateVerificationCode, sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '../utils/emailService.js';
 
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const STRONG_PASSWORD_MESSAGE =
+  'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.';
+
 // Generate JWT Token
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -15,6 +20,12 @@ const generateToken = (userId) => {
 export const signup = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
+    if (!STRONG_PASSWORD_REGEX.test(password || '')) {
+      return res.status(400).json({
+        success: false,
+        message: STRONG_PASSWORD_MESSAGE,
+      });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -457,11 +468,11 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Validate password length
-    if (newPassword.length < 6) {
+    // Validate strong password format
+    if (!STRONG_PASSWORD_REGEX.test(newPassword || '')) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 6 characters',
+        message: STRONG_PASSWORD_MESSAGE,
       });
     }
 
@@ -585,11 +596,11 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Validate new password length
-    if (newPassword.length < 6) {
+    // Validate new password format
+    if (!STRONG_PASSWORD_REGEX.test(newPassword || '')) {
       return res.status(400).json({
         success: false,
-        message: 'New password must be at least 6 characters',
+        message: STRONG_PASSWORD_MESSAGE,
       });
     }
 

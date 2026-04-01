@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const STRONG_PASSWORD_MESSAGE =
+  'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.';
+
 const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -12,6 +17,8 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -27,6 +34,10 @@ const Signup = () => {
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match!");
+      return;
+    }
+    if (!STRONG_PASSWORD_REGEX.test(formData.password)) {
+      setError(STRONG_PASSWORD_MESSAGE);
       return;
     }
 
@@ -69,6 +80,9 @@ const Signup = () => {
       setLoading(false);
     }
   };
+
+  const showConfirmFeedback = formData.confirmPassword.length > 0;
+  const passwordsMatch = formData.password === formData.confirmPassword;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex flex-col">
@@ -181,16 +195,33 @@ const Signup = () => {
                 >
                   Password
                 </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none transition-colors"
-                  placeholder="Create a strong password"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none transition-colors"
+                    placeholder="Create a strong password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <span className="text-xl">👁️</span>
+                    ) : (
+                      <span className="text-xl">👁️‍🗨️</span>
+                    )}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  Minimum 8 characters, including uppercase, lowercase, number, and special character.
+                </p>
               </div>
 
               {/* Confirm Password Input */}
@@ -201,16 +232,39 @@ const Signup = () => {
                 >
                   Confirm Password
                 </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none transition-colors"
-                  placeholder="Confirm your password"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none transition-colors"
+                    placeholder="Confirm your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  >
+                    {showConfirmPassword ? (
+                      <span className="text-xl">👁️</span>
+                    ) : (
+                      <span className="text-xl">👁️‍🗨️</span>
+                    )}
+                  </button>
+                </div>
+                {showConfirmFeedback && (
+                  <p
+                    className={`mt-2 text-xs font-medium ${
+                      passwordsMatch ? 'text-emerald-600' : 'text-red-500'
+                    }`}
+                  >
+                    {passwordsMatch ? 'Password matches' : "Password doesn't match"}
+                  </p>
+                )}
               </div>
 
               {/* Terms and Conditions */}

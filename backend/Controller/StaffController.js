@@ -1,4 +1,9 @@
 import User from '../model/Usermodel.js';
+
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const STRONG_PASSWORD_MESSAGE =
+  'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.';
 import { sendWelcomeEmail } from '../utils/emailService.js';
 
 // @desc    Get all staff members
@@ -304,10 +309,10 @@ export const resetStaffPassword = async (req, res) => {
   try {
     const { newPassword } = req.body;
 
-    if (!newPassword || newPassword.length < 6) {
+    if (!newPassword || !STRONG_PASSWORD_REGEX.test(newPassword)) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 6 characters long',
+        message: STRONG_PASSWORD_MESSAGE,
       });
     }
 
