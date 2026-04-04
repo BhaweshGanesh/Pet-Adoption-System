@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -8,15 +10,61 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editComment, setEditComment] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const currentUserId = useMemo(() => {
+    try {
+      const u = localStorage.getItem("user");
+      if (!u) return null;
+      const parsed = JSON.parse(u);
+      return parsed.id || parsed._id || null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     fetchProduct();
   }, [id]);
 
+  useEffect(() => {
+    if (id) fetchReviews();
+  }, [id]);
+
+  const myReview = useMemo(() => {
+    if (!currentUserId || !reviews.length) return null;
+    return reviews.find(
+      (r) => (r.user?._id || r.user)?.toString() === currentUserId.toString()
+    );
+  }, [reviews, currentUserId]);
+
+  const fetchReviews = async () => {
+    try {
+      setReviewsLoading(true);
+      const res = await fetch(`${API_URL}/api/products/${id}/reviews`);
+      const data = await res.json();
+      if (data.success) setReviews(data.data || []);
+    } catch (e) {
+      console.error("Error fetching reviews:", e);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
   const fetchProduct = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:4000/api/products/${id}`);
+      const response = await fetch(`${API_URL}/api/products/${id}`);
       const data = await response.json();
 
       if (data.success) {
@@ -32,7 +80,7 @@ const ProductDetails = () => {
 
   const fetchRelatedProducts = async (category, petType) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/products?category=${category}`);
+      const response = await fetch(`${API_URL}/api/products?category=${category}`);
       const data = await response.json();
       if (data.success) {
         const related = data.data
@@ -73,6 +121,118 @@ const ProductDetails = () => {
     addToCart();
     navigate('/cart');
   };
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    if (!newComment.trim()) {
+      alert("Please write your feedback");
+      return;
+    }
+    try {
+      setSubmittingReview(true);
+      const res = await fetch(`${API_URL}/api/products/${id}/reviews`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating: newRating, comment: newComment.trim() }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || "Could not submit review");
+        return;
+      }
+      setNewComment("");
+      setNewRating(5);
+      await fetchReviews();
+    } catch (err) {
+      alert("Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const saveEditReview = async (reviewId) => {
+    if (!token || !editComment.trim()) {
+      alert("Feedback cannot be empty");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `${API_URL}/api/products/${id}/reviews/${reviewId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            rating: editRating,
+            comment: editComment.trim(),
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || "Could not update review");
+        return;
+      }
+      setEditingId(null);
+      await fetchReviews();
+    } catch {
+      alert("Failed to update review");
+    }
+  };
+
+  const confirmDeleteReview = async () => {
+    if (!deleteTarget || !token) return;
+    try {
+      const res = await fetch(
+        `${API_URL}/api/products/${id}/reviews/${deleteTarget}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || "Could not delete");
+        return;
+      }
+      setDeleteTarget(null);
+      await fetchReviews();
+    } catch {
+      alert("Failed to delete review");
+    }
+  };
+
+  const startEdit = (r) => {
+    setEditingId(r._id);
+    setEditRating(r.rating);
+    setEditComment(r.comment);
+  };
+
+  const StarRow = ({ value, onChange, disabled }) => (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(n)}
+          className={`text-2xl leading-none transition ${
+            n <= value ? "text-amber-400" : "text-slate-200"
+          } ${disabled ? "cursor-default" : "cursor-pointer hover:scale-110"}`}
+          aria-label={`${n} stars`}
+        >
+          ★
+        </button>
+      ))}
+      <span className="ml-2 text-sm text-slate-500">{value}/5</span>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -280,6 +440,153 @@ const ProductDetails = () => {
             </div>
           </div>
 
+          {/* Reviews & Feedback */}
+          <section className="mb-12 bg-white rounded-2xl border border-orange-100 p-6 lg:p-8 shadow-sm">
+            <h2 className="text-2xl font-bold text-slate-900 mb-1">Reviews & Feedback</h2>
+            <p className="text-sm text-slate-500 mb-6">
+              Share your experience with this product. You can edit or delete your own review anytime.
+            </p>
+
+            {token && !myReview && (
+              <form
+                onSubmit={submitReview}
+                className="mb-8 p-4 rounded-xl border border-slate-100 bg-[#fffaf4]"
+              >
+                <p className="text-sm font-semibold text-slate-800 mb-2">Write a review</p>
+                <label className="block text-xs font-medium text-slate-600 mb-2">Rating</label>
+                <StarRow value={newRating} onChange={setNewRating} disabled={false} />
+                <label className="block text-xs font-medium text-slate-600 mt-4 mb-2">
+                  Your feedback
+                </label>
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows={4}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-orange-500 focus:outline-none text-sm resize-none"
+                  placeholder="Tell others what you think about this product..."
+                />
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="mt-3 px-6 py-2.5 rounded-full bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:opacity-50"
+                >
+                  {submittingReview ? "Submitting…" : "Submit review"}
+                </button>
+              </form>
+            )}
+
+            {!token && (
+              <p className="mb-6 text-sm text-slate-600">
+                <Link to="/login" className="text-orange-500 font-semibold hover:underline">
+                  Log in
+                </Link>{" "}
+                to leave a review.
+              </p>
+            )}
+
+            {reviewsLoading ? (
+              <p className="text-sm text-slate-500 py-4">Loading reviews…</p>
+            ) : reviews.length === 0 ? (
+              <p className="text-sm text-slate-500 py-4">No reviews yet. Be the first to share feedback!</p>
+            ) : (
+              <ul className="space-y-4">
+                {reviews.map((r) => {
+                  const uid = r.user?._id || r.user;
+                  const isOwner =
+                    currentUserId &&
+                    uid?.toString() === currentUserId.toString();
+                  const isEditing = editingId === r._id;
+
+                  return (
+                    <li
+                      key={r._id}
+                      className="rounded-xl border border-slate-100 p-4 bg-slate-50/50"
+                    >
+                      {isEditing ? (
+                        <div className="space-y-3">
+                          <StarRow
+                            value={editRating}
+                            onChange={setEditRating}
+                            disabled={false}
+                          />
+                          <textarea
+                            value={editComment}
+                            onChange={(e) => setEditComment(e.target.value)}
+                            rows={3}
+                            className="w-full px-3 py-2 rounded-xl border-2 border-slate-200 focus:border-orange-500 focus:outline-none text-sm"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => saveEditReview(r._id)}
+                              className="px-4 py-2 rounded-full bg-orange-500 text-white text-xs font-semibold hover:bg-orange-600"
+                            >
+                              Save changes
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingId(null)}
+                              className="px-4 py-2 rounded-full border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-white"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <p className="font-semibold text-slate-900">
+                                {r.user?.fullName || "Customer"}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-amber-400 text-sm tracking-tight">
+                                  {"★".repeat(r.rating)}
+                                  <span className="text-slate-200">
+                                    {"★".repeat(5 - r.rating)}
+                                  </span>
+                                </span>
+                                <span className="text-xs text-slate-400">
+                                  {r.rating}/5
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-xs text-slate-400">
+                              {r.createdAt
+                                ? new Date(r.createdAt).toLocaleDateString()
+                                : ""}
+                            </span>
+                          </div>
+                          <p className="mt-3 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                            {r.comment}
+                          </p>
+                          {isOwner && (
+                            <div className="mt-3 flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => startEdit(r)}
+                                className="text-xs font-semibold text-orange-600 hover:text-orange-700"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteTarget(r._id)}
+                                className="text-xs font-semibold text-red-600 hover:text-red-700"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
           {/* Related Products */}
           {relatedProducts.length > 0 && (
             <div className="mt-12">
@@ -314,6 +621,33 @@ const ProductDetails = () => {
                     </div>
                   </Link>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {deleteTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+              <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">Delete review?</h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  This cannot be undone. You can write a new review later if you change your mind.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(null)}
+                    className="px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDeleteReview}
+                    className="px-4 py-2 rounded-full bg-red-500 text-white text-sm font-semibold hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           )}

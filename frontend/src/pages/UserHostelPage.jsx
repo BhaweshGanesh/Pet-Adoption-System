@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import UserNavbar from "../components/UserNavbar";
 import { initiateKhaltiBookingPayment } from "../utils/khaltiConfig";
 
@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 const UserHostelPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("rooms"); // "rooms" or "bookings"
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,6 +134,27 @@ const UserHostelPage = () => {
     setSelectedRoom(room);
     setBookingError("");
   };
+
+  useEffect(() => {
+    const roomId = location.state?.openBookingRoomId;
+    if (!roomId || rooms.length === 0) return;
+    const r = rooms.find((x) => String(x._id) === String(roomId));
+    navigate("/hostel", { replace: true, state: {} });
+    if (r) {
+      const userData = localStorage.getItem("user");
+      if (!userData) {
+        showNotification(
+          "info",
+          "Please login to book a hostel room",
+          "You need to be logged in to make a booking"
+        );
+        setTimeout(() => navigate("/login"), 2000);
+      } else {
+        setSelectedRoom(r);
+        setBookingError("");
+      }
+    }
+  }, [location.state?.openBookingRoomId, rooms, navigate]);
 
   const closeBookingModal = () => {
     setSelectedRoom(null);
@@ -399,7 +421,7 @@ const UserHostelPage = () => {
           <button
             onClick={() => setActiveTab("rooms")}
             className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
-              activeTab === "rooms"}
+              activeTab === "rooms"
                 ? "bg-orange-500 text-white"
                 : "bg-white text-slate-600 border border-slate-200 hover:border-orange-300"
             }`}
@@ -496,7 +518,14 @@ const UserHostelPage = () => {
               {filteredRooms.map((room) => (
                 <div
                   key={room._id}
-                  className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => navigate(`/hostel/room/${room._id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ")
+                      navigate(`/hostel/room/${room._id}`);
+                  }}
+                  className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
                 >
                   <div className="relative h-48 bg-gradient-to-br from-green-100 to-emerald-100">
                     {room.image ? (
@@ -550,7 +579,11 @@ const UserHostelPage = () => {
                         <p className="text-2xl font-bold text-green-600">Rs {room.pricePerDay}</p>
                       </div>
                       <button
-                        onClick={() => openBookingModal(room)}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openBookingModal(room);
+                        }}
                         className="px-4 py-2 bg-green-500 text-white rounded-full font-semibold text-sm hover:bg-green-600 transition-colors cursor-pointer"
                       >
                         Book Now

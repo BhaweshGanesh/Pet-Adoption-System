@@ -24,7 +24,9 @@ const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess'));
 const UserHostelPage = lazy(() => import('./pages/UserHostelPage'));
+const HostelRoomDetails = lazy(() => import('./pages/HostelRoomDetails'));
 const MyAdoptions = lazy(() => import('./pages/MyAdoptions'));
+const MyOrders = lazy(() => import('./pages/MyOrders'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminProfile = lazy(() => import('./pages/AdminProfile'));
 const AdminPetsManagement = lazy(() => import('./pages/AdminPetsManagement'));
@@ -77,6 +79,8 @@ function App() {
           <Route path="/checkout" element={<ProtectedRoute requireAuth={true}><Checkout /></ProtectedRoute>} />
           <Route path="/order-success" element={<ProtectedRoute requireAuth={true}><OrderSuccess /></ProtectedRoute>} />
           <Route path="/hostel" element={<ProtectedRoute requireAuth={true}><UserHostelPage /></ProtectedRoute>} />
+          <Route path="/hostel/room/:id" element={<ProtectedRoute requireAuth={true}><HostelRoomDetails /></ProtectedRoute>} />
+          <Route path="/my-orders" element={<ProtectedRoute requireAuth={true}><MyOrders /></ProtectedRoute>} />
           <Route path="/my-adoptions" element={<ProtectedRoute requireAuth={true}><MyAdoptions /></ProtectedRoute>} />
 
           {/* Admin Routes */}

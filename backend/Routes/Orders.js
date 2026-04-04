@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getAllOrders,
   getOrder,
+  getMyOrders,
   createOrder,
   updateOrderStatus,
   cancelOrder,
@@ -52,6 +53,7 @@ const optionalAuth = async (req, res, next) => {
 // Order routes
 router.get('/', getAllOrders);
 router.get('/stats/summary', getOrderStats);
+router.get('/my-orders', protect, getMyOrders);
 router.get('/:id', getOrder);
 router.post('/', optionalAuth, createOrder); // Use optional auth for checkout
 router.patch('/:id/status', updateOrderStatus);

@@ -7,19 +7,27 @@ import {
   deleteRoom,
   checkRoomAvailability,
 } from '../Controller/HostelRoomController.js';
-import { protect, adminOnly, staffOrAdmin } from '../Middleware/Auth.js';
+import {
+  getHostelRoomReviews,
+  createHostelRoomReview,
+  updateHostelRoomReview,
+  deleteHostelRoomReview,
+} from '../Controller/HostelRoomReviewController.js';
+import { protect, adminOnly } from '../Middleware/Auth.js';
 
 const router = express.Router();
 
-// Public routes
 router.get('/', getAllRooms);
+
+// Room reviews (before /:id so paths are not captured as ids)
+router.get('/:roomId/reviews', getHostelRoomReviews);
+router.post('/:roomId/reviews', protect, createHostelRoomReview);
+router.put('/:roomId/reviews/:reviewId', protect, updateHostelRoomReview);
+router.delete('/:roomId/reviews/:reviewId', protect, deleteHostelRoomReview);
+
 router.get('/:id', getRoom);
 router.post('/:id/check-availability', checkRoomAvailability);
 
-// Staff and Admin routes - viewing rooms
-router.get('/', protect, staffOrAdmin, getAllRooms);
-
-// Admin only routes - room management
 router.post('/', protect, adminOnly, createRoom);
 router.put('/:id', protect, adminOnly, updateRoom);
 router.delete('/:id', protect, adminOnly, deleteRoom);

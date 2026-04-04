@@ -6,7 +6,6 @@ import {
   updatePet,
   deletePet,
 } from '../Controller/PetController.js';
-// import { protect, adminOnly } from '../Middleware/Auth.js'; // Uncomment when ready
 
 const router = express.Router();
 

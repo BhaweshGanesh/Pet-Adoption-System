@@ -1,6 +1,13 @@
 {
   "watch": ["."],
   "ext": "js,mjs,json",
-  "ignore": ["node_modules/", "dist/", "*.test.js"],
+  "ignore": [
+    "node_modules/",
+    "dist/",
+    ".compile-cache/",
+    "*.log",
+    "isolate-*",
+    "*.test.js"
+  ],
   "delay": "500"
 }

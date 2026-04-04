@@ -3,6 +3,30 @@ import Product from '../model/Productmodel.js';
 import User from '../model/Usermodel.js';
 import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } from '../utils/emailService.js';
 
+// @desc    Get current user's shop orders
+// @route   GET /api/orders/my-orders
+// @access  Private
+export const getMyOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user.id })
+      .populate('items.product', 'name category image')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: orders.length,
+      data: orders,
+    });
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching your orders',
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Get all orders
 // @route   GET /api/orders
 // @access  Private/Admin

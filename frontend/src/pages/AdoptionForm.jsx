@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 const AdoptionForm = () => {
   const navigate = useNavigate();
   const { id } = useParams(); // pet id from URL
@@ -63,7 +65,7 @@ const AdoptionForm = () => {
     if (!validate()) return;
 
     try {
-      const response = await fetch('http://localhost:4000/api/adoptions', {
+      const response = await fetch(`${API_URL}/api/adoptions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
