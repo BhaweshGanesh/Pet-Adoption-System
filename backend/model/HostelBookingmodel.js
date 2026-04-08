@@ -5,7 +5,7 @@ const hostelBookingSchema = new mongoose.Schema(
     bookingNumber: {
       type: String,
       unique: true,
-      sparse: true, // Allow null/undefined until generated
+      sparse: true, 
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -79,7 +79,7 @@ const hostelBookingSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['Cash', 'Khalti', 'Bank Transfer'],
+      enum: ['Cash', 'Khalti',],
       default: 'Cash',
     },
     khaltiPayment: {
