@@ -14,7 +14,7 @@ const adoptionApplicationSchema = new mongoose.Schema(
     // Applicant Information
     fullName: {
       type: String,
-      required: [true, 'Full name is required'],
+      required: [true, 'Full name is required'],    
       trim: true,
     },
     email: {

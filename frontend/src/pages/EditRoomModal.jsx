@@ -13,7 +13,7 @@ const EditRoomModal = ({ room, form, onChange, onImageChange, onClose, onSubmit 
           </h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-lg"
+            className="text-slate-400 hover:text-slate-600 text-lg"    
           >
             ×
           </button>          
