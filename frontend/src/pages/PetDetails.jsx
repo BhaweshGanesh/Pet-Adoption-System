@@ -105,7 +105,7 @@ const PetDetails = () => {
               src={pet.image}
               alt={pet.name}
               className="w-full h-full object-cover max-h-[520px]"
-            />
+            /> 
             <span className="absolute top-4 left-4 bg-white/90 text-xs font-semibold text-orange-600 px-3 py-1 rounded-full shadow">
               Ready for Adoption
             </span>
