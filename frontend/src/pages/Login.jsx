@@ -121,7 +121,7 @@ const Login = () => {
           {/* Success Message */}
           {success && (
             <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center space-x-3 animate-bounce">
-              <div className="text-2xl">✅</div>
+              <div className="text-2xl"></div>
               <div>
                 <p className="text-green-800 font-semibold">Login Successful!</p>
                 <p className="text-green-600 text-sm">
@@ -136,7 +136,7 @@ const Login = () => {
           {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-center space-x-3">
-              <div className="text-2xl">❌</div>
+              <div className="text-2xl"></div>
               <div>
                 <p className="text-red-800 font-semibold">Login Failed</p>
                 <p className="text-red-600 text-sm">{error}</p>
