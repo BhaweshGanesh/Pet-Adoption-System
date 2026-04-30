@@ -163,7 +163,7 @@ const Signup = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none transition-colors"
-                  placeholder="John Doe"
+                  placeholder="Your Name"
                 />
               </div>
 

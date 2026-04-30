@@ -405,4 +405,4 @@ export const getBookingsOverview = async (req, res) => {
       message: 'Error fetching bookings overview',
     });
   }
-};
+};   
