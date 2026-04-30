@@ -184,8 +184,10 @@ const StaffRooms = () => {
 
       {/* Room Details Modal */}
       {selectedRoom && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed left-1/2 top-16 -translate-x-1/2 z-50 w-full max-w-2xl px-4"
+        >
+          <div className="bg-white rounded-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-gray-900">Room Details</h3>

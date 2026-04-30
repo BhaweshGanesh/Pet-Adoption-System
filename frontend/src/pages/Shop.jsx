@@ -48,12 +48,15 @@ const Shop = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:4000/api/products');
+      const response = await fetch('http://localhost:4000/api/products?page=1&limit=1000');
       const data = await response.json();
 
       if (data.success) {
-        // Show available and out of stock products (exclude manually unavailable)
-        const visibleProducts = data.data.filter(p => p.status === 'Available' || p.status === 'Out of Stock');
+        // Show available and out-of-stock products (case-insensitive, supports legacy values)
+        const visibleProducts = data.data.filter((p) => {
+          const normalizedStatus = String(p.status || "").trim().toLowerCase();
+          return normalizedStatus === "available" || normalizedStatus === "out of stock";
+        });
         setProducts(visibleProducts);
       }
     } catch (error) {
@@ -98,7 +101,12 @@ const Shop = () => {
       }
 
       // Category filter
-      if (selectedCategories.length && !selectedCategories.includes(product.category)) {
+      if (
+        selectedCategories.length &&
+        !selectedCategories.some(
+          (cat) => cat.toLowerCase() === String(product.category || "").toLowerCase()
+        )
+      ) {
         return false;
       }
 

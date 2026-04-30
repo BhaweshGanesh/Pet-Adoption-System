@@ -1,13 +1,23 @@
 {
-  "watch": ["."],
+  "watch": [
+    "index.js",
+    "Controller/*.js",
+    "Routes/*.js",
+    "model/*.js",
+    "Middleware/*.js",
+    "utils/*.js",
+    "config/*.js"
+  ],
   "ext": "js,mjs,json",
   "ignore": [
     "node_modules/",
     "dist/",
     ".compile-cache/",
+    "uploads/",
     "*.log",
     "isolate-*",
     "*.test.js"
   ],
-  "delay": "500"
+  "delay": "500",
+  "legacyWatch": true
 }

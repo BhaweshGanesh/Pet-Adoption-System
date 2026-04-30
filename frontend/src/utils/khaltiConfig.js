@@ -50,9 +50,8 @@ export const initiateKhaltiBookingPayment = async (bookingId, authToken) => {
   window.location.href = data.data.payment_url;
 };
 
-/**
- * Verify Khalti payment using pidx (called from PaymentCallback page).
- */
+// Verify Khalti payment using pidx (called from PaymentCallback page).
+ 
 export const verifyKhaltiOrderPayment = async (pidx, orderId, authToken) => {
   const response = await fetch(`${API_URL}/api/payments/verify-order`, {
     method: 'POST',
@@ -66,9 +65,8 @@ export const verifyKhaltiOrderPayment = async (pidx, orderId, authToken) => {
   return await response.json();
 };
 
-/**
- * Verify Khalti payment for a booking using pidx (called from PaymentCallback page).
- */
+// Verify Khalti payment for a booking using pidx (called from PaymentCallback page).
+ 
 export const verifyKhaltiBookingPayment = async (pidx, bookingId, authToken) => {
   const response = await fetch(`${API_URL}/api/payments/verify-booking`, {
     method: 'POST',

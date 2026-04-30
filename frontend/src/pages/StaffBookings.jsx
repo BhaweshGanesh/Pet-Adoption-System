@@ -290,7 +290,7 @@ const StaffBookings = () => {
 
       {/* Booking Details Modal */}
       {selectedBooking && !isStatusModalOpen && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div className="fixed left-1/2 top-16 -translate-x-1/2 z-50 w-full max-w-2xl px-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-gray-300 shadow-2xl">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
@@ -373,7 +373,7 @@ const StaffBookings = () => {
 
       {/* Update Status Modal */}
       {isStatusModalOpen && selectedBooking && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div className="fixed left-1/2 top-20 -translate-x-1/2 z-50 w-full max-w-md px-4">
           <div className="bg-white rounded-2xl max-w-md w-full border-2 border-gray-300 shadow-2xl">
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-900">Update Booking Status</h3>
@@ -430,7 +430,7 @@ const StaffBookings = () => {
 
       {/* Custom Notification Modal */}
       {notification.show && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-md px-4">
+        <div className="fixed left-1/2 top-24 -translate-x-1/2 z-50 w-full max-w-md px-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
             {/* Content */}
             <div className="p-8">

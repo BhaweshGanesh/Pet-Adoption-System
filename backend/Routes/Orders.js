@@ -3,13 +3,15 @@ import {
   getAllOrders,
   getOrder,
   getMyOrders,
+  getMonthlyRevenueBreakdown,
+  getProductSales,
   createOrder,
   updateOrderStatus,
   cancelOrder,
   deleteOrder,
   getOrderStats,
 } from '../Controller/OrderController.js';
-import { protect } from '../Middleware/Auth.js';
+import { protect, adminOnly } from '../Middleware/Auth.js';
 
 const router = express.Router();
 
@@ -54,6 +56,8 @@ const optionalAuth = async (req, res, next) => {
 router.get('/', getAllOrders);
 router.get('/stats/summary', getOrderStats);
 router.get('/my-orders', protect, getMyOrders);
+router.get('/product-sales', protect, adminOnly, getProductSales);
+router.get('/revenue/:month/:year', protect, adminOnly, getMonthlyRevenueBreakdown);
 router.get('/:id', getOrder);
 router.post('/', optionalAuth, createOrder); // Use optional auth for checkout
 router.patch('/:id/status', updateOrderStatus);

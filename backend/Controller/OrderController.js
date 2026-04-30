@@ -1,6 +1,7 @@
 import Order from '../model/Ordermodel.js';
 import Product from '../model/Productmodel.js';
 import User from '../model/Usermodel.js';
+import HostelBooking from '../model/HostelBookingmodel.js';
 import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } from '../utils/emailService.js';
 
 // @desc    Get current user's shop orders
@@ -441,6 +442,191 @@ export const getOrderStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching order statistics',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get monthly successful revenue with breakdown
+// @route   GET /api/orders/revenue/:month/:year
+// @access  Private/Admin
+export const getMonthlyRevenueBreakdown = async (req, res) => {
+  try {
+    const month = parseInt(req.params.month, 10);
+    const year = parseInt(req.params.year, 10);
+
+    if (
+      Number.isNaN(month) ||
+      Number.isNaN(year) ||
+      month < 1 ||
+      month > 12 ||
+      year < 2000 ||
+      year > 3000
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid month or year',
+      });
+    }
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 1);
+
+    const successfulOrders = await Order.find({
+      createdAt: { $gte: startDate, $lt: endDate },
+      status: { $in: ['Delivered', 'Completed', 'Successful'] },
+      paymentStatus: { $in: ['Paid', 'Completed', 'Successful'] },
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const successfulBookings = await HostelBooking.find({
+      createdAt: { $gte: startDate, $lt: endDate },
+      status: { $in: ['Confirmed', 'Checked-In', 'Checked-Out', 'Completed', 'Successful'] },
+      paymentStatus: 'Paid',
+    })
+      .populate('room', 'roomName roomNumber')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const successfulOrderProductIds = [
+      ...new Set(
+        successfulOrders.flatMap((order) =>
+          (order.items || [])
+            .map((item) => item.product?.toString?.())
+            .filter(Boolean)
+        )
+      ),
+    ];
+    const existingProducts = await Product.find({
+      _id: { $in: successfulOrderProductIds },
+    })
+      .select('_id name')
+      .lean();
+    const existingProductIdSet = new Set(
+      existingProducts.map((p) => p._id.toString())
+    );
+    const productNameById = new Map(
+      existingProducts.map((p) => [p._id.toString(), p.name])
+    );
+
+    const orders = successfulOrders.flatMap((order) =>
+      (order.items || [])
+        .filter((item) => {
+          const pid = item.product?.toString?.();
+          return pid && existingProductIdSet.has(pid);
+        })
+        .map((item) => ({
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          productName:
+            productNameById.get(item.product.toString()) || item.productName,
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.subtotal,
+          date: order.createdAt,
+        }))
+    );
+
+    const bookings = successfulBookings.map((booking) => ({
+      bookingId: booking._id,
+      bookingNumber: booking.bookingNumber,
+      roomName: booking.room?.roomName || 'Room',
+      roomNumber: booking.room?.roomNumber || '',
+      petName: booking.petDetails?.petName || '',
+      amount: booking.totalAmount || 0,
+      status: booking.status,
+      date: booking.createdAt,
+    }));
+
+    const orderRevenue = orders.reduce(
+      (sum, item) => sum + (item.subtotal || 0),
+      0
+    );
+    const bookingRevenue = successfulBookings.reduce(
+      (sum, booking) => sum + (booking.totalAmount || 0),
+      0
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        month,
+        year,
+        orderCount: successfulOrders.length,
+        bookingCount: successfulBookings.length,
+        orderRevenue,
+        bookingRevenue,
+        totalRevenue: orderRevenue + bookingRevenue,
+        orders,
+        bookings,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching monthly revenue breakdown:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching monthly revenue breakdown',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get product sales summary for successful/completed orders
+// @route   GET /api/orders/product-sales
+// @access  Private/Admin
+export const getProductSales = async (req, res) => {
+  try {
+    const sales = await Order.aggregate([
+      {
+        $match: {
+          status: { $in: ['Delivered', 'Completed', 'Successful'] },
+          paymentStatus: { $in: ['Paid', 'Completed', 'Successful'] },
+        },
+      },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.product',
+          fallbackProductName: { $first: '$items.productName' },
+          totalQuantitySold: { $sum: '$items.quantity' },
+          totalOrderCount: { $sum: 1 },
+        },
+      },
+      { $sort: { totalQuantitySold: -1, totalOrderCount: -1 } },
+    ]);
+
+    const productIds = sales.map((s) => s._id).filter(Boolean);
+    const products = await Product.find({ _id: { $in: productIds } })
+      .select('_id name')
+      .lean();
+    const nameById = new Map(products.map((p) => [p._id.toString(), p.name]));
+
+    const formattedSales = sales
+      .filter((s) => {
+        const pid = s._id?.toString?.();
+        return pid && nameById.has(pid);
+      })
+      .map((s) => {
+      const pid = s._id?.toString?.();
+      return {
+        productId: s._id,
+        productName: nameById.get(pid),
+        totalQuantitySold: s.totalQuantitySold,
+        totalOrderCount: s.totalOrderCount,
+      };
+      });
+
+    res.status(200).json({
+      success: true,
+      count: formattedSales.length,
+      data: formattedSales,
+    });
+  } catch (error) {
+    console.error('Error fetching product sales:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching product sales',
       error: error.message,
     });
   }

@@ -199,7 +199,8 @@ export const getMonthlyRevenue = async (req, res) => {
   try {
     const year = parseInt(req.query.year) || new Date().getFullYear();
 
-    // Get monthly revenue from orders - only delivered and paid
+    // Get monthly revenue from orders - only delivered/paid orders
+    // and only items whose products still exist in inventory.
     const monthlyRevenue = await Order.aggregate([
       {
         $match: {
@@ -211,11 +212,27 @@ export const getMonthlyRevenue = async (req, res) => {
           paymentStatus: 'Paid'
         },
       },
+      { $unwind: '$items' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.product',
+          foreignField: '_id',
+          as: 'productRef',
+        },
+      },
+      { $match: { productRef: { $ne: [] } } },
       {
         $group: {
           _id: { $month: '$createdAt' },
-          revenue: { $sum: '$totalAmount' },         
-          count: { $sum: 1 },
+          revenue: { $sum: '$items.subtotal' },
+          orderIds: { $addToSet: '$_id' },
+        },
+      },
+      {
+        $project: {
+          revenue: 1,
+          count: { $size: '$orderIds' },
         },
       },
       {
@@ -405,4 +422,4 @@ export const getBookingsOverview = async (req, res) => {
       message: 'Error fetching bookings overview',
     });
   }
-};   
+};       

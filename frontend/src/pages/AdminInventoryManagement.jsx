@@ -51,7 +51,7 @@ const AdminInventoryManagement = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:4000/api/products');
+      const response = await fetch('http://localhost:4000/api/products?page=1&limit=1000');
       const data = await response.json();
       if (data.success) {
         setProducts(data.data);
@@ -130,7 +130,10 @@ const AdminInventoryManagement = () => {
         return p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                p.description.toLowerCase().includes(searchTerm.toLowerCase());
       })
-      .filter((p) => categoryFilter === "all" || p.category === categoryFilter)
+      .filter((p) =>
+        categoryFilter === "all" ||
+        String(p.category || "").toLowerCase() === categoryFilter.toLowerCase()
+      )
       .filter((p) => petTypeFilter === "all" || p.petType === petTypeFilter)
       .filter((p) => statusFilter === "all" || p.status === statusFilter);
   }, [products, searchTerm, categoryFilter, petTypeFilter, statusFilter]);

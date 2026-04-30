@@ -5,7 +5,7 @@ import Product from '../model/Productmodel.js';
 // @access  Public
 export const getAllProducts = async (req, res) => {
   try {
-    const { category, petType, status, search, page = 1, limit = 20 } = req.query;
+    const { category, petType, status, search, page, limit } = req.query;
     
     let filter = {};
     
@@ -18,26 +18,29 @@ export const getAllProducts = async (req, res) => {
       filter.$text = { $search: search };
     }
 
-    // Calculate skip value for pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const hasPagination = page !== undefined || limit !== undefined;
+    const pageNum = parseInt(page || 1, 10);
+    const limitNum = parseInt(limit || 20, 10);
+    const skip = (pageNum - 1) * limitNum;
 
-    // Parallel execution of queries for better performance
+    const query = Product.find(filter).sort(
+      search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
+    );
+    if (hasPagination) {
+      query.skip(skip).limit(limitNum);
+    }
+
     const [products, total] = await Promise.all([
-      Product.find(filter)
-        .sort(search ? { score: { $meta: 'textScore' } } : { createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit))
-        .lean() // Use lean for faster queries
-        .exec(),
-      Product.countDocuments(filter)
+      query.lean().exec(), // Use lean for faster queries
+      Product.countDocuments(filter),
     ]);
 
     res.status(200).json({
       success: true,
       count: products.length,
       total,
-      page: parseInt(page),
-      pages: Math.ceil(total / parseInt(limit)),
+      page: hasPagination ? pageNum : 1,
+      pages: hasPagination ? Math.ceil(total / limitNum) : 1,
       data: products,
     });
   } catch (error) {

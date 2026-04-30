@@ -111,8 +111,7 @@ export const validateSession = () => {
     return true;
   } catch (error) {
     console.error('[validateSession] Error validating session:', error);
-    // If we can't parse the token or user data, it's corrupted
-    // Return false but don't clear localStorage yet
+    
     return false;
   }
 };
