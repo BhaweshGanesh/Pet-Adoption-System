@@ -48,7 +48,7 @@ export const getDashboardStats = async (req, res) => {
       // Orders - Only count delivered and paid orders
       Order.countDocuments({ 
         status: 'Delivered',
-        paymentStatus: 'Paid'
+        paymentStatus: 'Paid'   
       }),
       Order.aggregate([
         {
