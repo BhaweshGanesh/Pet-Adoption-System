@@ -23,7 +23,7 @@ const AdminNavbar = ({ subtitle, title }) => {
   });
 
   // Change password form
-  const [passwordForm, setPasswordForm] = useState({
+  const [passwordForm, setPasswordForm] = useState({  
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
