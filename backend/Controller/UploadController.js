@@ -1,8 +1,6 @@
-import cloudinary from '../config/cloudinary.js';
+import getCloudinary from '../config/cloudinary.js';
 
-// @desc    Upload image to Cloudinary
-// @route   POST /api/upload
-// @access  Private/Admin
+
 export const uploadImage = async (req, res) => {
   try {
     if (!req.file) {
@@ -11,6 +9,8 @@ export const uploadImage = async (req, res) => {
         message: 'No file uploaded',
       });
     }
+
+    const cloudinary = await getCloudinary();
 
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(req.file.path, {
@@ -45,6 +45,7 @@ export const deleteImage = async (req, res) => {
   try {
     const { publicId } = req.params;
 
+    const cloudinary = await getCloudinary();
     await cloudinary.uploader.destroy(publicId);
 
     res.status(200).json({

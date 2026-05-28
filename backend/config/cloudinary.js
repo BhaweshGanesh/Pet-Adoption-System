@@ -1,20 +1,34 @@
-import { v2 as cloudinary } from 'cloudinary';
+let cloudinaryPromise = null;
 
-// Configure cloudinary with environment variables
-if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-  console.log('✅ Cloudinary configured successfully');
-} else {
-  console.warn('⚠️  Cloudinary credentials not found. Image upload may not work.');
-  console.warn('💡 Add these to your .env file:');
-  console.warn('   CLOUDINARY_CLOUD_NAME=your_cloud_name');
-  console.warn('   CLOUDINARY_API_KEY=your_api_key');
-  console.warn('   CLOUDINARY_API_SECRET=your_api_secret');
+async function initCloudinary() {
+  const { v2: cloudinary } = await import('cloudinary');
+
+  if (
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  ) {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+    console.log('✅ Cloudinary configured successfully');
+  } else {
+    console.warn('⚠️  Cloudinary credentials not found. Image upload may not work.');
+    console.warn('💡 Add these to your .env file:');
+    console.warn('   CLOUDINARY_CLOUD_NAME=your_cloud_name');
+    console.warn('   CLOUDINARY_API_KEY=your_api_key');
+    console.warn('   CLOUDINARY_API_SECRET=your_api_secret');
+  }
+
+  return cloudinary;
 }
 
-export default cloudinary;
-
+/** Load Cloudinary on first upload/delete — keeps server startup fast. */
+export default function getCloudinary() {
+  if (!cloudinaryPromise) {
+    cloudinaryPromise = initCloudinary();
+  }
+  return cloudinaryPromise;
+}

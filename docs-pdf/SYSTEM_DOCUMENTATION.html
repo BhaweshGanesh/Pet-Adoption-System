@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SYSTEM DOCUMENTATION</title>
+  <style>
+  @page { margin: 18mm 15mm; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #1a1a1a; max-width: 100%; }
+  h1 { color: #ea580c; font-size: 22pt; border-bottom: 2px solid #ea580c; padding-bottom: 6px; margin-top: 0; page-break-after: avoid; }
+  h2 { color: #c2410c; font-size: 15pt; margin-top: 22px; page-break-after: avoid; }
+  h3 { color: #9a3412; font-size: 12pt; margin-top: 16px; page-break-after: avoid; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 9.5pt; }
+  pre { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 8.5pt; page-break-inside: avoid; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; }
+  th { background: #fff7ed; }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  p { margin: 6px 0; }
+  hr { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
+  blockquote { border-left: 4px solid #ea580c; margin: 12px 0; padding: 8px 16px; background: #fff7ed; }
+</style>
+</head>
+<body><h1>PetAdopt+ — Full System Documentation</h1>
+
+<p>&gt; Written in plain language for first-time readers.  </p>
+<p>&gt; <strong>Project:</strong> Final Year Project (FYP)  </p>
+<p>&gt; <strong>Stack:</strong> React (frontend) + Node.js/Express (backend) + MongoDB Atlas (database)</p>
+
+<p>---</p>
+
+<h2>Table of Contents</h2>
+
+<ol>
+<li>[System Overview](#1-system-overview)</li>
+<li>[System Architecture](#2-system-architecture)</li>
+<li>[Complete Workflow](#3-complete-workflow)</li>
+<li>[Feature-by-Feature Breakdown](#4-feature-by-feature-breakdown)</li>
+<li>[API Endpoints List](#5-api-endpoints-list)</li>
+<li>[Database Models](#6-database-models)</li>
+<li>[Authentication Flow](#7-authentication-flow)</li>
+<li>[Error Handling](#8-error-handling)</li>
+<li>[User Roles](#9-user-roles)</li>
+<li>[How to Run (Viva Demo)](#10-how-to-run-viva-demo)</li>
+</ol>
+
+<p>---</p>
+
+<h2>1. System Overview</h2>
+
+<h3>What is PetAdopt+?</h3>
+
+<p><strong>PetAdopt+</strong> is a web application for pet care services. It brings three main services into one place:</p>
+
+<table>
+<thead><tr><th>Service</th><th>What users can do</th></tr></thead><tbody>
+<tr><td><strong>Pet Adoption</strong></td><td>Browse pets in the shelter, apply to adopt, track application status</td></tr>
+<tr><td><strong>Pet Shop</strong></td><td>Buy food, toys, and accessories online (cart, checkout, Khalti or cash on delivery)</td></tr>
+<tr><td><strong>Pet Hostel</strong></td><td>Book a room for their pet when they travel (check-in / check-out dates, online payment)</td></tr>
+</tbody></table>
+
+<h3>Who uses it?</h3>
+
+<table>
+<thead><tr><th>Role</th><th>Who they are</th><th>Main tasks</th></tr></thead><tbody>
+<tr><td><strong>User</strong> (customer)</td><td>Pet owners / adopters</td><td>Sign up, shop, adopt, book hostel, view orders &amp; adoptions</td></tr>
+<tr><td><strong>Admin</strong></td><td>System manager</td><td>Dashboard, manage pets, products, rooms, staff, orders, adoptions</td></tr>
+<tr><td><strong>Staff</strong></td><td>Hostel workers</td><td>View rooms and bookings, update booking status</td></tr>
+</tbody></table>
+
+<h3>Purpose of the system</h3>
+
+<ul>
+<li>Help a pet shelter <strong>manage adoptions</strong> digitally  </li>
+<li>Run a small <strong>online pet store</strong> with inventory and payments  </li>
+<li>Run a <strong>pet boarding (hostel)</strong> with room availability and bookings  </li>
+<li>Give <strong>admins</strong> reports (revenue charts, sales, stats) for business decisions  </li>
+</ul>
+
+<p>---</p>
+
+<h2>2. System Architecture</h2>
+
+<p>Think of the system as <strong>three layers</strong> that talk to each other:</p>
+
+<p>``<code></p>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│  BROWSER (User sees the website)                            │</p>
+<p>│  React app — runs at http://localhost:5173                  │</p>
+<p>│  Pages: Shop, Login, Admin Dashboard, Hostel, etc.          │</p>
+<p>└───────────────────────────┬─────────────────────────────────┘</p>
+<p>                            │ HTTP requests (fetch)</p>
+<p>                            │ JSON data + Bearer token for login</p>
+<p>                            ▼</p>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│  BACKEND SERVER (Brain of the system)                       │</p>
+<p>│  Node.js + Express — runs at http://localhost:4000          │</p>
+<p>│  Routes → Controllers → Database models                     │</p>
+<p>└───────────────────────────┬─────────────────────────────────┘</p>
+<p>                            │ Mongoose</p>
+<p>                            ▼</p>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│  DATABASE (MongoDB Atlas — cloud)                           │</p>
+<p>│  Collections: users, pets, products, orders, bookings, …    │</p>
+<p>└─────────────────────────────────────────────────────────────┘</p>
+
+<p>        External services (used when needed):</p>
+<p>        • Cloudinary — stores pet/product/room images</p>
+<p>        • Gmail (Nodemailer) — verification &amp; notification emails</p>
+<p>        • Khalti — online payments for orders and hostel bookings</p>
+<p></code>`<code></p>
+
+<h3>Frontend structure (</code>/frontend<code>)</h3>
+
+<table>
+<thead><tr><th>Folder / file</th><th>Purpose</th></tr></thead><tbody>
+<tr><td></code>src/pages/<code></td><td>Full screens (Shop, Login, AdminDashboard, etc.)</td></tr>
+<tr><td></code>src/components/<code></td><td>Reusable pieces (Navbar, ProtectedRoute, SessionChecker)</td></tr>
+<tr><td></code>src/config/api.js<code></td><td>Base URL for all API calls (</code>http://localhost:4000<code>)</td></tr>
+<tr><td></code>src/utils/auth.js<code></td><td>Login token stored in browser, session checks</td></tr>
+<tr><td></code>src/App.jsx<code></td><td>All routes and who can access each page</td></tr>
+</tbody></table>
+
+<h3>Backend structure (</code>/backend<code>)</h3>
+
+<table>
+<thead><tr><th>Folder / file</th><th>Purpose</th></tr></thead><tbody>
+<tr><td></code>index.js<code></td><td>Starts server, connects routes and MongoDB</td></tr>
+<tr><td></code>Routes/<code></td><td>URL paths (e.g. </code>/api/auth/login<code>)</td></tr>
+<tr><td></code>Controller/<code></td><td>Business logic (what happens when API is called)</td></tr>
+<tr><td></code>model/<code></td><td>Database schemas (shape of stored data)</td></tr>
+<tr><td></code>Middleware/<code></td><td>Auth checks, file upload, form validation</td></tr>
+<tr><td></code>config/cloudinary.js<code></td><td>Cloudinary setup (loads only when uploading)</td></tr>
+<tr><td></code>utils/emailService.js<code></td><td>Sends emails</td></tr>
+</tbody></table>
+
+<h3>How frontend and backend connect</h3>
+
+<ol>
+<li>User clicks something in the browser (e.g. “Login”).  </li>
+<li>React calls the backend, for example:  </li>
+</ol>
+<p>   </code>POST http://localhost:4000/api/auth/login<code> with email and password.  </p>
+<ol>
+<li>Backend checks the database and sends back JSON, for example:  </li>
+</ol>
+<p>   </code>{ success: true, data: { user, token } }<code>.  </p>
+<ol>
+<li>Frontend saves the <strong>token</strong> in </code>localStorage<code> and uses it on later requests:  </li>
+</ol>
+<p>   </code>Authorization: Bearer &lt;token&gt;<code>.  </p>
+<ol>
+<li>Protected pages send this token; backend verifies it before allowing access.</li>
+</ol>
+
+<p><strong>Example:</strong> Loading the shop products  </p>
+<ul>
+<li>Frontend: </code>GET http://localhost:4000/api/products<code>  </li>
+<li>Backend: reads products from MongoDB, returns list as JSON  </li>
+<li>Frontend: draws product cards on screen  </li>
+</ul>
+
+<p>---</p>
+
+<h2>3. Complete Workflow</h2>
+
+<h3>Example A — User logs in and buys a product</h3>
+
+<table>
+<thead><tr><th>Step</th><th>Where</th><th>What happens</th></tr></thead><tbody>
+<tr><td>1</td><td>Browser</td><td>User opens </code>/login<code>, enters email and password</td></tr>
+<tr><td>2</td><td>Frontend</td><td>Sends </code>POST /api/auth/login<code></td></tr>
+<tr><td>3</td><td>Backend</td><td>Finds user, checks password, checks email verified</td></tr>
+<tr><td>4</td><td>Backend</td><td>Returns JWT token + user info (name, role)</td></tr>
+<tr><td>5</td><td>Frontend</td><td>Saves </code>token<code> and </code>user<code> in localStorage</td></tr>
+<tr><td>6</td><td>Browser</td><td>User goes to </code>/shop<code>, adds items to cart (cart saved in browser)</td></tr>
+<tr><td>7</td><td>Frontend</td><td>Goes to </code>/checkout<code>, sends </code>POST /api/orders<code> with items and address</td></tr>
+<tr><td>8</td><td>Backend</td><td>Checks stock, creates order, may reduce stock (cash on delivery)</td></tr>
+<tr><td>9</td><td>Backend</td><td>Sends confirmation email (if email is configured)</td></tr>
+<tr><td>10</td><td>Frontend</td><td>If Khalti: redirects to payment; if cash: shows success page</td></tr>
+</tbody></table>
+
+<h3>Example B — User applies to adopt a pet</h3>
+
+<table>
+<thead><tr><th>Step</th><th>What happens</th></tr></thead><tbody>
+<tr><td>1</td><td>User browses </code>/browse-pets<code> (public)</td></tr>
+<tr><td>2</td><td>Opens pet details (login required)</td></tr>
+<tr><td>3</td><td>Fills adoption form at </code>/adopt/:id<code></td></tr>
+<tr><td>4</td><td></code>POST /api/adoptions<code> saves application as <strong>pending</strong></td></tr>
+<tr><td>5</td><td>Admin sees it in Admin Pets Management</td></tr>
+<tr><td>6</td><td>Admin approves or rejects → email sent to applicant</td></tr>
+</tbody></table>
+
+<h3>Example C — Admin views dashboard revenue bar chart</h3>
+
+<table>
+<thead><tr><th>Step</th><th>What happens</th></tr></thead><tbody>
+<tr><td>1</td><td>Admin opens </code>/admin-dashboard<code> (admin login required)</td></tr>
+<tr><td>2</td><td>Frontend calls </code>GET /api/dashboard/stats<code> and </code>GET /api/dashboard/revenue<code></td></tr>
+<tr><td>3</td><td>Backend counts users, pets, orders, bookings; groups revenue by month</td></tr>
+<tr><td>4</td><td>Frontend draws bar chart with Chart.js</td></tr>
+<tr><td>5</td><td>Admin clicks a bar → </code>GET /api/orders/revenue/:month/:year<code> for that month’s details</td></tr>
+</tbody></table>
+
+<h3>Example D — Admin uploads a pet image</h3>
+
+<table>
+<thead><tr><th>Step</th><th>What happens</th></tr></thead><tbody>
+<tr><td>1</td><td>Admin selects image in “Add Pet” form</td></tr>
+<tr><td>2</td><td>Frontend sends file to </code>POST /api/upload<code> (multipart form)</td></tr>
+<tr><td>3</td><td>Backend saves file briefly in </code>backend/uploads/<code> folder</td></tr>
+<tr><td>4</td><td>Backend uploads file to <strong>Cloudinary</strong> cloud storage</td></tr>
+<tr><td>5</td><td>Backend returns <strong>image URL</strong> (e.g. </code>https://res.cloudinary.com/...<code>)</td></tr>
+<tr><td>6</td><td>Admin saves pet with that URL in the </code>image<code> field</td></tr>
+<tr><td>7</td><td>Shop/pet pages show image using that URL</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h2>4. Feature-by-Feature Breakdown</h2>
+
+<h3>4.1 Cloudinary (Image storage)</h3>
+
+<p><strong>What it is:</strong> Cloudinary is an online service that stores and serves images. Your app does not store large image files in MongoDB — only the <strong>image link (URL)</strong> is stored in the database.</p>
+
+<p>#### Upload flow (step by step)</p>
+
+<ol>
+<li><strong>Admin</strong> picks an image when adding/editing a pet, product, or hostel room.  </li>
+<li><strong>Frontend</strong> sends the image file to:  </li>
+</ol>
+<p>   </code>POST /api/upload<code>  </p>
+<p>   (field name must be </code>image<code>)  </p>
+<ol>
+<li><strong>Multer</strong> (middleware) saves the file temporarily in </code>backend/uploads/<code> with a unique filename.  </li>
+<li><strong>UploadController</strong> calls Cloudinary and uploads the file to folder </code>petadopt<code> on Cloudinary.  </li>
+<li>Cloudinary returns:  </li>
+</ol>
+<p>   - </code>secure_url<code> — link to view the image  </p>
+<p>   - </code>public_id<code> — ID used to delete the image later  </p>
+<ol>
+<li><strong>Frontend</strong> puts </code>secure_url<code> into the form and saves the pet/product/room.  </li>
+<li><strong>Database</strong> stores only the URL string in the </code>image<code> field.</li>
+</ol>
+
+<p>#### Where images are stored</p>
+
+<table>
+<thead><tr><th>Location</th><th>What is stored</th></tr></thead><tbody>
+<tr><td><strong>Cloudinary cloud</strong></td><td>Actual image files (in folder </code>petadopt<code>)</td></tr>
+<tr><td><strong>MongoDB</strong></td><td>Text URL only, e.g. </code>https://res.cloudinary.com/your-cloud/image/upload/...<code></td></tr>
+<tr><td><strong></code>backend/uploads/<code></strong></td><td>Temporary files during upload (not the permanent store)</td></tr>
+</tbody></table>
+
+<p>#### How images are shown to users</p>
+
+<ul>
+<li>Pet list, shop, product details, hostel rooms read </code>image<code> from the database.  </li>
+<li>The browser loads the image directly from Cloudinary’s URL (like any normal website image).</li>
+</ul>
+
+<p>#### Delete flow</p>
+
+<ul>
+<li></code>DELETE /api/upload/:publicId<code> removes the image from Cloudinary.  </li>
+<li>Used when admin replaces or removes images.</li>
+</ul>
+
+<p>#### Configuration</p>
+
+<p>Credentials live in </code>backend/.env<code>:</p>
+
+<ul>
+<li></code>CLOUDINARY_CLOUD_NAME<code>  </li>
+<li></code>CLOUDINARY_API_KEY<code>  </li>
+<li></code>CLOUDINARY_API_SECRET<code>  </li>
+</ul>
+
+<p>If these are missing, upload will fail but the rest of the app still runs.</p>
+
+<p>---</p>
+
+<h3>4.2 Product discounts</h3>
+
+<p>#### How discount is stored</p>
+
+<p>On each <strong>product</strong> in the database:</p>
+
+<table>
+<thead><tr><th>Field</th><th>Meaning</th><th>Example</th></tr></thead><tbody>
+<tr><td></code>price<code></td><td>Normal price in Rs</td><td></code>1000<code></td></tr>
+<tr><td></code>discount<code></td><td>Percent off (0–100)</td><td></code>20<code> means 20% off</td></tr>
+</tbody></table>
+
+<p>#### How the offer price is calculated</p>
+
+<p><strong>Formula:</strong></p>
+
+<p></code>`<code></p>
+<p>Offer price = round( price × (1 - discount / 100) )</p>
+<p></code>`<code></p>
+
+<p><strong>Example:</strong> Price = Rs 1000, Discount = 20%  </p>
+<p>→ Offer price = 1000 × (1 - 20/100) = 1000 × 0.8 = <strong>Rs 800</strong></p>
+
+<p>The backend model also has a virtual field </code>offerPrice<code> that uses the same formula.</p>
+
+<p>#### Where discount is set</p>
+
+<ul>
+<li><strong>Admin</strong> → Inventory Management → Add/Edit Product → “Discount %” dropdown.</li>
+</ul>
+
+<p>#### How the user sees it</p>
+
+<table>
+<thead><tr><th>Page</th><th>What user sees</th></tr></thead><tbody>
+<tr><td><strong>Shop</strong></td><td>Old price crossed out, new price in orange, “20% OFF” badge</td></tr>
+<tr><td><strong>Product details</strong></td><td>Same styling</td></tr>
+<tr><td><strong>Cart</strong></td><td>Uses <strong>discounted price</strong> per item (saved when adding to cart)</td></tr>
+<tr><td><strong>Checkout</strong></td><td>Subtotal and total use cart prices</td></tr>
+</tbody></table>
+
+<p>#### How it works in the cart</p>
+
+<p>When user clicks “Add to cart” on the shop:</p>
+
+<ol>
+<li>Frontend calculates effective price with the same formula.  </li>
+<li>Cart stores </code>price<code> = discounted price and keeps </code>originalPrice<code> for display.  </li>
+</ol>
+
+<p><strong>Note for viva:</strong> Checkout sends </code>subtotal<code> and </code>totalAmount<code> from the cart (with discounts). The backend also rebuilds line items from the database using each product’s <strong>catalog </code>price<code></strong> field when creating the order. Totals on the order often follow what the frontend sent; line-item prices in the order record reflect the database price at order time.</p>
+
+<p>---</p>
+
+<h3>4.3 Admin dashboard — monthly revenue bar graph</h3>
+
+<p>#### What the chart shows</p>
+
+<p>A <strong>bar chart</strong> with 12 bars (Jan–Dec) for the <strong>current year</strong>.  </p>
+<p>Each bar height = <strong>total revenue</strong> for that month from:</p>
+
+<ul>
+<li><strong>Shop orders</strong> (delivered + paid)  </li>
+<li><strong>Hostel bookings</strong> (not cancelled)</li>
+</ul>
+
+<p>#### What data is fetched</p>
+
+<p><strong>On page load</strong>, the admin dashboard calls three APIs:</p>
+
+<table>
+<thead><tr><th>API</th><th>Purpose</th></tr></thead><tbody>
+<tr><td></code>GET /api/dashboard/stats<code></td><td>Summary cards (users, pets, revenue total, etc.)</td></tr>
+<tr><td></code>GET /api/dashboard/revenue<code></td><td>Monthly bars data</td></tr>
+<tr><td></code>GET /api/orders/product-sales<code></td><td>Pie chart — top products sold</td></tr>
+</tbody></table>
+
+<p>#### How monthly revenue is processed (backend)</p>
+
+<p></code>GET /api/dashboard/revenue<code> (in </code>DashboardController.js<code>):</p>
+
+<ol>
+<li>Takes year (default: current year).  </li>
+<li>Finds <strong>orders</strong> where:  </li>
+</ol>
+<p>   - </code>status<code> = Delivered  </p>
+<p>   - </code>paymentStatus<code> = Paid  </p>
+<p>   - Created in that year  </p>
+<ol>
+<li>Only counts order line items whose <strong>product still exists</strong> in inventory (deleted products are excluded).  </li>
+<li>Finds <strong>hostel bookings</strong> where status is not Cancelled.  </li>
+<li>Groups money by month (1–12).  </li>
+<li>Returns array like:</li>
+</ol>
+
+<p></code>`<code>json</p>
+<p>{</p>
+<p>  "success": true,</p>
+<p>  "data": [</p>
+<p>    { "month": "Jan", "orders": 5000, "bookings": 2000, "total": 7000, "orderCount": 3, "bookingCount": 1 },</p>
+<p>    { "month": "Feb", "orders": 0, "bookings": 1500, "total": 1500, ... }</p>
+<p>  ]</p>
+<p>}</p>
+<p></code>`<code></p>
+
+<p>#### How it is displayed (frontend)</p>
+
+<p></code>AdminDashboard.jsx<code>:</p>
+
+<ol>
+<li>Saves </code>revenueData<code> from the API.  </li>
+<li>Uses <strong>Chart.js</strong> to draw a bar chart.  </li>
+<li>Each bar uses </code>m.total<code> (orders + bookings).  </li>
+<li>Clicking a bar calls </code>GET /api/orders/revenue/:month/:year<code> and shows tables of successful orders and paid bookings for that month.</li>
+</ol>
+
+<p>#### Pie chart (product sales)</p>
+
+<ul>
+<li>Data from </code>GET /api/orders/product-sales<code>.  </li>
+<li>Counts quantity sold per product from paid/delivered orders.  </li>
+<li>Uses <strong>current product name</strong> from inventory (not old names on orders).  </li>
+<li>Skips deleted products.  </li>
+<li>Shows top products in a pie chart.</li>
+</ul>
+
+<p>---</p>
+
+<h3>4.4 Other major features</h3>
+
+<p>#### Pet adoption</p>
+
+<ul>
+<li>Public browse; apply when logged in.  </li>
+<li>Application statuses: </code>pending<code>, </code>approved<code>, </code>rejected<code>, </code>withdrawn<code>.  </li>
+<li>Admin can approve with pickup details or reject with notes.  </li>
+<li>Emails sent on submit, approve, reject.</li>
+</ul>
+
+<p>#### Pet hostel</p>
+
+<ul>
+<li>Admin creates rooms (type, price per day, facilities, image).  </li>
+<li>User picks dates; system checks availability.  </li>
+<li>Booking statuses: Pending → Confirmed → Checked-In → Checked-Out (or Cancelled).  </li>
+<li>Payment: Cash or Khalti.  </li>
+<li>Staff/admin update status; emails on status change.</li>
+</ul>
+
+<p>#### Online payments (Khalti)</p>
+
+<ul>
+<li>User chooses Khalti at checkout or hostel booking.  </li>
+<li>Backend creates payment session via Khalti API.  </li>
+<li>User pays on Khalti website, returns to your app.  </li>
+<li>Backend <strong>verifies</strong> payment, then marks order/booking as paid and updates stock.</li>
+</ul>
+
+<p>#### Product reviews</p>
+
+<ul>
+<li>Logged-in users can rate and comment on products (1 review per user per product).  </li>
+<li>Shown on product details page.</li>
+</ul>
+
+<p>#### Hostel room reviews</p>
+
+<ul>
+<li>Logged-in users can review hostel rooms after staying.  </li>
+<li>Shown on hostel room details page.</li>
+</ul>
+
+<p>#### Staff management</p>
+
+<ul>
+<li>Admin creates staff accounts (role = </code>staff<code>).  </li>
+<li>Staff log in to staff dashboard, view rooms and bookings, update booking status.</li>
+</ul>
+
+<p>#### Email notifications</p>
+
+<p>Used for: signup verification, password reset, order confirmation, order status updates, adoption updates, hostel booking confirmation and status updates.</p>
+
+<p>#### Session checking</p>
+
+<p></code>SessionChecker<code> on the frontend watches if the login token is still valid and can log the user out if expired.</p>
+
+<p>---</p>
+
+<h2>5. API Endpoints List</h2>
+
+<p>Base URL: <strong></code>http://localhost:4000<code></strong></p>
+
+<p>All protected routes need header:  </p>
+<p></code>Authorization: Bearer &lt;your_token&gt;<code></p>
+
+<p>Responses usually look like:</p>
+
+<p></code>`<code>json</p>
+<p>{ "success": true, "data": { ... } }</p>
+<p></code>`<code></p>
+
+<p>or on error:</p>
+
+<p></code>`<code>json</p>
+<p>{ "success": false, "message": "Error description" }</p>
+<p></code>`<code></p>
+
+<p>---</p>
+
+<h3>Auth — </code>/api/auth<code></h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Who</th><th>What it does</th></tr></thead><tbody>
+<tr><td>POST</td><td></code>/signup<code></td><td>Public</td><td>Register new user; sends 6-digit email code</td></tr>
+<tr><td>POST</td><td></code>/login<code></td><td>Public</td><td>Login; returns token + user</td></tr>
+<tr><td>GET</td><td></code>/me<code></td><td>Logged in</td><td>Get current user profile</td></tr>
+<tr><td>POST</td><td></code>/verify-email<code></td><td>Public</td><td>Verify email with code</td></tr>
+<tr><td>POST</td><td></code>/resend-verification<code></td><td>Public</td><td>Resend verification code</td></tr>
+<tr><td>POST</td><td></code>/forgot-password<code></td><td>Public</td><td>Send password reset code</td></tr>
+<tr><td>POST</td><td></code>/verify-reset-code<code></td><td>Public</td><td>Check reset code</td></tr>
+<tr><td>POST</td><td></code>/reset-password<code></td><td>Public</td><td>Set new password</td></tr>
+<tr><td>PUT</td><td></code>/update-profile<code></td><td>Logged in</td><td>Update name, phone, address, etc.</td></tr>
+<tr><td>PUT</td><td></code>/change-password<code></td><td>Logged in</td><td>Change password</td></tr>
+</tbody></table>
+
+<p><strong>Example — Login</strong></p>
+
+<p>Request:</p>
+
+<p></code>`<code>json</p>
+<p>POST /api/auth/login</p>
+<p>{</p>
+<p>  "email": "user@example.com",</p>
+<p>  "password": "MyPass123!"</p>
+<p>}</p>
+<p></code>`<code></p>
+
+<p>Response (success):</p>
+
+<p></code>`<code>json</p>
+<p>{</p>
+<p>  "success": true,</p>
+<p>  "message": "Login successful",</p>
+<p>  "data": {</p>
+<p>    "user": { "id": "...", "fullName": "John", "email": "user@example.com", "role": "user" },</p>
+<p>    "token": "eyJhbGciOiJIUzI1NiIs..."</p>
+<p>  }</p>
+<p>}</p>
+<p></code>`<code></p>
+
+<p>---</p>
+
+<h3>Pets — </code>/api/pets<code></h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Who</th><th>What it does</th></tr></thead><tbody>
+<tr><td>GET</td><td></code>/<code></td><td>Public</td><td>List all pets</td></tr>
+<tr><td>GET</td><td></code>/:id<code></td><td>Public</td><td>One pet’s details</td></tr>
+<tr><td>POST</td><td></code>/<code></td><td>Admin*</td><td>Add pet</td></tr>
+<tr><td>PUT</td><td></code>/:id<code></td><td>Admin*</td><td>Update pet</td></tr>
+<tr><td>DELETE</td><td></code>/:id<code></td><td>Admin*</td><td>Delete pet</td></tr>
+</tbody></table>
+
+<p>\*Pet write routes exist; protect with admin in production usage via admin UI only.</p>
+
+<p>---</p>
+
+<h3>Products — </code>/api/products<code></h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Who</th><th>What it does</th></tr></thead><tbody>
+<tr><td>GET</td><td></code>/<code></td><td>Public</td><td>List products (supports </code>page<code>, </code>limit<code>, filters)</td></tr>
+<tr><td>GET</td><td></code>/alerts/low-stock<code></td><td>Admin</td><td>Low stock alert list</td></tr>
+<tr><td>GET</td><td></code>/:id<code></td><td>Public</td><td>One product</td></tr>
+<tr><td>POST</td><td></code>/<code></td><td>Admin</td><td>Create product</td></tr>
+<tr><td>PUT</td><td></code>/:id<code></td><td>Admin</td><td>Update product (including discount)</td></tr>
+<tr><td>DELETE</td><td></code>/:id<code></td><td>Admin</td><td>Delete product</td></tr>
+<tr><td>PATCH</td><td></code>/:id/stock<code></td><td>Admin</td><td>Update stock quantity</td></tr>
+<tr><td>GET</td><td></code>/:productId/reviews<code></td><td>Public</td><td>Get reviews</td></tr>
+<tr><td>POST</td><td></code>/:productId/reviews<code></td><td>User</td><td>Add review</td></tr>
+<tr><td>PUT</td><td></code>/:productId/reviews/:reviewId<code></td><td>User</td><td>Edit own review</td></tr>
+<tr><td>DELETE</td><td></code>/:productId/reviews/:reviewId<code></td><td>User</td><td>Delete own review</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>Orders — </code>/api/orders<code></h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Who</th><th>What it does</th></tr></thead><tbody>
+<tr><td>GET</td><td></code>/<code></td><td>Admin</td><td>All orders</td></tr>
+<tr><td>GET</td><td></code>/stats/summary<code></td><td>Admin</td><td>Order statistics</td></tr>
+<tr><td>GET</td><td></code>/my-orders<code></td><td>User</td><td>Current user’s orders</td></tr>
+<tr><td>GET</td><td></code>/product-sales<code></td><td>Admin</td><td>Data for pie chart</td></tr>
+<tr><td>GET</td><td></code>/revenue/:month/:year<code></td><td>Admin</td><td>Month drill-down for bar chart</td></tr>
+<tr><td>GET</td><td></code>/:id<code></td><td>Admin</td><td>Single order</td></tr>
+<tr><td>POST</td><td></code>/<code></td><td>User / guest</td><td>Create order</td></tr>
+<tr><td>PATCH</td><td></code>/:id/status<code></td><td>Admin</td><td>Update order status</td></tr>
+<tr><td>PATCH</td><td></code>/:id/cancel<code></td><td>User/Admin</td><td>Cancel order</td></tr>
+<tr><td>DELETE</td><td></code>/:id<code></td><td>Admin</td><td>Delete order</td></tr>
+</tbody></table>
+
+<p><strong>Example — Create order</strong></p>
+
+<p>Request:</p>
+
+<p></code>`<code>json</p>
+<p>POST /api/orders</p>
+<p>Authorization: Bearer &lt;token&gt;</p>
+<p>{</p>
+<p>  "customer": {</p>
+<p>    "name": "John",</p>
+<p>    "email": "john@example.com",</p>
+<p>    "phone": "9800000000",</p>
+<p>    "address": "Kathmandu"</p>
+<p>  },</p>
+<p>  "items": [</p>
+<p>    { "product": "product_id_here", "quantity": 2 }</p>
+<p>  ],</p>
+<p>  "subtotal": 1600,</p>
+<p>  "shippingFee": 100,</p>
+<p>  "totalAmount": 1700,</p>
+<p>  "paymentMethod": "Cash on Delivery",</p>
+<p>  "notes": ""</p>
+<p>}</p>
+<p></code>`<code></p>
+
+<p>---</p>
+
+<h3>Hostel rooms — </code>/api/hostel-rooms<code></h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Who</th><th>What it does</th></tr></thead><tbody>
+<tr><td>GET</td><td></code>/<code></td><td>Public</td><td>List rooms</td></tr>
+<tr><td>GET</td><td></code>/:id<code></td><td>Public</td><td>Room details</td></tr>
+<tr><td>POST</td><td></code>/:id/check-availability<code></td><td>Public</td><td>Check dates available</td></tr>
+<tr><td>POST</td><td></code>/<code></td><td>Admin</td><td>Create room</td></tr>
+<tr><td>PUT</td><td></code>/:id<code></td><td>Admin</td><td>Update room</td></tr>
+<tr><td>DELETE</td><td></code>/:id<code></td><td>Admin</td><td>Delete room</td></tr>
+<tr><td>GET/POST/PUT/DELETE</td><td></code>/:roomId/reviews/...<code></td><td>User</td><td>Room reviews</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>Hostel bookings — </code>/api/hostel-bookings<code></h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Who</th><th>What it does</th></tr></thead><tbody>
+<tr><td>GET</td><td></code>/my-bookings<code></td><td>User</td><td>User’s bookings</td></tr>
+<tr><td>POST</td><td></code>/<code></td><td>User</td><td>Create booking</td></tr>
+<tr><td>PATCH</td><td></code>/:id/cancel<code></td><td>User</td><td>Cancel booking</td></tr>
+<tr><td>GET</td><td></code>/<code></td><td>Staff/Admin</td><td>All bookings</td></tr>
+<tr><td>GET</td><td></code>/:id<code></td><td>Staff/Admin</td><td>One booking</td></tr>
+<tr><td>PATCH</td><td></code>/:id/status<code></td><td>Staff/Admin</td><td>Update status</td></tr>
+<tr><td>POST</td><td></code>/admin<code></td><td>Admin</td><td>Admin-created booking</td></tr>
+<tr><td>DELETE</td><td></code>/:id<code></td><td>Admin</td><td>Delete booking</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>Adoptions — </code>/api/adoptions<code></h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Who</th><th>What it does</th></tr></thead><tbody>
+<tr><td>GET</td><td></code>/my-adoptions<code></td><td>User</td><td>User’s applications</td></tr>
+<tr><td>POST</td><td></code>/<code></td><td>Public/User</td><td>Submit application</td></tr>
+<tr><td>GET</td><td></code>/user/:email<code></td><td>Public</td><td>Applications by email</td></tr>
+<tr><td>GET</td><td></code>/<code></td><td>Admin</td><td>All applications</td></tr>
+<tr><td>GET</td><td></code>/:id<code></td><td>Admin</td><td>One application</td></tr>
+<tr><td>PUT</td><td></code>/:id/status<code></td><td>Admin</td><td>Approve/reject</td></tr>
+<tr><td>DELETE</td><td></code>/:id<code></td><td>Admin</td><td>Delete application</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>Dashboard — </code>/api/dashboard<code> (Admin only)</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>What it does</th></tr></thead><tbody>
+<tr><td>GET</td><td></code>/stats<code></td><td>Dashboard summary numbers</td></tr>
+<tr><td>GET</td><td></code>/activities<code></td><td>Recent bookings, orders, adoptions</td></tr>
+<tr><td>GET</td><td></code>/revenue<code></td><td>Monthly revenue for bar chart</td></tr>
+<tr><td>GET</td><td></code>/users<code></td><td>Users list with pagination</td></tr>
+<tr><td>GET</td><td></code>/rooms-overview<code></td><td>Rooms + active bookings</td></tr>
+<tr><td>GET</td><td></code>/bookings-overview<code></td><td>Bookings list</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>Staff — </code>/api/staff<code> (Admin only)</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>What it does</th></tr></thead><tbody>
+<tr><td>GET</td><td></code>/<code></td><td>List staff</td></tr>
+<tr><td>GET</td><td></code>/:id<code></td><td>One staff member</td></tr>
+<tr><td>POST</td><td></code>/<code></td><td>Create staff account</td></tr>
+<tr><td>PUT</td><td></code>/:id<code></td><td>Update staff</td></tr>
+<tr><td>DELETE</td><td></code>/:id<code></td><td>Delete staff</td></tr>
+<tr><td>PATCH</td><td></code>/:id/status<code></td><td>Enable/disable staff</td></tr>
+<tr><td>PATCH</td><td></code>/:id/reset-password<code></td><td>Reset staff password</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>Upload — </code>/api/upload<code></h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>What it does</th></tr></thead><tbody>
+<tr><td>POST</td><td></code>/<code></td><td>Upload image file → returns Cloudinary URL</td></tr>
+<tr><td>DELETE</td><td></code>/:publicId<code></td><td>Delete image from Cloudinary</td></tr>
+</tbody></table>
+
+<p><strong>Upload response example:</strong></p>
+
+<p></code>`<code>json</p>
+<p>{</p>
+<p>  "success": true,</p>
+<p>  "message": "Image uploaded successfully",</p>
+<p>  "url": "https://res.cloudinary.com/.../image.jpg",</p>
+<p>  "publicId": "petadopt/abc123"</p>
+<p>}</p>
+<p></code>`<code></p>
+
+<p>---</p>
+
+<h3>Payments — </code>/api/payments<code> (Khalti)</h3>
+
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Who</th><th>What it does</th></tr></thead><tbody>
+<tr><td>POST</td><td></code>/initiate-order<code></td><td>User</td><td>Start Khalti payment for order</td></tr>
+<tr><td>POST</td><td></code>/initiate-booking<code></td><td>User</td><td>Start Khalti payment for booking</td></tr>
+<tr><td>POST</td><td></code>/verify-order<code></td><td>User</td><td>Confirm order payment after Khalti</td></tr>
+<tr><td>POST</td><td></code>/verify-booking<code></td><td>User</td><td>Confirm booking payment</td></tr>
+<tr><td>POST</td><td></code>/refund-order/:orderId<code></td><td>Admin</td><td>Refund order</td></tr>
+<tr><td>GET</td><td></code>/order/:orderId<code></td><td>User</td><td>Payment details for order</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h2>6. Database Models</h2>
+
+<p>Database: <strong>MongoDB</strong> (cloud via MongoDB Atlas).  </p>
+<p>Connection string: </code>MONGODB_URI<code> in </code>backend/.env<code>.</p>
+
+<p>---</p>
+
+<h3>User</h3>
+
+<p><strong>Stores:</strong> Account login and profile.</p>
+
+<table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>fullName, email, password</td><td>Login identity (password is encrypted)</td></tr>
+<tr><td>role</td><td></code>user<code>, </code>admin<code>, or </code>staff<code></td></tr>
+<tr><td>isVerified</td><td>Email verified or not</td></tr>
+<tr><td>verificationCode</td><td>6-digit signup code (temporary)</td></tr>
+<tr><td>phone, address, city, country</td><td>Profile</td></tr>
+<tr><td>resetPasswordCode</td><td>For forgot password flow</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>Pet</h3>
+
+<p><strong>Stores:</strong> Animals available for adoption.</p>
+
+<table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>name, type, breed, age, gender</td><td>Pet info</td></tr>
+<tr><td>status</td><td>Available, Booked, Unavailable</td></tr>
+<tr><td>image</td><td>Cloudinary URL</td></tr>
+<tr><td>vaccinations</td><td>List of vaccines and dates</td></tr>
+<tr><td>description, size, vaccinated</td><td>Extra details</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>Product</h3>
+
+<p><strong>Stores:</strong> Shop items.</p>
+
+<table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>name, category, petType, description</td><td>Product info</td></tr>
+<tr><td>price</td><td>Normal price</td></tr>
+<tr><td>discount</td><td>Percent off (0–100)</td></tr>
+<tr><td>stock, lowStockThreshold</td><td>Inventory</td></tr>
+<tr><td>status</td><td>Available, Unavailable, Out of Stock</td></tr>
+<tr><td>image</td><td>Cloudinary URL</td></tr>
+<tr><td>brand, weight</td><td>Optional</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>Order</h3>
+
+<p><strong>Stores:</strong> Shop purchases.</p>
+
+<table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>orderNumber</td><td>Auto-generated e.g. ORD-12345678</td></tr>
+<tr><td>user</td><td>Link to user (if logged in)</td></tr>
+<tr><td>customer</td><td>Name, email, phone, address</td></tr>
+<tr><td>items[]</td><td>product, productName, quantity, price, subtotal</td></tr>
+<tr><td>subtotal, shippingFee, totalAmount</td><td>Money</td></tr>
+<tr><td>status</td><td>Pending → Processing → Shipped → Delivered (or Cancelled/Returned)</td></tr>
+<tr><td>paymentStatus</td><td>Pending, Paid, Failed, Refunded</td></tr>
+<tr><td>paymentMethod</td><td>Cash on Delivery, Khalti, etc.</td></tr>
+<tr><td>khaltiPayment</td><td>Khalti transaction details</td></tr>
+</tbody></table>
+
+<p><strong>Shipping rule:</strong> Free shipping if subtotal ≥ Rs 10,000; otherwise Rs 100.</p>
+
+<p>---</p>
+
+<h3>AdoptionApplication</h3>
+
+<p><strong>Stores:</strong> Adoption form submissions.</p>
+
+<table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>petId, petName</td><td>Which pet</td></tr>
+<tr><td>fullName, email, phone, address, age, occupation</td><td>Applicant</td></tr>
+<tr><td>ownsPets, reason, experience, environment</td><td>Screening questions</td></tr>
+<tr><td>status</td><td>pending, approved, rejected, withdrawn</td></tr>
+<tr><td>reviewNotes, reviewedBy, reviewedAt</td><td>Admin review</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>HostelRoom</h3>
+
+<p><strong>Stores:</strong> Boarding rooms.</p>
+
+<table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>roomNumber, roomName, roomType</td><td>Identity</td></tr>
+<tr><td>petType, capacity, pricePerDay</td><td>Rules and pricing</td></tr>
+<tr><td>facilities[], description, image</td><td>Details</td></tr>
+<tr><td>status</td><td>Available, Occupied, Under Maintenance</td></tr>
+<tr><td>currentOccupant</td><td>Who is in the room now (if any)</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>HostelBooking</h3>
+
+<p><strong>Stores:</strong> Room reservations.</p>
+
+<table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>bookingNumber</td><td>Auto e.g. HB-12345678</td></tr>
+<tr><td>user, room</td><td>Who booked which room</td></tr>
+<tr><td>petDetails</td><td>Pet name, type, needs</td></tr>
+<tr><td>checkInDate, checkOutDate, numberOfDays</td><td>Stay period</td></tr>
+<tr><td>totalAmount</td><td>Price for whole stay</td></tr>
+<tr><td>status</td><td>Pending, Confirmed, Checked-In, Checked-Out, Cancelled</td></tr>
+<tr><td>paymentStatus, paymentMethod</td><td>Payment info</td></tr>
+<tr><td>contactInfo</td><td>Email, phone, emergency contact</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h3>ProductReview</h3>
+
+<p><strong>Stores:</strong> Star rating + comment for a product (one per user per product).</p>
+
+<p>---</p>
+
+<h3>HostelRoomReview</h3>
+
+<p><strong>Stores:</strong> Star rating + comment for a hostel room (one per user per room).</p>
+
+<p>---</p>
+
+<h2>7. Authentication Flow</h2>
+
+<h3>Signup</h3>
+
+<ol>
+<li>User fills name, email, password on </code>/signup<code>.  </li>
+<li>Backend checks password strength (8+ chars, upper, lower, number, special).  </li>
+<li>Backend creates user with </code>isVerified: false<code>.  </li>
+<li>6-digit code emailed (valid 10 minutes).  </li>
+<li>User enters code on </code>/verify-email<code>.  </li>
+<li>Backend sets </code>isVerified: true<code>.  </li>
+<li>User can now log in.</li>
+</ol>
+
+<h3>Login</h3>
+
+<ol>
+<li>User submits email + password.  </li>
+<li>Backend compares password (encrypted).  </li>
+<li>If email not verified → error with </code>needsVerification: true<code>.  </li>
+<li>If OK → JWT token created (default expiry 7 days).  </li>
+<li>Frontend stores </code>token<code> and </code>user<code> in <strong>localStorage</strong>.</li>
+</ol>
+
+<h3>Protected routes (frontend)</h3>
+
+<p></code>ProtectedRoute<code> wrapper checks:</p>
+
+<ol>
+<li>Is there a valid token in localStorage?  </li>
+<li>If route needs a role (admin/staff), does user’s role match?  </li>
+<li>If not → redirect to login or correct dashboard.</li>
+</ol>
+
+<h3>Protected routes (backend)</h3>
+
+<p></code>protect<code> middleware:</p>
+
+<ol>
+<li>Reads </code>Authorization: Bearer &lt;token&gt;<code>.  </li>
+<li>Verifies token with </code>JWT_SECRET<code>.  </li>
+<li>Loads user from database.  </li>
+<li>Attaches user to </code>req.user<code> for the controller.</li>
+</ol>
+
+<p>Extra middleware:</p>
+
+<ul>
+<li></code>adminOnly<code> — only </code>role === 'admin'<code>  </li>
+<li></code>staffOrAdmin<code> — staff or admin (hostel operations)</li>
+</ul>
+
+<h3>Example: Calling a protected API</h3>
+
+<p></code>`<code>javascript</p>
+<p>fetch('http://localhost:4000/api/orders/my-orders', {</p>
+<p>  headers: {</p>
+<p>    'Authorization': 'Bearer ' + localStorage.getItem('token')</p>
+<p>  }</p>
+<p>})</p>
+<p></code>`<code></p>
+
+<p>---</p>
+
+<h2>8. Error Handling</h2>
+
+<h3>How the backend handles errors</h3>
+
+<p>Most controllers use <strong>try / catch</strong>:</p>
+
+<ol>
+<li><strong>Try</strong> to do the work (database, email, payment).  </li>
+<li>If something fails → <strong>catch</strong> block runs.  </li>
+<li>Server sends JSON with </code>success: false<code> and a </code>message<code> humans can read.  </li>
+<li>HTTP status code tells the type of error:</li>
+</ol>
+
+<table>
+<thead><tr><th>Status</th><th>Meaning</th><th>Example</th></tr></thead><tbody>
+<tr><td>400</td><td>Bad request / validation</td><td>Missing email, weak password</td></tr>
+<tr><td>401</td><td>Not logged in / bad token</td><td>No Bearer token</td></tr>
+<tr><td>403</td><td>Not allowed</td><td>User trying to open admin page</td></tr>
+<tr><td>404</td><td>Not found</td><td>Product or order does not exist</td></tr>
+<tr><td>500</td><td>Server error</td><td>Database down, unexpected crash</td></tr>
+</tbody></table>
+
+<h3>Form validation errors</h3>
+
+<p>Routes like signup use <strong>express-validator</strong> + </code>validate<code> middleware.</p>
+
+<p>Response example:</p>
+
+<p></code>`<code>json</p>
+<p>{</p>
+<p>  "success": false,</p>
+<p>  "message": "Validation error",</p>
+<p>  "errors": [</p>
+<p>    { "field": "email", "message": "Please provide a valid email" }</p>
+<p>  ]</p>
+<p>}</p>
+<p></code>`<code></p>
+
+<h3>How the frontend handles errors</h3>
+
+<ul>
+<li>Checks </code>response.success<code> from API.  </li>
+<li>Shows </code>alert()<code> or on-screen message with </code>data.message<code>.  </li>
+<li>Login page handles </code>needsVerification<code> to send user to verify email.  </li>
+<li></code>ProtectedRoute<code> redirects if session expired.</li>
+</ul>
+
+<h3>MongoDB connection errors</h3>
+
+<p>If database cannot connect on startup:</p>
+
+<ul>
+<li>Console shows: </code>MongoDB connection error<code>  </li>
+<li>Process exits (server stops)  </li>
+<li>Fix: check </code>MONGODB_URI<code> in </code>.env<code> and internet connection.</li>
+</ul>
+
+<h3>Port already in use</h3>
+
+<ul>
+<li>Message: </code>Port 4000 already in use<code>  </li>
+<li>Fix: run </code>npm run kill-port<code> in backend folder, then </code>npm run dev<code> again.</li>
+</ul>
+
+<p>---</p>
+
+<h2>9. User Roles</h2>
+
+<table>
+<thead><tr><th>Role</th><th>Frontend entry after login</th><th>Main pages</th></tr></thead><tbody>
+<tr><td><strong>user</strong></td><td>Browse pets / shop</td><td>Shop, cart, hostel, my orders, my adoptions, profile</td></tr>
+<tr><td><strong>admin</strong></td><td></code>/admin-dashboard<code></td><td>All admin management + dashboard charts</td></tr>
+<tr><td><strong>staff</strong></td><td></code>/staff-dashboard<code></td><td>Staff rooms, staff bookings</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<h2>10. How to Run (Viva Demo)</h2>
+
+<h3>Terminal 1 — Backend</h3>
+
+<p></code>`<code>bash</p>
+<p>cd backend</p>
+<p>npm run dev</p>
+<p></code>`<code></p>
+
+<p>Wait for:</p>
+
+<p></code>`<code></p>
+<p>Server running on port 4000</p>
+<p>Connected to MongoDB</p>
+<p></code>`<code></p>
+
+<h3>Terminal 2 — Frontend</h3>
+
+<p></code>`<code>bash</p>
+<p>cd frontend</p>
+<p>npm run dev</p>
+<p></code>`<code></p>
+
+<p>Open: <strong>http://localhost:5173</strong></p>
+
+<h3>Demo checklist</h3>
+
+<ul>
+<li>[ ] Login as <strong>user</strong> — shop, cart, checkout  </li>
+<li>[ ] Login as <strong>admin</strong> — dashboard bar chart + pie chart  </li>
+<li>[ ] Show <strong>pet adoption</strong> flow  </li>
+<li>[ ] Show <strong>hostel booking</strong>  </li>
+<li>[ ] Mention <strong>Cloudinary</strong> for images, <strong>Khalti</strong> for payments, <strong>MongoDB Atlas</strong> for data  </li>
+</ul>
+
+<h3>If something fails</h3>
+
+<p></code>`<code>bash</p>
+<h1>Free port 4000</h1>
+<p>cd backend &amp;&amp; npm run kill-port &amp;&amp; npm run dev</p>
+<p></code>``</p>
+
+<p>---</p>
+
+<h2>Quick Reference — Main URLs</h2>
+
+<table>
+<thead><tr><th>What</th><th>URL</th></tr></thead><tbody>
+<tr><td>Website</td><td>http://localhost:5173</td></tr>
+<tr><td>Backend API</td><td>http://localhost:4000</td></tr>
+<tr><td>Login</td><td>http://localhost:5173/login</td></tr>
+<tr><td>Shop</td><td>http://localhost:5173/shop</td></tr>
+<tr><td>Admin dashboard</td><td>http://localhost:5173/admin-dashboard</td></tr>
+</tbody></table>
+
+<p>---</p>
+
+<p>*Document generated from the PetAdopt+ codebase for FYP documentation and viva preparation.*</p>
+</body>
+</html>

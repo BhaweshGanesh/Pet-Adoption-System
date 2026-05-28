@@ -31,6 +31,12 @@ const AdoptionForm = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    if (name === "age" && value !== "") {
+      const num = Number(value);
+      if (Number.isNaN(num) || num < 0) return;
+    }
+
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -45,6 +51,8 @@ const AdoptionForm = () => {
     if (!form.phone.trim()) newErrors.phone = "Phone number is required.";
     if (!form.address.trim()) newErrors.address = "Address is required.";
     if (!form.age.trim()) newErrors.age = "Age is required.";
+    else if (Number(form.age) < 18)
+      newErrors.age = "You must be at least 18 years old.";
     if (!form.occupation.trim())
       newErrors.occupation = "Occupation is required.";
     if (!form.ownsPets) newErrors.ownsPets = "Please select an option.";
@@ -247,8 +255,15 @@ const AdoptionForm = () => {
                       <input
                         type="number"
                         name="age"
+                        min={18}
+                        max={120}
                         value={form.age}
                         onChange={handleChange}
+                        onKeyDown={(e) => {
+                          if (e.key === "-" || e.key === "e" || e.key === "E") {
+                            e.preventDefault();
+                          }
+                        }}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-[1.5px] focus:ring-orange-500"
                       />
                       {errors.age && (
