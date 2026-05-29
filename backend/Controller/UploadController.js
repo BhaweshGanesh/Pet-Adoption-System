@@ -1,6 +1,5 @@
 import getCloudinary from '../config/cloudinary.js';
 
-
 export const uploadImage = async (req, res) => {
   try {
     if (!req.file) {
@@ -12,7 +11,6 @@ export const uploadImage = async (req, res) => {
 
     const cloudinary = await getCloudinary();
 
-    // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'petadopt',
       resource_type: 'auto',
@@ -38,9 +36,6 @@ export const uploadImage = async (req, res) => {
   }
 };
 
-// @desc    Delete image from Cloudinary
-// @route   DELETE /api/upload/:publicId
-// @access  Private/Admin
 export const deleteImage = async (req, res) => {
   try {
     const { publicId } = req.params;

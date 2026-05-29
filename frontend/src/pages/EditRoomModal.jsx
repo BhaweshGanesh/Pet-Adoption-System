@@ -1,4 +1,3 @@
-// src/components/admin/hostel/EditRoomModal.jsx
 import React from "react";
 
 const EditRoomModal = ({ room, form, onChange, onImageChange, onClose, onSubmit }) => {
@@ -13,15 +12,15 @@ const EditRoomModal = ({ room, form, onChange, onImageChange, onClose, onSubmit 
           </h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-lg"    
+            className="text-slate-400 hover:text-slate-600 text-lg"
           >
             ×
-          </button>          
+          </button>
         </div>
 
         <form
           onSubmit={onSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"  
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"
         >
           <div>
             <label className="block mb-1 text-slate-600 font-semibold">Room Number *</label>

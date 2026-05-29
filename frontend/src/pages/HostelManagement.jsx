@@ -1,7 +1,5 @@
-// src/pages/HostelManagement.jsx
 import React, { useMemo, useState, useEffect } from "react";
 
-// all these files are in the same folder: src/pages
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
 import RoomTable from "./RoomTable";
@@ -82,7 +80,6 @@ const HostelManagement = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Convert bookings to calendar format
         const calendarBookings = data.data
           .filter(b => b.status !== 'Cancelled' && b.status !== 'Checked-Out')
           .map(b => ({
@@ -140,7 +137,7 @@ const HostelManagement = () => {
 
       const data = await response.json();
       if (data.success) {
-        return data.url; // Backend returns 'url' not 'imageUrl'
+        return data.url;
       }
       throw new Error(data.message || 'Image upload failed');
     } catch (error) {
@@ -182,8 +179,7 @@ const HostelManagement = () => {
 
     try {
       let imageUrl = "";
-      
-      // Upload image if a new file was selected
+
       if (imageFile) {
         const uploadedUrl = await uploadImage(imageFile);
         if (uploadedUrl) {
@@ -194,9 +190,8 @@ const HostelManagement = () => {
         }
       }
 
-      // Parse facilities from comma-separated string
       const facilitiesArray = roomForm.facilities
-        ? (typeof roomForm.facilities === 'string' 
+        ? (typeof roomForm.facilities === 'string'
             ? roomForm.facilities.split(',').map(f => f.trim()).filter(f => f)
             : roomForm.facilities)
         : [];
@@ -229,9 +224,7 @@ const HostelManagement = () => {
       if (data.success) {
         alert('Room added successfully!');
         setIsAddModalOpen(false);
-        // Clear image file state
         setImageFile(null);
-        // Reset form
         setRoomForm({
           roomNumber: "",
           roomName: "",
@@ -275,10 +268,8 @@ const HostelManagement = () => {
     e.preventDefault();
 
     try {
-      // Start with existing image URL from the room (not from form state which might have blob URL)
       let imageUrl = editRoom.image || "";
-      
-      // Upload new image if selected
+
       if (imageFile) {
         const uploadedUrl = await uploadImage(imageFile);
         if (uploadedUrl) {
@@ -289,9 +280,8 @@ const HostelManagement = () => {
         }
       }
 
-      // Parse facilities from comma-separated string
       const facilitiesArray = roomForm.facilities
-        ? (typeof roomForm.facilities === 'string' 
+        ? (typeof roomForm.facilities === 'string'
             ? roomForm.facilities.split(',').map(f => f.trim()).filter(f => f)
             : roomForm.facilities)
         : [];
@@ -324,7 +314,6 @@ const HostelManagement = () => {
       if (data.success) {
         alert('Room updated successfully!');
         setEditRoom(null);
-        // Clear image file state
         setImageFile(null);
         await fetchRooms();
       } else {
@@ -747,7 +736,6 @@ const HostelManagement = () => {
         </div>
       )}
 
-      {/* Booking Modal removed - moved to HostelBookingsManagement page */}
       {false && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto py-8">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 my-8">
@@ -764,7 +752,6 @@ const HostelManagement = () => {
             </div>
 
             <form onSubmit={handleAdminBookingSubmit} className="space-y-6">
-              {/* Customer Information */}
               <div className="space-y-4">
                 <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
                   Customer Information
@@ -833,7 +820,6 @@ const HostelManagement = () => {
                 </div>
               </div>
 
-              {/* Pet Details */}
               <div className="space-y-4">
                 <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
                   Pet Information
@@ -910,7 +896,6 @@ const HostelManagement = () => {
                 </div>
               </div>
 
-              {/* Booking Details */}
               <div className="space-y-4">
                 <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
                   Booking Details
@@ -946,7 +931,6 @@ const HostelManagement = () => {
                 </div>
               </div>
 
-              {/* Emergency Contact */}
               <div className="space-y-4">
                 <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
                   Emergency Contact
@@ -980,7 +964,6 @@ const HostelManagement = () => {
                 </div>
               </div>
 
-              {/* Special Instructions */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Special Instructions
@@ -994,7 +977,6 @@ const HostelManagement = () => {
                 />
               </div>
 
-              {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
                 <button
                   type="button"

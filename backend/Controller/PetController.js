@@ -1,26 +1,20 @@
 import Pet from '../model/Petmodel.js';
 
-// @desc    Get all pets
-// @route   GET /api/pets
-// @access  Public
 export const getAllPets = async (req, res) => {
   try {
     const { status, page = 1, limit = 20, search } = req.query;
-    
+
     let filter = {};
     if (status && status !== 'all') {
       filter.status = status === 'available' ? 'Available' : 'Unavailable';
     }
 
-    // Text search if provided
     if (search) {
       filter.$text = { $search: search };
     }
 
-    // Calculate skip value for pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Use lean() for faster queries when you don't need mongoose documents
     const [pets, total] = await Promise.all([
       Pet.find(filter)
         .sort({ createdAt: -1 })
@@ -30,7 +24,7 @@ export const getAllPets = async (req, res) => {
         .exec(),
       Pet.countDocuments(filter)
     ]);
-    
+
     res.status(200).json({
       success: true,
       count: pets.length,
@@ -48,9 +42,6 @@ export const getAllPets = async (req, res) => {
   }
 };
 
-// @desc    Get single pet by ID
-// @route   GET /api/pets/:id
-// @access  Public
 export const getPetById = async (req, res) => {
   try {
     const pet = await Pet.findById(req.params.id);
@@ -75,14 +66,10 @@ export const getPetById = async (req, res) => {
   }
 };
 
-// @desc    Create new pet
-// @route   POST /api/pets
-// @access  Private/Admin
 export const createPet = async (req, res) => {
   try {
     const { name, type, breed, age, gender, status, description, image, size, vaccinated, vaccinations, inShelter } = req.body;
 
-    // Validation
     if (!name || !breed || !age) {
       return res.status(400).json({
         success: false,
@@ -103,7 +90,7 @@ export const createPet = async (req, res) => {
       vaccinated,
       vaccinations,
       inShelter,
-      addedBy: req.user?._id, // If you have auth middleware
+      addedBy: req.user?._id,
     });
 
     res.status(201).json({
@@ -120,9 +107,6 @@ export const createPet = async (req, res) => {
   }
 };
 
-// @desc    Update pet
-// @route   PUT /api/pets/:id
-// @access  Private/Admin
 export const updatePet = async (req, res) => {
   try {
     const { name, type, breed, age, gender, status, description, image, size, vaccinated, vaccinations, inShelter } = req.body;
@@ -136,7 +120,6 @@ export const updatePet = async (req, res) => {
       });
     }
 
-    // Update fields
     pet.name = name || pet.name;
     pet.type = type || pet.type;
     pet.breed = breed || pet.breed;
@@ -166,9 +149,6 @@ export const updatePet = async (req, res) => {
   }
 };
 
-// @desc    Delete pet
-// @route   DELETE /api/pets/:id
-// @access  Private/Admin
 export const deletePet = async (req, res) => {
   try {
     const pet = await Pet.findById(req.params.id);

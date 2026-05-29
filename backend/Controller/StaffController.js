@@ -6,17 +6,12 @@ const STRONG_PASSWORD_MESSAGE =
   'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.';
 import { sendWelcomeEmail } from '../utils/emailService.js';
 
-// @desc    Get all staff members
-// @route   GET /api/staff
-// @access  Admin only
 export const getAllStaff = async (req, res) => {
   try {
     const { page = 1, limit = 10, search = '', status = 'all' } = req.query;
 
-    // Build query
     const query = { role: 'staff' };
 
-    // Add search filter
     if (search) {
       query.$or = [
         { fullName: { $regex: search, $options: 'i' } },
@@ -24,12 +19,10 @@ export const getAllStaff = async (req, res) => {
       ];
     }
 
-    // Add status filter
     if (status !== 'all') {
       query.isVerified = status === 'active';
     }
 
-    // Execute query with pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const staff = await User.find(query)
       .select('-password -verificationCode -resetPasswordCode')
@@ -59,9 +52,6 @@ export const getAllStaff = async (req, res) => {
   }
 };
 
-// @desc    Get single staff member
-// @route   GET /api/staff/:id
-// @access  Admin only
 export const getStaffById = async (req, res) => {
   try {
     const staff = await User.findOne({
@@ -89,14 +79,10 @@ export const getStaffById = async (req, res) => {
   }
 };
 
-// @desc    Create new staff member
-// @route   POST /api/staff
-// @access  Admin only
 export const createStaff = async (req, res) => {
   try {
     const { fullName, email, password, phone, address, city, country } = req.body;
 
-    // Validate required fields
     if (!fullName || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -104,7 +90,6 @@ export const createStaff = async (req, res) => {
       });
     }
 
-    // Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -113,7 +98,6 @@ export const createStaff = async (req, res) => {
       });
     }
 
-    // Create staff member with role set to 'staff'
     const staff = await User.create({
       fullName,
       email,
@@ -122,16 +106,14 @@ export const createStaff = async (req, res) => {
       address: address || '',
       city: city || '',
       country: country || '',
-      role: 'staff', // Force role to staff
-      isVerified: true, // Auto-verify staff accounts
+      role: 'staff',
+      isVerified: true,
     });
 
-    // Send welcome email (optional)
     try {
       await sendWelcomeEmail(email, fullName);
     } catch (emailError) {
       console.error('Error sending welcome email:', emailError);
-      // Don't fail the request if email fails
     }
 
     res.status(201).json({
@@ -155,14 +137,10 @@ export const createStaff = async (req, res) => {
   }
 };
 
-// @desc    Update staff member
-// @route   PUT /api/staff/:id
-// @access  Admin only
 export const updateStaff = async (req, res) => {
   try {
     const { fullName, email, phone, address, city, country, isVerified } = req.body;
 
-    // Find staff member
     const staff = await User.findOne({
       _id: req.params.id,
       role: 'staff',
@@ -175,7 +153,6 @@ export const updateStaff = async (req, res) => {
       });
     }
 
-    // Check if email is being changed and if it's already in use
     if (email && email !== staff.email) {
       const existingUser = await User.findOne({ email });
       if (existingUser) {
@@ -186,7 +163,6 @@ export const updateStaff = async (req, res) => {
       }
     }
 
-    // Update fields
     if (fullName) staff.fullName = fullName;
     if (email) staff.email = email;
     if (phone !== undefined) staff.phone = phone;
@@ -195,7 +171,6 @@ export const updateStaff = async (req, res) => {
     if (country !== undefined) staff.country = country;
     if (isVerified !== undefined) staff.isVerified = isVerified;
 
-    // Role must remain 'staff' - don't allow changing role
     staff.role = 'staff';
 
     await staff.save();
@@ -225,9 +200,6 @@ export const updateStaff = async (req, res) => {
   }
 };
 
-// @desc    Toggle staff status (activate/deactivate)
-// @route   PATCH /api/staff/:id/status
-// @access  Admin only
 export const toggleStaffStatus = async (req, res) => {
   try {
     const staff = await User.findOne({
@@ -242,7 +214,6 @@ export const toggleStaffStatus = async (req, res) => {
       });
     }
 
-    // Toggle status
     staff.isVerified = !staff.isVerified;
     await staff.save();
 
@@ -265,9 +236,6 @@ export const toggleStaffStatus = async (req, res) => {
   }
 };
 
-// @desc    Delete staff member (soft delete by deactivating)
-// @route   DELETE /api/staff/:id
-// @access  Admin only
 export const deleteStaff = async (req, res) => {
   try {
     const staff = await User.findOne({
@@ -282,12 +250,8 @@ export const deleteStaff = async (req, res) => {
       });
     }
 
-    // Soft delete: deactivate instead of removing
     staff.isVerified = false;
     await staff.save();
-
-    // For hard delete, uncomment:
-    // await User.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
@@ -302,9 +266,6 @@ export const deleteStaff = async (req, res) => {
   }
 };
 
-// @desc    Reset staff password
-// @route   PATCH /api/staff/:id/reset-password
-// @access  Admin only
 export const resetStaffPassword = async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -328,7 +289,6 @@ export const resetStaffPassword = async (req, res) => {
       });
     }
 
-    // Update password (will be hashed by pre-save hook)
     staff.password = newPassword;
     await staff.save();
 

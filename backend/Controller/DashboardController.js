@@ -6,12 +6,8 @@ import Order from '../model/Ordermodel.js';
 import Product from '../model/Productmodel.js';
 import AdoptionApplication from '../model/AdoptionApplicationmodel.js';
 
-// @desc    Get dashboard statistics
-// @route   GET /api/dashboard/stats
-// @access  Admin only
 export const getDashboardStats = async (req, res) => {
   try {
-    // Fetch all statistics in parallel for better performance
     const [
       totalUsers,
       totalStaff,
@@ -28,27 +24,22 @@ export const getDashboardStats = async (req, res) => {
       totalProducts,
       lowStockProducts,
     ] = await Promise.all([
-      // Users
       User.countDocuments({ role: 'user' }),
       User.countDocuments({ role: 'staff', isVerified: true }),
-      
-      // Pets
+
       Pet.countDocuments(),
       Pet.countDocuments({ status: 'Available' }),
-      
-      // Hostel Rooms
+
       HostelRoom.countDocuments(),
       HostelRoom.countDocuments({ status: 'Occupied' }),
       HostelRoom.countDocuments({ status: 'Available' }),
-      
-      // Bookings
+
       HostelBooking.countDocuments(),
       HostelBooking.countDocuments({ status: { $in: ['Confirmed', 'Checked-In'] } }),
-      
-      // Orders - Only count delivered and paid orders
-      Order.countDocuments({ 
+
+      Order.countDocuments({
         status: 'Delivered',
-        paymentStatus: 'Paid'   
+        paymentStatus: 'Paid'
       }),
       Order.aggregate([
         {
@@ -57,35 +48,30 @@ export const getDashboardStats = async (req, res) => {
             paymentStatus: 'Paid'
           }
         },
-        { 
-          $group: { 
-            _id: null, 
-            total: { $sum: '$totalAmount' } 
-          } 
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$totalAmount' }
+          }
         }
       ]),
-      
-      // Adoptions
+
       AdoptionApplication.countDocuments({ status: 'Pending' }),
-      
-      // Products
+
       Product.countDocuments(),
       Product.countDocuments({ stock: { $lt: 10 } }),
     ]);
 
-    // Calculate occupancy rate
-    const occupancyRate = totalRooms > 0 
-      ? Math.round((occupiedRooms / totalRooms) * 100) 
+    const occupancyRate = totalRooms > 0
+      ? Math.round((occupiedRooms / totalRooms) * 100)
       : 0;
 
-    // Get recent bookings (last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const recentBookings = await HostelBooking.countDocuments({
       createdAt: { $gte: sevenDaysAgo }
     });
 
-    // Get recent orders (last 7 days) - only delivered and paid
     const recentOrders = await Order.countDocuments({
       createdAt: { $gte: sevenDaysAgo },
       status: 'Delivered',
@@ -97,7 +83,7 @@ export const getDashboardStats = async (req, res) => {
       data: {
         users: {
           total: totalUsers,
-          active: totalUsers, // Can add isActive field later
+          active: totalUsers,
         },
         staff: {
           total: totalStaff,
@@ -142,14 +128,10 @@ export const getDashboardStats = async (req, res) => {
   }
 };
 
-// @desc    Get recent activities
-// @route   GET /api/dashboard/activities
-// @access  Admin only
 export const getRecentActivities = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
 
-    // Get recent bookings
     const recentBookings = await HostelBooking.find()
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -158,7 +140,6 @@ export const getRecentActivities = async (req, res) => {
       .select('bookingNumber status createdAt petDetails')
       .lean();
 
-    // Get recent orders
     const recentOrders = await Order.find()
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -166,7 +147,6 @@ export const getRecentActivities = async (req, res) => {
       .select('orderNumber status totalAmount createdAt')
       .lean();
 
-    // Get recent adoption applications
     const recentAdoptions = await AdoptionApplication.find()
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -192,15 +172,10 @@ export const getRecentActivities = async (req, res) => {
   }
 };
 
-// @desc    Get monthly revenue data
-// @route   GET /api/dashboard/revenue
-// @access  Admin only
 export const getMonthlyRevenue = async (req, res) => {
   try {
     const year = parseInt(req.query.year) || new Date().getFullYear();
 
-    // Get monthly revenue from orders - only delivered/paid orders
-    // and only items whose products still exist in inventory.
     const monthlyRevenue = await Order.aggregate([
       {
         $match: {
@@ -240,7 +215,6 @@ export const getMonthlyRevenue = async (req, res) => {
       },
     ]);
 
-    // Get monthly booking revenue
     const monthlyBookingRevenue = await HostelBooking.aggregate([
       {
         $match: {
@@ -263,7 +237,6 @@ export const getMonthlyRevenue = async (req, res) => {
       },
     ]);
 
-    // Create array for all 12 months
     const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -297,20 +270,15 @@ export const getMonthlyRevenue = async (req, res) => {
   }
 };
 
-// @desc    Get all users overview
-// @route   GET /api/dashboard/users
-// @access  Admin only
 export const getAllUsersOverview = async (req, res) => {
   try {
     const { page = 1, limit = 10, role = 'all' } = req.query;
 
-    // Build query
     const query = {};
     if (role !== 'all') {
       query.role = role;
     }
 
-    // Execute query with pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const users = await User.find(query)
       .select('-password -verificationCode -resetPasswordCode')
@@ -340,9 +308,6 @@ export const getAllUsersOverview = async (req, res) => {
   }
 };
 
-// @desc    Get room occupancy overview
-// @route   GET /api/dashboard/rooms-overview
-// @access  Admin only
 export const getRoomsOverview = async (req, res) => {
   try {
     const rooms = await HostelRoom.find()
@@ -350,7 +315,6 @@ export const getRoomsOverview = async (req, res) => {
       .sort({ roomNumber: 1 })
       .lean();
 
-    // Get active bookings for each room
     const roomsWithBookings = await Promise.all(
       rooms.map(async (room) => {
         const activeBooking = await HostelBooking.findOne({
@@ -380,21 +344,17 @@ export const getRoomsOverview = async (req, res) => {
   }
 };
 
-// @desc    Get bookings overview
-// @route   GET /api/dashboard/bookings-overview
-// @access  Admin only
 export const getBookingsOverview = async (req, res) => {
   try {
     const { status = 'all', page = 1, limit = 20 } = req.query;
 
-    // Build query
     const query = {};
     if (status !== 'all') {
       query.status = status;
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
+
     const bookings = await HostelBooking.find(query)
       .populate('user', 'fullName email phone')
       .populate('room', 'roomNumber roomName roomType')
@@ -422,4 +382,4 @@ export const getBookingsOverview = async (req, res) => {
       message: 'Error fetching bookings overview',
     });
   }
-};       
+};

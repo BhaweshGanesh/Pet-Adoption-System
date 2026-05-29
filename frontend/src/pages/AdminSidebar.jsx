@@ -1,4 +1,3 @@
-// src/components/admin/AdminSidebar.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -41,19 +40,16 @@ const AdminSidebar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Listen for the hamburger toggle event fired from AdminNavbar
   useEffect(() => {
     const handleToggle = () => setIsOpen((prev) => !prev);
     window.addEventListener("admin-sidebar-toggle", handleToggle);
     return () => window.removeEventListener("admin-sidebar-toggle", handleToggle);
   }, []);
 
-  // Close mobile drawer on route change
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
 
-  // Prevent body scroll when mobile drawer is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -67,7 +63,6 @@ const AdminSidebar = () => {
 
   return (
     <>
-      {/* ── Desktop sidebar (always visible on md+) ── */}
       <aside className="hidden md:flex flex-col w-60 min-h-screen bg-white border-r border-slate-200 sticky top-0 h-screen shrink-0">
         <div className="h-20 flex items-center px-5 border-b border-slate-200">
           <Link to="/" className="flex items-center gap-3">
@@ -89,7 +84,6 @@ const AdminSidebar = () => {
         </div>
       </aside>
 
-      {/* ── Mobile: backdrop overlay ── */}
       <div
         className={`md:hidden fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
@@ -98,13 +92,11 @@ const AdminSidebar = () => {
         aria-hidden="true"
       />
 
-      {/* ── Mobile: slide-in drawer ── */}
       <aside
         className={`md:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-72 bg-white border-r border-slate-200 shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Drawer header with logo + close button */}
         <div className="h-20 flex items-center justify-between px-5 border-b border-slate-200 shrink-0">
           <Link to="/" className="flex items-center gap-3" onClick={() => setIsOpen(false)}>
             <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">

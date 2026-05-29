@@ -1,10 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
-/**
- * Initiate Khalti payment for an order.
- * Calls backend → backend calls Khalti → returns payment_url.
- * Redirects the user to pay.khalti.com.
- */
 export const initiateKhaltiOrderPayment = async (orderId, authToken) => {
   const response = await fetch(`${API_URL}/api/payments/initiate-order`, {
     method: 'POST',
@@ -21,15 +16,9 @@ export const initiateKhaltiOrderPayment = async (orderId, authToken) => {
     throw new Error(data.message || 'Failed to initiate payment');
   }
 
-  // Redirect user to Khalti payment page
   window.location.href = data.data.payment_url;
 };
 
-/**
- * Initiate Khalti payment for a hostel booking.
- * Calls backend → backend calls Khalti → returns payment_url.
- * Redirects the user to pay.khalti.com.
- */
 export const initiateKhaltiBookingPayment = async (bookingId, authToken) => {
   const response = await fetch(`${API_URL}/api/payments/initiate-booking`, {
     method: 'POST',
@@ -46,12 +35,9 @@ export const initiateKhaltiBookingPayment = async (bookingId, authToken) => {
     throw new Error(data.message || 'Failed to initiate payment');
   }
 
-  // Redirect user to Khalti payment page
   window.location.href = data.data.payment_url;
 };
 
-// Verify Khalti payment using pidx (called from PaymentCallback page).
- 
 export const verifyKhaltiOrderPayment = async (pidx, orderId, authToken) => {
   const response = await fetch(`${API_URL}/api/payments/verify-order`, {
     method: 'POST',
@@ -65,8 +51,6 @@ export const verifyKhaltiOrderPayment = async (pidx, orderId, authToken) => {
   return await response.json();
 };
 
-// Verify Khalti payment for a booking using pidx (called from PaymentCallback page).
- 
 export const verifyKhaltiBookingPayment = async (pidx, bookingId, authToken) => {
   const response = await fetch(`${API_URL}/api/payments/verify-booking`, {
     method: 'POST',

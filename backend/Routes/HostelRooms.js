@@ -19,7 +19,6 @@ const router = express.Router();
 
 router.get('/', getAllRooms);
 
-// Room reviews (before /:id so paths are not captured as ids)
 router.get('/:roomId/reviews', getHostelRoomReviews);
 router.post('/:roomId/reviews', protect, createHostelRoomReview);
 router.put('/:roomId/reviews/:reviewId', protect, updateHostelRoomReview);

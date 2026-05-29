@@ -1,9 +1,6 @@
 import nodemailer from 'nodemailer';
 
-// Create transporter
 const createTransporter = () => {
-  // Use Gmail SMTP with STARTTLS on port 587
-  // Support EMAIL_PASS or EMAIL_PASSWORD; strip spaces (Gmail App Password is 16 chars, no spaces)
   const emailPass = (process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || '').replace(/\s/g, '');
   return nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -16,12 +13,10 @@ const createTransporter = () => {
   });
 };
 
-// Generate 6-digit verification code
 export const generateVerificationCode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Send verification email
 export const sendVerificationEmail = async (email, fullName, verificationCode) => {
   try {
     const transporter = createTransporter();
@@ -110,26 +105,25 @@ export const sendVerificationEmail = async (email, fullName, verificationCode) =
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Verification email sent to:', email);
+    console.log(' Verification email sent to:', email);
     return true;
   } catch (error) {
     const code = error.responseCode || error.code;
     const is535 = String(code) === '535' || (error.response && String(error.response).includes('535'));
     if (is535) {
-      console.error('❌ Gmail authentication failed (535). Fix: use a Gmail App Password.');
+      console.error(' Gmail authentication failed (535). Fix: use a Gmail App Password.');
       console.error('   1. Go to https://myaccount.google.com/apppasswords');
       console.error(`   2. Sign in with ${process.env.EMAIL_USER}, turn on 2-Step Verification if needed`);
       console.error('   3. Create an App Password for "Mail", copy the 16-character password');
       console.error('   4. In backend/.env set either EMAIL_PASS or EMAIL_PASSWORD to that 16-char password');
       console.error('   5. Restart the backend server.');
     } else {
-      console.error('❌ Error sending verification email:', error.message || error);
+      console.error(' Error sending verification email:', error.message || error);
     }
     throw new Error('Failed to send verification email');
   }
 };
 
-// Send welcome email after verification
 export const sendWelcomeEmail = async (email, fullName) => {
   try {
     const transporter = createTransporter();
@@ -170,7 +164,7 @@ export const sendWelcomeEmail = async (email, fullName) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🎉 Welcome to PetAdopt+!</h1>
+              <h1> Welcome to PetAdopt+!</h1>
             </div>
             <div class="content">
               <h2>Congratulations, ${fullName}!</h2>
@@ -178,10 +172,10 @@ export const sendWelcomeEmail = async (email, fullName) => {
               
               <p>You can now:</p>
               <ul>
-                <li>🐕 Browse available pets</li>
-                <li>📅 Schedule appointments</li>
-                <li>❤️ Save your favorite pets</li>
-                <li>🏥 Access pet care services</li>
+                <li> Browse available pets</li>
+                <li> Schedule appointments</li>
+                <li> Save your favorite pets</li>
+                <li> Access pet care services</li>
               </ul>
               
               <p>Start your journey by logging in to your dashboard!</p>
@@ -195,14 +189,13 @@ export const sendWelcomeEmail = async (email, fullName) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Welcome email sent to:', email);
+    console.log(' Welcome email sent to:', email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending welcome email:', error);
+    console.error(' Error sending welcome email:', error);
   }
 };
 
-// Send password reset email
 export const sendPasswordResetEmail = async (email, fullName, resetCode) => {
   try {
     const transporter = createTransporter();
@@ -269,7 +262,7 @@ export const sendPasswordResetEmail = async (email, fullName, resetCode) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🔐 Password Reset Request</h1>
+              <h1> Password Reset Request</h1>
             </div>
             <div class="content">
               <h2>Hi ${fullName},</h2>
@@ -284,7 +277,7 @@ export const sendPasswordResetEmail = async (email, fullName, resetCode) => {
               <p><strong>This code will expire in 10 minutes.</strong></p>
               
               <div class="warning">
-                <p><strong>⚠️ Security Notice:</strong></p>
+                <p><strong> Security Notice:</strong></p>
                 <p>If you didn't request a password reset, please ignore this email. Your password will remain unchanged.</p>
               </div>
               
@@ -300,15 +293,14 @@ export const sendPasswordResetEmail = async (email, fullName, resetCode) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Password reset email sent to:', email);
+    console.log(' Password reset email sent to:', email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending password reset email:', error);
+    console.error(' Error sending password reset email:', error);
     throw new Error('Failed to send password reset email');
   }
 };
 
-// Send hostel booking confirmation email
 export const sendHostelBookingConfirmationEmail = async (email, fullName, bookingDetails) => {
   try {
     const transporter = createTransporter();
@@ -329,7 +321,6 @@ export const sendHostelBookingConfirmationEmail = async (email, fullName, bookin
       specialInstructions
     } = bookingDetails;
 
-    // Format facilities list
     const facilitiesList = facilities && facilities.length > 0 
       ? facilities.map(f => `<li>${f}</li>`).join('') 
       : '<li>Standard facilities</li>';
@@ -444,7 +435,7 @@ export const sendHostelBookingConfirmationEmail = async (email, fullName, bookin
         <body>
           <div class="container">
             <div class="header">
-              <h1>🏠 Hostel Booking Confirmed!</h1>
+              <h1> Hostel Booking Confirmed!</h1>
             </div>
             <div class="content">
               <h2>Thank you, ${fullName}!</h2>
@@ -530,16 +521,14 @@ export const sendHostelBookingConfirmationEmail = async (email, fullName, bookin
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Hostel booking confirmation email sent to:', email);
+    console.log(' Hostel booking confirmation email sent to:', email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending hostel booking confirmation email:', error);
-    // Don't throw error - we don't want to fail the booking if email fails
+    console.error(' Error sending hostel booking confirmation email:', error);
     return false;
   }
 };
 
-// Send order status update email
 export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) => {
   try {
     const transporter = createTransporter();
@@ -790,15 +779,14 @@ export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) 
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Order status update email sent to ${email}`);
+    console.log(` Order status update email sent to ${email}`);
     return true;
   } catch (error) {
-    console.error('❌ Error sending order status update email:', error);
+    console.error(' Error sending order status update email:', error);
     return false;
   }
 };
 
-// Send order confirmation email
 export const sendOrderConfirmationEmail = async (email, fullName, orderDetails) => {
   try {
     const transporter = createTransporter();
@@ -814,7 +802,6 @@ export const sendOrderConfirmationEmail = async (email, fullName, orderDetails) 
       orderDate
     } = orderDetails;
 
-    // Format items for email
     const itemsHTML = items.map(item => `
       <tr>
         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">
@@ -924,7 +911,7 @@ export const sendOrderConfirmationEmail = async (email, fullName, orderDetails) 
         <body>
           <div class="container">
             <div class="header">
-              <h1>✅ Order Confirmed!</h1>
+              <h1> Order Confirmed!</h1>
             </div>
             <div class="content">
               <h2>Thank you, ${fullName}!</h2>
@@ -1007,16 +994,14 @@ export const sendOrderConfirmationEmail = async (email, fullName, orderDetails) 
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Order confirmation email sent to:', email);
+    console.log(' Order confirmation email sent to:', email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending order confirmation email:', error);
-    // Don't throw error - we don't want to fail the order if email fails
+    console.error(' Error sending order confirmation email:', error);
     return false;
   }
 };
 
-// Send adoption application confirmation email
 export const sendAdoptionConfirmationEmail = async (email, fullName, adoptionDetails) => {
   try {
     const transporter = createTransporter();
@@ -1180,15 +1165,14 @@ export const sendAdoptionConfirmationEmail = async (email, fullName, adoptionDet
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Adoption confirmation email sent to:', email);
+    console.log(' Adoption confirmation email sent to:', email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending adoption confirmation email:', error);
+    console.error(' Error sending adoption confirmation email:', error);
     return false;
   }
 };
 
-// Send adoption approval email with pickup details
 export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails) => {
   try {
     const transporter = createTransporter();
@@ -1329,14 +1313,14 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
         <body>
           <div class="container">
             <div class="header">
-              <div class="celebration">🎉</div>
+              <div class="celebration"></div>
               <h1>Congratulations!</h1>
               <h2 style="margin-top: 10px; font-weight: normal;">Your Adoption Has Been Approved!</h2>
             </div>
             <div class="content">
               <h2>Dear ${fullName},</h2>
               <p>We are absolutely delighted to inform you that your adoption application has been <strong>APPROVED</strong>! 
-              You're about to give a wonderful pet a loving forever home. 🏡❤️</p>
+              You're about to give a wonderful pet a loving forever home. </p>
               
               <div class="pet-box">
                 <div class="pet-name">🐕 ${petName}</div>
@@ -1379,13 +1363,13 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
               </div>
 
               <div class="checklist">
-                <p style="margin: 0 0 10px 0;"><strong>⚠️ Important: What to Bring</strong></p>
+                <p style="margin: 0 0 10px 0;"><strong> Important: What to Bring</strong></p>
                 <ul style="margin: 5px 0;">
                   <li>Valid government-issued photo ID</li>
                   <li>Proof of address (utility bill, lease agreement, etc.)</li>
                   <li>Pet carrier or leash (depending on the pet)</li>
                   <li>No adoption fee is required</li>
-                  <li>A lot of love and excitement! ❤️</li>
+                  <li>A lot of love and excitement! </li>
                 </ul>
               </div>
 
@@ -1423,15 +1407,14 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Adoption approval email sent to:', email);
+    console.log(' Adoption approval email sent to:', email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending adoption approval email:', error);
+    console.error(' Error sending adoption approval email:', error);
     return false;
   }
 };
 
-// Send adoption rejection email
 export const sendAdoptionRejectionEmail = async (email, fullName, rejectionDetails) => {
   try {
     const transporter = createTransporter();
@@ -1590,15 +1573,14 @@ export const sendAdoptionRejectionEmail = async (email, fullName, rejectionDetai
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Adoption rejection email sent to:', email);
+    console.log(' Adoption rejection email sent to:', email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending adoption rejection email:', error);
+    console.error(' Error sending adoption rejection email:', error);
     return false;
   }
 };
 
-// Send hostel booking status update email
 export const sendBookingStatusUpdateEmail = async (email, customerName, statusDetails) => {
   try {
     const transporter = createTransporter();
@@ -1614,20 +1596,18 @@ export const sendBookingStatusUpdateEmail = async (email, customerName, statusDe
       updateDate
     } = statusDetails;
 
-    // Different content based on status
     let statusColor, statusIcon, statusTitle, statusMessage, actionMessage;
 
     switch(status) {
       case 'Confirmed':
         statusColor = '#10b981';
-        statusIcon = '✅';
+        
         statusTitle = 'Booking Confirmed';
         statusMessage = 'Your hostel booking has been confirmed! We\'re preparing everything for your pet\'s stay.';
         actionMessage = 'Please arrive at the scheduled check-in time. Our staff will be ready to welcome your pet!';
         break;
       case 'Checked-In':
         statusColor = '#3b82f6';
-        statusIcon = '🏠';
         statusTitle = 'Checked In Successfully';
         statusMessage = `${petName} has been checked in and is now comfortable in their room. We\'ll take great care of your pet!`;
         actionMessage = 'You can contact us anytime if you have questions. We\'ll send you updates during the stay.';
@@ -1641,14 +1621,14 @@ export const sendBookingStatusUpdateEmail = async (email, customerName, statusDe
         break;
       case 'Cancelled':
         statusColor = '#ef4444';
-        statusIcon = '❌';
+        
         statusTitle = 'Booking Cancelled';
         statusMessage = 'Your hostel booking has been cancelled as requested.';
         actionMessage = 'If you need to rebook, please don\'t hesitate to contact us or make a new reservation.';
         break;
       default:
         statusColor = '#f59e0b';
-        statusIcon = '📋';
+        
         statusTitle = 'Booking Update';
         statusMessage = `Your booking status has been updated to: ${status}`;
         actionMessage = 'For any questions, please contact our support team.';
@@ -1811,10 +1791,10 @@ export const sendBookingStatusUpdateEmail = async (email, customerName, statusDe
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Booking status update email (${status}) sent to:`, email);
+    console.log(` Booking status update email (${status}) sent to:`, email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending booking status update email:', error);
+    console.error(' Error sending booking status update email:', error);
     return false;
   }
 };

@@ -19,7 +19,7 @@ const VaccinationDetails = () => {
         setLoading(true);
         const response = await fetch(`http://localhost:4000/api/pets/${id}`);
         const data = await response.json();
-        
+
         if (data.success) {
           setPetData(data.data);
         } else {
@@ -49,12 +49,10 @@ const VaccinationDetails = () => {
         { name: "Bordetella", status: "pending", date: null, nextDue: null }
       ];
 
-  // Check if pet is officially marked as vaccinated
   const anyVaccineCompleted = records.some(v => v.status === "completed");
   const isOfficiallyVaccinated = petData?.vaccinated && anyVaccineCompleted;
 
   const goBack = () => {
-    // back to pet details page
     navigate(`/pet-details/${id}`);
   };
 
@@ -87,7 +85,6 @@ const VaccinationDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fff7f0] to-[#ffe8d6] flex flex-col">
-      {/* Header with pet name + image */}
       <header className="w-full px-6 lg:px-16 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
@@ -114,7 +111,6 @@ const VaccinationDetails = () => {
         </button>
       </header>
 
-      {/* Content */}
       <main className="flex-1 flex items-start justify-center px-4 lg:px-16 pb-10">
         <div className="w-full max-w-4xl bg-white/95 shadow-xl rounded-3xl p-5 lg:p-7">
           <div className="mb-4">
@@ -128,8 +124,8 @@ const VaccinationDetails = () => {
               </p>
             </div>
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
-              isOfficiallyVaccinated 
-                ? 'bg-green-50 text-green-700 border border-green-200' 
+              isOfficiallyVaccinated
+                ? 'bg-green-50 text-green-700 border border-green-200'
                 : 'bg-amber-50 text-amber-700 border border-amber-200'
             }`}>
               <span className="text-sm">{isOfficiallyVaccinated ? '✓' : '⚠'}</span>

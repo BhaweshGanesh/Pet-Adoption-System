@@ -17,10 +17,10 @@ const MyHostelBookings = () => {
   const loadUserData = () => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    
+
     if (!userData || !token) {
       alert("Please login to view your bookings");
-      navigate('/login');    
+      navigate('/login');
       return;
     }
 
@@ -36,7 +36,7 @@ const MyHostelBookings = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         navigate('/login');
         return;
@@ -106,7 +106,6 @@ const MyHostelBookings = () => {
 
   return (
     <div className="min-h-screen bg-[#fff7f0]">
-      {/* NAVBAR */}
       <header className="sticky top-0 z-20 bg-white border-b border-orange-100/80 px-6 lg:px-16 py-4 flex items-center justify-between">
         <div className="flex items-center gap-12">
           <div className="flex items-center gap-3">
@@ -139,7 +138,6 @@ const MyHostelBookings = () => {
         </div>
       </header>
 
-      {/* HEADER */}
       <div className="bg-white border-b border-slate-100 px-6 lg:px-16 py-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">My Hostel Bookings</h1>
@@ -147,10 +145,8 @@ const MyHostelBookings = () => {
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
       <div className="px-6 lg:px-16 py-8">
         <div className="max-w-7xl mx-auto">
-          {/* FILTERS */}
           <div className="bg-white rounded-2xl border border-slate-100 p-4 mb-6">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold text-slate-700">Filter:</span>
@@ -170,7 +166,6 @@ const MyHostelBookings = () => {
             </div>
           </div>
 
-          {/* BOOKINGS LIST */}
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
@@ -181,7 +176,7 @@ const MyHostelBookings = () => {
               <div className="text-6xl mb-4">🏠</div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">No bookings found</h3>
               <p className="text-slate-600 mb-6">
-                {filter === "All" 
+                {filter === "All"
                   ? "You haven't made any hostel bookings yet"
                   : `No ${filter.toLowerCase()} bookings`}
               </p>
@@ -236,20 +231,20 @@ const MyHostelBookings = () => {
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Check-In</p>
                         <p className="font-semibold text-slate-900">
-                          {new Date(booking.checkInDate).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric' 
+                          {new Date(booking.checkInDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
                           })}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Check-Out</p>
                         <p className="font-semibold text-slate-900">
-                          {new Date(booking.checkOutDate).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric' 
+                          {new Date(booking.checkOutDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
                           })}
                         </p>
                       </div>
@@ -274,7 +269,7 @@ const MyHostelBookings = () => {
                       >
                         View Details
                       </button>
-                      
+
                       {(booking.status === 'Confirmed' || booking.status === 'Pending') && (
                         <button
                           onClick={() => handleCancelBooking(booking._id)}
@@ -285,10 +280,10 @@ const MyHostelBookings = () => {
                       )}
 
                       <p className="text-xs text-slate-500 ml-auto">
-                        Booked on {new Date(booking.createdAt).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
+                        Booked on {new Date(booking.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
                         })}
                       </p>
                     </div>
@@ -300,7 +295,6 @@ const MyHostelBookings = () => {
         </div>
       </div>
 
-      {/* BOOKING DETAILS MODAL */}
       {selectedBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto">
@@ -360,17 +354,17 @@ const MyHostelBookings = () => {
               <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-3">Stay Details</h3>
                 <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-                  <p><strong>Check-In:</strong> {new Date(selectedBooking.checkInDate).toLocaleDateString('en-US', { 
+                  <p><strong>Check-In:</strong> {new Date(selectedBooking.checkInDate).toLocaleDateString('en-US', {
                     weekday: 'long',
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}</p>
-                  <p><strong>Check-Out:</strong> {new Date(selectedBooking.checkOutDate).toLocaleDateString('en-US', { 
+                  <p><strong>Check-Out:</strong> {new Date(selectedBooking.checkOutDate).toLocaleDateString('en-US', {
                     weekday: 'long',
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}</p>
                   <p><strong>Duration:</strong> {selectedBooking.numberOfDays} day{selectedBooking.numberOfDays > 1 ? 's' : ''}</p>
                   <div className="pt-2 mt-2 border-t border-slate-200">
@@ -403,9 +397,9 @@ const MyHostelBookings = () => {
 
               <div className="pt-4 border-t border-slate-200">
                 <p className="text-xs text-slate-500">
-                  Booking created on {new Date(selectedBooking.createdAt).toLocaleDateString('en-US', { 
-                    month: 'long', 
-                    day: 'numeric', 
+                  Booking created on {new Date(selectedBooking.createdAt).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
                     year: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'

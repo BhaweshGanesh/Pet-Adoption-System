@@ -1,4 +1,3 @@
-// src/components/admin/hostel/Calendar.jsx
 import React from "react";
 import ReactCalendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -7,7 +6,7 @@ const Calendar = ({
   value,
   onChange,
   bookings,
-  onDateClick,      
+  onDateClick,
 }) => {
   const tileContent = ({ date, view }) => {
     if (view !== "month") return null;
@@ -18,7 +17,7 @@ const Calendar = ({
       return date >= start && date <= end;
     });
 
-    if (!hasBooking) return null;        
+    if (!hasBooking) return null;
 
     return (
       <div className="mt-1 flex justify-center">

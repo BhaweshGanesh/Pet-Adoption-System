@@ -1,4 +1,3 @@
- // src/components/admin/hostel/AddRoomModal.jsx
 import React from "react";
 
 const AddRoomModal = ({ isOpen, form, onChange, onImageChange, onClose, onSubmit }) => {
@@ -15,8 +14,8 @@ const AddRoomModal = ({ isOpen, form, onChange, onImageChange, onClose, onSubmit
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 text-lg"
           >
-            ×       
-          </button>      
+            ×
+          </button>
         </div>
 
         <form
@@ -35,13 +34,13 @@ const AddRoomModal = ({ isOpen, form, onChange, onImageChange, onClose, onSubmit
               required
             />
           </div>
-              
+
           <div>
             <label className="block mb-1 text-slate-600 font-semibold">Room Name *</label>
             <input
               type="text"
               name="roomName"
-              value={form.roomName}   
+              value={form.roomName}
               onChange={onChange}
               placeholder="e.g., Deluxe Suite"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"

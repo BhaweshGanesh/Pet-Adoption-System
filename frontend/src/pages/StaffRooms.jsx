@@ -1,4 +1,3 @@
-// src/pages/StaffRooms.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import StaffNavbar from "../components/StaffNavbar";
@@ -25,15 +24,15 @@ const StaffRooms = () => {
       }
     } catch (error) {
       console.error('Error fetching rooms:', error);
-      alert('Failed to fetch rooms');  
+      alert('Failed to fetch rooms');
     } finally {
-      setLoading(false);       
+      setLoading(false);
     }
   };
 
   const filteredRooms = rooms.filter((room) => {
     const matchesStatus = statusFilter === "all" || room.status === statusFilter;
-    const matchesSearch = 
+    const matchesSearch =
       room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       room.roomName.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
@@ -61,17 +60,14 @@ const StaffRooms = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
       <StaffNavbar />
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Hostel Rooms</h1>
           <p className="text-lg text-gray-600">View room details, availability, and status</p>
         </div>
 
-        {/* Filters */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
@@ -100,7 +96,6 @@ const StaffRooms = () => {
           </div>
         </div>
 
-        {/* Rooms Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -182,7 +177,6 @@ const StaffRooms = () => {
         </div>
       </main>
 
-      {/* Room Details Modal */}
       {selectedRoom && (
         <div
           className="fixed left-1/2 top-16 -translate-x-1/2 z-50 w-full max-w-2xl px-4"
@@ -201,7 +195,6 @@ const StaffRooms = () => {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Room Image */}
               {selectedRoom.image && (
                 <div className="rounded-lg overflow-hidden">
                   <img
@@ -212,7 +205,6 @@ const StaffRooms = () => {
                 </div>
               )}
 
-              {/* Room Information */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Room Number</p>
@@ -246,7 +238,6 @@ const StaffRooms = () => {
                 </div>
               </div>
 
-              {/* Description */}
               {selectedRoom.description && (
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Description</p>
@@ -254,7 +245,6 @@ const StaffRooms = () => {
                 </div>
               )}
 
-              {/* Facilities */}
               {selectedRoom.facilities && selectedRoom.facilities.length > 0 && (
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Facilities</p>
@@ -271,7 +261,6 @@ const StaffRooms = () => {
                 </div>
               )}
 
-              {/* Current Occupant */}
               {selectedRoom.status === 'Occupied' && selectedRoom.currentOccupant && (
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <p className="text-sm text-blue-600 font-medium mb-2">Current Occupant</p>

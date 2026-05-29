@@ -55,7 +55,6 @@ const PetHostelService = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* NAVBAR */}
       <header className="sticky top-0 z-20 bg-white border-b border-blue-100/80 px-6 lg:px-16 py-4 flex items-center justify-between shadow-sm">
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
@@ -71,13 +70,11 @@ const PetHostelService = () => {
           <Link to="/adoption-service" className="hover:text-orange-500 transition-colors">Adoption</Link>
           <Link to="/hostel-service" className="text-orange-500 font-semibold">Pet Hostel</Link>
           <Link to="/store-service" className="hover:text-orange-500 transition-colors">Pet Store</Link>
-         
+
         </nav>
 
-        
       </header>
 
-      {/* HERO SECTION */}
       <section className="relative px-6 lg:px-16 py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-100 via-blue-50 to-transparent opacity-50"></div>
         <div className="max-w-7xl mx-auto relative z-10">
@@ -91,8 +88,8 @@ const PetHostelService = () => {
                 <span className="text-orange-500"> Home</span> for Your Pet
               </h1>
               <p className="text-xl text-slate-600 leading-relaxed">
-                Our pet hostel offers a safe, comfortable, and stress-free environment for pets when their 
-                owners are away. With proper supervision, hygiene, and personalized care, we ensure that 
+                Our pet hostel offers a safe, comfortable, and stress-free environment for pets when their
+                owners are away. With proper supervision, hygiene, and personalized care, we ensure that
                 every pet feels secure, relaxed, and well cared for throughout their stay.
               </p>
               <div className="flex gap-4">
@@ -121,7 +118,6 @@ const PetHostelService = () => {
         </div>
       </section>
 
-      {/* FEATURES SECTION */}
       <section className="px-6 lg:px-16 py-16 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -146,7 +142,6 @@ const PetHostelService = () => {
         </div>
       </section>
 
-      {/* ROOM TYPES */}
       <section className="px-6 lg:px-16 py-16 bg-gradient-to-b from-slate-50 to-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -191,14 +186,13 @@ const PetHostelService = () => {
         </div>
       </section>
 
-      {/* AMENITIES LIST */}
       <section className="px-6 lg:px-16 py-16 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h2 className="text-4xl font-bold mb-6">Complete Amenities & Care</h2>
               <p className="text-slate-300 text-lg mb-8">
-                Every pet receives personalized attention and care in our modern, well-equipped facility. 
+                Every pet receives personalized attention and care in our modern, well-equipped facility.
                 We maintain the highest standards of hygiene, comfort, and safety.
               </p>
               <div className="grid sm:grid-cols-2 gap-4">
@@ -234,9 +228,6 @@ const PetHostelService = () => {
         </div>
       </section>
 
-      
-
-      {/* CTA SECTION */}
       <section className="px-6 lg:px-16 py-20 bg-gradient-to-r from-orange-500 to-orange-600">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
@@ -254,7 +245,6 @@ const PetHostelService = () => {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="bg-slate-900 text-white py-8 px-6 lg:px-16">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">

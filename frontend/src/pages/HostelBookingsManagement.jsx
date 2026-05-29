@@ -1,4 +1,3 @@
-// src/pages/HostelBookingsManagement.jsx
 import React, { useState, useEffect, useRef } from "react";
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
@@ -12,11 +11,9 @@ const HostelBookingsManagement = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  // Toast notification state
   const [toast, setToast] = useState({ show: false, type: 'success', message: '', details: '' });
   const toastTimer = useRef(null);
 
-  // Custom confirm dialog state
   const [confirmDialog, setConfirmDialog] = useState({
     show: false,
     message: '',
@@ -58,7 +55,6 @@ const HostelBookingsManagement = () => {
     emergencyContactPhone: "",
     specialInstructions: "",
   });
-
 
   useEffect(() => {
     fetchBookings();
@@ -179,7 +175,6 @@ const HostelBookingsManagement = () => {
         setIsBookingModalOpen(false);
         fetchBookings();
       } else {
-        // Show specific error message from backend
         showToast('error', data.message || 'Failed to create booking', 'Please check your details and try again');
       }
     } catch (error) {
@@ -189,7 +184,6 @@ const HostelBookingsManagement = () => {
   };
 
   const handleStatusUpdate = async (bookingId, newStatus, currentStatus) => {
-    // Status-specific confirmation messages
     const confirmationMessages = {
       'Confirmed': 'Are you sure you want to confirm this booking? The customer will receive a confirmation email.',
       'Checked-In': 'Are you sure you want to check in this user? The customer will be notified via email.',
@@ -267,7 +261,6 @@ const HostelBookingsManagement = () => {
         />
 
         <main className="flex-1 p-4 lg:p-8 space-y-4">
-          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-slate-900">
@@ -302,7 +295,6 @@ const HostelBookingsManagement = () => {
             </div>
           </div>
 
-          {/* Bookings Table */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full text-xs">
@@ -411,11 +403,9 @@ const HostelBookingsManagement = () => {
         </main>
       </div>
 
-      {/* Add Booking Modal */}
       {isBookingModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Modal Header */}
             <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
               <h3 className="text-base font-semibold text-slate-900">
                 Create Hostel Booking
@@ -430,7 +420,6 @@ const HostelBookingsManagement = () => {
 
             <form onSubmit={handleBookingSubmit} className="overflow-y-auto flex-1">
               <div className="p-5 space-y-4">
-              {/* Customer Information */}
               <div className="space-y-3">
                 <h4 className="font-semibold text-slate-900 text-xs uppercase tracking-wide border-b pb-1.5">
                   Customer Information
@@ -499,7 +488,6 @@ const HostelBookingsManagement = () => {
                 </div>
               </div>
 
-              {/* Pet Details */}
               <div className="space-y-3">
                 <h4 className="font-semibold text-slate-900 text-xs uppercase tracking-wide border-b pb-1.5">
                   Pet Information
@@ -576,7 +564,6 @@ const HostelBookingsManagement = () => {
                 </div>
               </div>
 
-              {/* Booking Details */}
               <div className="space-y-3">
                 <h4 className="font-semibold text-slate-900 text-xs uppercase tracking-wide border-b pb-1.5">
                   Booking Details
@@ -612,7 +599,6 @@ const HostelBookingsManagement = () => {
                 </div>
               </div>
 
-              {/* Emergency Contact */}
               <div className="space-y-3">
                 <h4 className="font-semibold text-slate-900 text-xs uppercase tracking-wide border-b pb-1.5">
                   Emergency Contact
@@ -646,7 +632,6 @@ const HostelBookingsManagement = () => {
                 </div>
               </div>
 
-              {/* Special Instructions */}
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">
                   Special Instructions
@@ -662,7 +647,6 @@ const HostelBookingsManagement = () => {
 
               </div>
 
-              {/* Action Buttons */}
               <div className="flex justify-end gap-2 px-5 py-3 border-t border-slate-200 bg-slate-50 flex-shrink-0">
                 <button
                   type="button"
@@ -683,11 +667,9 @@ const HostelBookingsManagement = () => {
         </div>
       )}
 
-      {/* Booking Details Modal - Enhanced UI */}
       {isDetailsModalOpen && selectedBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto py-8">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl my-8 overflow-hidden">
-            {/* Modal Header */}
             <div className="bg-gradient-to-r from-blue-500 to-cyan-600 px-8 py-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -711,7 +693,6 @@ const HostelBookingsManagement = () => {
             </div>
 
             <div className="p-8 space-y-6">
-              {/* Booking Info */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <h4 className="font-semibold text-slate-900 text-sm mb-3">Booking Information</h4>
@@ -772,7 +753,6 @@ const HostelBookingsManagement = () => {
                 </div>
               </div>
 
-              {/* Contact Info */}
               <div>
                 <h4 className="font-semibold text-slate-900 text-sm mb-3">Contact Information</h4>
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
@@ -791,7 +771,6 @@ const HostelBookingsManagement = () => {
                 </div>
               </div>
 
-              {/* Special Instructions */}
               {selectedBooking.specialInstructions && (
                 <div>
                   <h4 className="font-semibold text-slate-900 text-sm mb-2">Special Instructions</h4>
@@ -801,7 +780,6 @@ const HostelBookingsManagement = () => {
                 </div>
               )}
 
-              {/* Status Actions */}
               <div className="pt-4 border-t border-slate-200">
                 <h4 className="font-semibold text-slate-900 text-sm mb-3">
                   Update Booking Status
@@ -842,7 +820,6 @@ const HostelBookingsManagement = () => {
         </div>
       )}
 
-      {/* Toast Notification */}
       {toast.show && (
         <div className={`fixed top-5 right-5 z-50 flex items-start gap-3 px-5 py-4 rounded-2xl shadow-xl text-white max-w-sm w-full transition-all duration-300 ${
           toast.type === 'success' ? 'bg-emerald-500' :
@@ -877,7 +854,6 @@ const HostelBookingsManagement = () => {
         </div>
       )}
 
-      {/* Custom Confirm Dialog */}
       {confirmDialog.show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">

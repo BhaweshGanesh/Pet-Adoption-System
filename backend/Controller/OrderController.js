@@ -4,9 +4,6 @@ import User from '../model/Usermodel.js';
 import HostelBooking from '../model/HostelBookingmodel.js';
 import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } from '../utils/emailService.js';
 
-// @desc    Get current user's shop orders
-// @route   GET /api/orders/my-orders
-// @access  Private
 export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.id })
@@ -28,15 +25,12 @@ export const getMyOrders = async (req, res) => {
   }
 };
 
-// @desc    Get all orders
-// @route   GET /api/orders
-// @access  Private/Admin
 export const getAllOrders = async (req, res) => {
   try {
     const { status, paymentStatus } = req.query;
-    
+
     let filter = {};
-    
+
     if (status) filter.status = status;
     if (paymentStatus) filter.paymentStatus = paymentStatus;
 
@@ -59,9 +53,6 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
-// @desc    Get single order
-// @route   GET /api/orders/:id
-// @access  Private/Admin
 export const getOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
@@ -88,19 +79,14 @@ export const getOrder = async (req, res) => {
   }
 };
 
-// @desc    Create new order
-// @route   POST /api/orders
-// @access  Private (requires authentication)
 export const createOrder = async (req, res) => {
   try {
     const { customer, items, subtotal, shippingFee, totalAmount, paymentMethod, notes } = req.body;
 
-    // Get authenticated user if available
     let userEmail = customer.email;
     let userName = customer.name;
     let userId = null;
 
-    // If user is authenticated (token is present), use their email
     if (req.user) {
       const user = await User.findById(req.user.id);
       if (user) {
@@ -110,7 +96,6 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // Validate and calculate order
     let calculatedSubtotal = 0;
     const orderItems = [];
 
@@ -142,35 +127,29 @@ export const createOrder = async (req, res) => {
         subtotal: itemSubtotal,
       });
 
-      // Only reduce stock for Cash on Delivery (instant confirmation)
-      // For Khalti payment, stock will be reduced after payment verification
       if (paymentMethod === 'Cash on Delivery') {
         product.stock -= item.quantity;
         await product.save();
       }
     }
 
-    // Calculate shipping fee (free if subtotal >= 10000)
     const FREE_SHIPPING_THRESHOLD = 10000;
     const SHIPPING_FEE = 100;
     const calculatedShipping = calculatedSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-    
-    // Calculate final total
+
     const calculatedTotal = calculatedSubtotal + calculatedShipping;
 
-    // Use provided values or calculated values (for validation)
     const finalSubtotal = subtotal || calculatedSubtotal;
     const finalShipping = shippingFee !== undefined ? shippingFee : calculatedShipping;
     const finalTotal = totalAmount || calculatedTotal;
 
-    // Create order instance with authenticated user email
     const order = new Order({
       customer: {
         ...customer,
         name: userName,
         email: userEmail,
       },
-      user: userId, // Link to user if authenticated
+      user: userId,
       items: orderItems,
       subtotal: finalSubtotal,
       shippingFee: finalShipping,
@@ -179,10 +158,8 @@ export const createOrder = async (req, res) => {
       notes,
     });
 
-    // Save to trigger pre-save hook for orderNumber generation
     await order.save();
 
-    // Send order confirmation email
     try {
       await sendOrderConfirmationEmail(userEmail, userName, {
         orderNumber: order.orderNumber,
@@ -197,7 +174,6 @@ export const createOrder = async (req, res) => {
       console.log(`✅ Order confirmation email sent to ${userEmail}`);
     } catch (emailError) {
       console.error('⚠️ Failed to send order confirmation email:', emailError);
-      // Don't fail the order if email fails
     }
 
     res.status(201).json({
@@ -216,9 +192,6 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// @desc    Update order status
-// @route   PATCH /api/orders/:id/status
-// @access  Private/Admin
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status, paymentStatus } = req.body;
@@ -236,43 +209,35 @@ export const updateOrderStatus = async (req, res) => {
     const oldStatus = order.status;
     let stockRestored = false;
 
-    // Update status and payment status first
     if (status) order.status = status;
     if (paymentStatus) order.paymentStatus = paymentStatus;
 
-    // Auto-update payment status to "Unpaid" when order is cancelled
     if (status === 'Cancelled' && order.paymentStatus !== 'Failed') {
       order.paymentStatus = 'Unpaid';
       console.log('✅ Payment status automatically updated to "Unpaid" due to order cancellation');
     }
 
-    // Auto-update payment status to "Refunded" when order is returned
     if (status === 'Returned' && order.paymentStatus !== 'Refunded') {
       order.paymentStatus = 'Refunded';
       console.log('✅ Payment status automatically updated to "Refunded" due to order return');
     }
 
-    // Auto-update order status to "Cancelled" when payment is "Failed"
     if (paymentStatus === 'Failed' && order.status !== 'Cancelled') {
       order.status = 'Cancelled';
       console.log('✅ Order status automatically updated to "Cancelled" due to payment failure');
     }
 
-    // Auto-update order status to "Returned" when payment is "Refunded"
     if (paymentStatus === 'Refunded' && order.status !== 'Returned') {
       order.status = 'Returned';
       console.log('✅ Order status automatically updated to "Returned" due to refund');
     }
 
-    // Auto-update payment status to "Paid" when order is NEWLY delivered
-    // Only if payment status wasn't explicitly changed
     if (status === 'Delivered' && oldStatus !== 'Delivered' && !paymentStatus && order.paymentStatus !== 'Paid') {
       order.paymentStatus = 'Paid';
       console.log('✅ Payment status automatically updated to "Paid" for delivered order');
     }
 
-    // Restore stock for Failed, Cancelled, Refunded, or Returned orders
-    const shouldRestoreStock = 
+    const shouldRestoreStock =
       (paymentStatus === 'Failed' && oldPaymentStatus !== 'Failed') ||
       (paymentStatus === 'Refunded' && oldPaymentStatus !== 'Refunded') ||
       (order.status === 'Cancelled' && status === 'Cancelled') ||
@@ -293,7 +258,6 @@ export const updateOrderStatus = async (req, res) => {
 
     await order.save();
 
-    // Send email notification to customer
     try {
       await sendOrderStatusUpdateEmail(
         order.customer.email,
@@ -313,7 +277,6 @@ export const updateOrderStatus = async (req, res) => {
       console.log(`✅ Status update email sent to ${order.customer.email}`);
     } catch (emailError) {
       console.error('⚠️ Failed to send status update email:', emailError);
-      // Don't fail the status update if email fails
     }
 
     res.status(200).json({
@@ -331,9 +294,6 @@ export const updateOrderStatus = async (req, res) => {
   }
 };
 
-// @desc    Cancel order
-// @route   PATCH /api/orders/:id/cancel
-// @access  Private/Admin
 export const cancelOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -352,7 +312,6 @@ export const cancelOrder = async (req, res) => {
       });
     }
 
-    // Restore stock
     for (const item of order.items) {
       const product = await Product.findById(item.product);
       if (product) {
@@ -379,9 +338,6 @@ export const cancelOrder = async (req, res) => {
   }
 };
 
-// @desc    Delete order
-// @route   DELETE /api/orders/:id
-// @access  Private/Admin
 export const deleteOrder = async (req, res) => {
   try {
     const order = await Order.findByIdAndDelete(req.params.id);
@@ -408,9 +364,6 @@ export const deleteOrder = async (req, res) => {
   }
 };
 
-// @desc    Get order statistics
-// @route   GET /api/orders/stats/summary
-// @access  Private/Admin
 export const getOrderStats = async (req, res) => {
   try {
     const totalOrders = await Order.countDocuments();
@@ -447,9 +400,6 @@ export const getOrderStats = async (req, res) => {
   }
 };
 
-// @desc    Get monthly successful revenue with breakdown
-// @route   GET /api/orders/revenue/:month/:year
-// @access  Private/Admin
 export const getMonthlyRevenueBreakdown = async (req, res) => {
   try {
     const month = parseInt(req.params.month, 10);
@@ -572,9 +522,6 @@ export const getMonthlyRevenueBreakdown = async (req, res) => {
   }
 };
 
-// @desc    Get product sales summary for successful/completed orders
-// @route   GET /api/orders/product-sales
-// @access  Private/Admin
 export const getProductSales = async (req, res) => {
   try {
     const sales = await Order.aggregate([

@@ -62,7 +62,6 @@ const AdoptionService = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
-      {/* NAVBAR */}
       <header className="sticky top-0 z-20 bg-white border-b border-orange-100/80 px-6 lg:px-16 py-4 flex items-center justify-between shadow-sm">
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
@@ -80,10 +79,8 @@ const AdoptionService = () => {
           <Link to="/store-service" className="hover:text-orange-500 transition-colors">Pet Store</Link>
         </nav>
 
-        
       </header>
 
-      {/* HERO SECTION */}
       <section className="relative px-6 lg:px-16 py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-100 via-orange-50 to-transparent opacity-50"></div>
         <div className="max-w-7xl mx-auto relative z-10">
@@ -97,8 +94,8 @@ const AdoptionService = () => {
                 <span className="text-orange-500"> Happiness</span>
               </h1>
               <p className="text-xl text-slate-600 leading-relaxed">
-                We provide a trusted and transparent platform that connects loving homes with pets in need. 
-                Our adoption service focuses on animal welfare, responsible ownership, and creating lifelong 
+                We provide a trusted and transparent platform that connects loving homes with pets in need.
+                Our adoption service focuses on animal welfare, responsible ownership, and creating lifelong
                 bonds between pets and families.
               </p>
               <div className="flex gap-4">
@@ -109,7 +106,6 @@ const AdoptionService = () => {
                   View Available Pets
                 </Link>
 
-                
               </div>
             </div>
             <div className="relative">
@@ -129,7 +125,6 @@ const AdoptionService = () => {
         </div>
       </section>
 
-      {/* FEATURES SECTION */}
       <section className="px-6 lg:px-16 py-16 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -154,7 +149,6 @@ const AdoptionService = () => {
         </div>
       </section>
 
-      {/* ADOPTION PROCESS */}
       <section className="px-6 lg:px-16 py-16">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -184,14 +178,13 @@ const AdoptionService = () => {
         </div>
       </section>
 
-      {/* SERVICES LIST */}
       <section className="px-6 lg:px-16 py-16 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold mb-6">Our Adoption Services Include</h2>
               <p className="text-slate-300 text-lg mb-8">
-                Each pet is carefully cared for and supported to ensure a healthy and happy transition 
+                Each pet is carefully cared for and supported to ensure a healthy and happy transition
                 into their new home. We provide comprehensive support throughout the adoption journey.
               </p>
               <div className="space-y-4">
@@ -221,7 +214,6 @@ const AdoptionService = () => {
         </div>
       </section>
 
-      {/* CTA SECTION */}
       <section className="px-6 lg:px-16 py-20 bg-gradient-to-r from-orange-500 to-orange-600">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
@@ -239,7 +231,6 @@ const AdoptionService = () => {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="bg-slate-900 text-white py-8 px-6 lg:px-16">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">

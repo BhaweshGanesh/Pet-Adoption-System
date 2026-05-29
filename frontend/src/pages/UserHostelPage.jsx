@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 const UserHostelPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState("rooms"); // "rooms" or "bookings"
+  const [activeTab, setActiveTab] = useState("rooms");
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -29,26 +29,23 @@ const UserHostelPage = () => {
     phone: "",
     emergencyContact: "",
     specialInstructions: "",
-    paymentMethod: "Cash", // Default payment method
+    paymentMethod: "Cash",
   });
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState("");
-  
-  // My Bookings state
+
   const [myBookings, setMyBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [bookingFilter, setBookingFilter] = useState("All");
   const [selectedBookingDetail, setSelectedBookingDetail] = useState(null);
 
-  // Notification state
   const [notification, setNotification] = useState({
     show: false,
-    type: 'success', // 'success' | 'error' | 'info'
+    type: 'success',
     message: '',
     details: ''
   });
 
-  // Show notification function
   const showNotification = (type, message, details = '') => {
     setNotification({
       show: true,
@@ -58,7 +55,6 @@ const UserHostelPage = () => {
     });
   };
 
-  // Close notification function
   const closeNotification = () => {
     setNotification({
       ...notification,
@@ -183,7 +179,6 @@ const UserHostelPage = () => {
       return;
     }
 
-    // Validation
     if (!bookingForm.petName || !bookingForm.checkInDate || !bookingForm.checkOutDate || !bookingForm.phone) {
       setBookingError("Please fill in all required fields");
       return;
@@ -211,12 +206,10 @@ const UserHostelPage = () => {
       return;
     }
 
-    // Handle Khalti Payment
     if (bookingForm.paymentMethod === 'Khalti') {
       try {
         setBookingLoading(true);
 
-        // Step 1: Create booking with pending payment
         const bookingData = {
           roomId: selectedRoom._id,
           petDetails: {
@@ -251,9 +244,7 @@ const UserHostelPage = () => {
           return;
         }
 
-        // Step 2: Initiate Khalti payment — redirects to pay.khalti.com
         await initiateKhaltiBookingPayment(data.data._id, token);
-        // execution stops here because browser navigates away
 
       } catch (error) {
         console.error('Error creating booking:', error);
@@ -263,7 +254,6 @@ const UserHostelPage = () => {
       return;
     }
 
-    // Handle Cash payment
     try {
       setBookingLoading(true);
 
@@ -297,8 +287,8 @@ const UserHostelPage = () => {
       if (data.success) {
         showNotification('success', 'Booking confirmed!', `Booking Number: ${data.data.bookingNumber}\n\nA confirmation email has been sent to ${user.email}`);
         closeBookingModal();
-        setActiveTab("bookings"); // Switch to bookings tab
-        fetchMyBookings(); // Refresh bookings
+        setActiveTab("bookings");
+        fetchMyBookings();
       } else {
         setBookingError(data.message || 'Failed to create booking');
       }
@@ -315,7 +305,7 @@ const UserHostelPage = () => {
 
     const checkIn = new Date(bookingForm.checkInDate);
     const checkOut = new Date(bookingForm.checkOutDate);
-    
+
     if (checkOut <= checkIn) return null;
 
     const days = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
@@ -326,12 +316,11 @@ const UserHostelPage = () => {
 
   const priceInfo = calculateDaysAndPrice();
 
-  // Fetch user's bookings
   const fetchMyBookings = async () => {
     try {
       setBookingsLoading(true);
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         return;
       }
@@ -400,10 +389,8 @@ const UserHostelPage = () => {
 
   return (
     <div className="min-h-screen bg-[#fff7f0]">
-      {/* NAVBAR */}
       <UserNavbar />
 
-      {/* HERO SECTION */}
       <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 px-6 lg:px-16 py-12">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl font-bold text-slate-900 mb-4">
@@ -415,7 +402,6 @@ const UserHostelPage = () => {
         </div>
       </div>
 
-      {/* TABS */}
       <div className="px-6 lg:px-16 py-6 border-b border-orange-100">
         <div className="max-w-7xl mx-auto flex gap-4">
           <button
@@ -443,12 +429,10 @@ const UserHostelPage = () => {
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
       <div className="px-6 lg:px-16 py-8">
         <div className="max-w-7xl mx-auto">
           {activeTab === "rooms" ? (
             <>
-              {/* FILTERS */}
               <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-8">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">Filter Rooms</h3>
             <div className="grid md:grid-cols-3 gap-4">
@@ -498,7 +482,6 @@ const UserHostelPage = () => {
             </div>
           </div>
 
-          {/* ROOMS GRID */}
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Available Rooms</h2>
             <p className="text-slate-600">{filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''} available</p>
@@ -600,7 +583,6 @@ const UserHostelPage = () => {
           )}
             </>
           ) : (
-            /* MY BOOKINGS TAB */
             <>
               <div className="mb-6 flex items-center justify-between">
                 <div>
@@ -653,7 +635,7 @@ const UserHostelPage = () => {
                               {booking.status}
                             </span>
                           </div>
-                          
+
                           <div className="grid md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                             <div>
                               <span className="text-slate-600">Booking #:</span>
@@ -712,7 +694,6 @@ const UserHostelPage = () => {
         </div>
       </div>
 
-      {/* BOOKING MODAL */}
       {selectedRoom && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto">
@@ -880,7 +861,6 @@ const UserHostelPage = () => {
                 />
               </div>
 
-              {/* Payment Method Selection */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Payment Method *
@@ -969,7 +949,6 @@ const UserHostelPage = () => {
         </div>
       )}
 
-      {/* BOOKING DETAILS MODAL */}
       {selectedBookingDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto">
@@ -984,7 +963,6 @@ const UserHostelPage = () => {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Booking Info */}
               <div>
                 <h3 className="font-semibold text-slate-900 mb-3">Booking Information</h3>
                 <div className="bg-slate-50 rounded-lg p-4 space-y-2 text-sm">
@@ -1027,7 +1005,6 @@ const UserHostelPage = () => {
                 </div>
               </div>
 
-              {/* Pet Details */}
               <div>
                 <h3 className="font-semibold text-slate-900 mb-3">Pet Information</h3>
                 <div className="bg-amber-50 rounded-lg p-4 space-y-2 text-sm">
@@ -1060,7 +1037,6 @@ const UserHostelPage = () => {
                 </div>
               </div>
 
-              {/* Contact Info */}
               <div>
                 <h3 className="font-semibold text-slate-900 mb-3">Contact Information</h3>
                 <div className="bg-blue-50 rounded-lg p-4 space-y-2 text-sm">
@@ -1077,7 +1053,6 @@ const UserHostelPage = () => {
                 </div>
               </div>
 
-              {/* Special Instructions */}
               {selectedBookingDetail.specialInstructions && (
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-3">Special Instructions</h3>
@@ -1098,18 +1073,14 @@ const UserHostelPage = () => {
         </div>
       )}
 
-      {/* Custom Notification Modal */}
       {notification.show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-md px-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
-            {/* Content */}
             <div className="p-8">
-              {/* Message */}
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 {notification.message}
               </h3>
 
-              {/* Details with Icon */}
               {notification.details && (
                 <div className="flex items-start gap-2 mb-6">
                   {notification.type === 'success' && (
@@ -1139,10 +1110,8 @@ const UserHostelPage = () => {
                 </div>
               )}
 
-              {/* Divider */}
               <div className="border-t border-gray-200 mb-4"></div>
 
-              {/* Close Button */}
               <button
                 onClick={closeNotification}
                 className="w-full text-center py-3 text-blue-600 font-semibold text-lg hover:bg-gray-50 rounded-lg transition-colors"

@@ -4,7 +4,6 @@ import HostelRoomReview from '../model/HostelRoomReviewmodel.js';
 const userMatches = (reviewUserId, reqUserId) =>
   reviewUserId?.toString() === reqUserId?.toString();
 
-// GET /api/hostel-rooms/:roomId/reviews
 export const getHostelRoomReviews = async (req, res) => {
   try {
     const { roomId } = req.params;
@@ -31,7 +30,6 @@ export const getHostelRoomReviews = async (req, res) => {
   }
 };
 
-// POST /api/hostel-rooms/:roomId/reviews
 export const createHostelRoomReview = async (req, res) => {
   try {
     const { roomId } = req.params;
@@ -95,7 +93,6 @@ export const createHostelRoomReview = async (req, res) => {
   }
 };
 
-// PUT /api/hostel-rooms/:roomId/reviews/:reviewId
 export const updateHostelRoomReview = async (req, res) => {
   try {
     const { roomId, reviewId } = req.params;
@@ -154,7 +151,6 @@ export const updateHostelRoomReview = async (req, res) => {
   }
 };
 
-// DELETE /api/hostel-rooms/:roomId/reviews/:reviewId
 export const deleteHostelRoomReview = async (req, res) => {
   try {
     const { roomId, reviewId } = req.params;

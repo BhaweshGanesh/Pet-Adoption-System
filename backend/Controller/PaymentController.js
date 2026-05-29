@@ -3,13 +3,9 @@ import Order from '../model/Ordermodel.js';
 import HostelBooking from '../model/HostelBookingmodel.js';
 
 const KHALTI_SECRET_KEY = process.env.KHALTI_SECRET_KEY;
-// Use dev.khalti.com for sandbox (test-admin.khalti.com keys), khalti.com for production
 const KHALTI_BASE_URL = process.env.KHALTI_BASE_URL || 'https://dev.khalti.com/api/v2';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-// @desc    Test Khalti API key connectivity (development use only)
-// @route   GET /api/payments/test-key
-// @access  Public (remove in production)
 export const testKhaltiKey = async (req, res) => {
   try {
     const maskedKey = KHALTI_SECRET_KEY
@@ -18,7 +14,6 @@ export const testKhaltiKey = async (req, res) => {
     console.log(`🔑 Testing Khalti key: ${maskedKey}`);
     console.log(`🌐 Khalti base URL: ${KHALTI_BASE_URL}`);
 
-    // Make a minimal test call to Khalti to verify the key works
     const testPayload = {
       return_url: 'http://localhost:5173/payment-callback?type=order&orderId=test',
       website_url: 'http://localhost:5173',
@@ -56,9 +51,6 @@ export const testKhaltiKey = async (req, res) => {
   }
 };
 
-// @desc    Initiate Khalti payment for Order
-// @route   POST /api/payments/initiate-order
-// @access  Private
 export const initiateOrderPayment = async (req, res) => {
   try {
     const { orderId } = req.body;
@@ -77,7 +69,7 @@ export const initiateOrderPayment = async (req, res) => {
     const payload = {
       return_url: returnUrl,
       website_url: FRONTEND_URL,
-      amount: Math.round(order.totalAmount * 100), // convert Rs to paisa
+      amount: Math.round(order.totalAmount * 100),
       purchase_order_id: orderId,
       purchase_order_name: `Order ${order.orderNumber}`,
       customer_info: {
@@ -98,7 +90,6 @@ export const initiateOrderPayment = async (req, res) => {
       }
     );
 
-    // Save pidx to order for later verification
     order.khaltiPayment = {
       ...(order.khaltiPayment || {}),
       pidx: khaltiResponse.data.pidx,
@@ -127,9 +118,6 @@ export const initiateOrderPayment = async (req, res) => {
   }
 };
 
-// @desc    Initiate Khalti payment for Hostel Booking
-// @route   POST /api/payments/initiate-booking
-// @access  Private
 export const initiateBookingPayment = async (req, res) => {
   try {
     const { bookingId } = req.body;
@@ -148,7 +136,7 @@ export const initiateBookingPayment = async (req, res) => {
     const payload = {
       return_url: returnUrl,
       website_url: FRONTEND_URL,
-      amount: Math.round(booking.totalAmount * 100), // convert Rs to paisa
+      amount: Math.round(booking.totalAmount * 100),
       purchase_order_id: bookingId,
       purchase_order_name: `Hostel Booking ${booking.bookingNumber}`,
       customer_info: {
@@ -169,7 +157,6 @@ export const initiateBookingPayment = async (req, res) => {
       }
     );
 
-    // Save pidx to booking for later verification
     booking.khaltiPayment = {
       ...(booking.khaltiPayment || {}),
       pidx: khaltiResponse.data.pidx,
@@ -198,9 +185,6 @@ export const initiateBookingPayment = async (req, res) => {
   }
 };
 
-// @desc    Verify Khalti payment for Order (using lookup API)
-// @route   POST /api/payments/verify-order
-// @access  Private
 export const verifyOrderPayment = async (req, res) => {
   try {
     const { pidx, orderId } = req.body;
@@ -214,7 +198,6 @@ export const verifyOrderPayment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    // Use Khalti lookup API to verify payment
     const khaltiResponse = await axios.post(
       `${KHALTI_BASE_URL}/epayment/lookup/`,
       { pidx },
@@ -236,7 +219,6 @@ export const verifyOrderPayment = async (req, res) => {
       });
     }
 
-    // Prevent double-processing: if already paid, return success
     if (order.paymentStatus === 'Paid') {
       return res.status(200).json({
         success: true,
@@ -245,9 +227,8 @@ export const verifyOrderPayment = async (req, res) => {
       });
     }
 
-    // Reduce stock for each ordered item
     for (const item of order.items) {
-      const product = item.product; // already populated via .populate('items.product')
+      const product = item.product;
       if (product) {
         product.stock = Math.max(0, product.stock - item.quantity);
         await product.save();
@@ -255,7 +236,6 @@ export const verifyOrderPayment = async (req, res) => {
       }
     }
 
-    // Update order with payment info
     order.paymentStatus = 'Paid';
     order.paymentMethod = 'Khalti';
     order.khaltiPayment = {
@@ -284,9 +264,6 @@ export const verifyOrderPayment = async (req, res) => {
   }
 };
 
-// @desc    Verify Khalti payment for Hostel Booking (using lookup API)
-// @route   POST /api/payments/verify-booking
-// @access  Private
 export const verifyBookingPayment = async (req, res) => {
   try {
     const { pidx, bookingId } = req.body;
@@ -300,7 +277,6 @@ export const verifyBookingPayment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    // Use Khalti lookup API to verify payment
     const khaltiResponse = await axios.post(
       `${KHALTI_BASE_URL}/epayment/lookup/`,
       { pidx },
@@ -322,7 +298,6 @@ export const verifyBookingPayment = async (req, res) => {
       });
     }
 
-    // Prevent double-processing
     if (booking.paymentStatus === 'Paid') {
       return res.status(200).json({
         success: true,
@@ -331,7 +306,6 @@ export const verifyBookingPayment = async (req, res) => {
       });
     }
 
-    // Update booking with payment info
     booking.paymentStatus = 'Paid';
     booking.paymentMethod = 'Khalti';
     booking.status = 'Confirmed';
@@ -361,9 +335,6 @@ export const verifyBookingPayment = async (req, res) => {
   }
 };
 
-// @desc    Get payment details for an order
-// @route   GET /api/payments/order/:orderId
-// @access  Private
 export const getOrderPaymentDetails = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -392,9 +363,6 @@ export const getOrderPaymentDetails = async (req, res) => {
   }
 };
 
-// @desc    Initiate refund for Order (admin only - manual process via Khalti dashboard)
-// @route   POST /api/payments/refund-order/:orderId
-// @access  Private/Admin
 export const refundOrderPayment = async (req, res) => {
   try {
     const { orderId } = req.params;

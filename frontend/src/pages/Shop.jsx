@@ -10,8 +10,6 @@ const Shop = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedPetTypes, setSelectedPetTypes] = useState([]);
   const [priceRange, setPriceRange] = useState("");
-  // Lazy initializer — reads localStorage once before the first render,
-  // so the save effect never fires with an accidental empty array.
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('petshop_cart');
@@ -23,7 +21,6 @@ const Shop = () => {
   const [showCartPreview, setShowCartPreview] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Load user data
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -35,12 +32,10 @@ const Shop = () => {
     }
   }, []);
 
-  // Persist cart whenever it changes
   useEffect(() => {
     localStorage.setItem('petshop_cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Fetch products
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -52,7 +47,6 @@ const Shop = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Show available and out-of-stock products (case-insensitive, supports legacy values)
         const visibleProducts = data.data.filter((p) => {
           const normalizedStatus = String(p.status || "").trim().toLowerCase();
           return normalizedStatus === "available" || normalizedStatus === "out of stock";
@@ -90,7 +84,6 @@ const Shop = () => {
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      // Search filter
       const term = search.trim().toLowerCase();
       if (term && !(
         product.name.toLowerCase().includes(term) ||
@@ -100,7 +93,6 @@ const Shop = () => {
         return false;
       }
 
-      // Category filter
       if (
         selectedCategories.length &&
         !selectedCategories.some(
@@ -110,12 +102,10 @@ const Shop = () => {
         return false;
       }
 
-      // Pet type filter
       if (selectedPetTypes.length && !selectedPetTypes.includes(product.petType)) {
         return false;
       }
 
-      // Price range filter
       if (priceRange) {
         const price = product.price;
         if (priceRange === "0-500" && !(price <= 500)) return false;
@@ -159,10 +149,8 @@ const Shop = () => {
 
   return (
     <div className="min-h-screen bg-[#fff7f0] flex flex-col">
-      {/* NAVBAR */}
       <UserNavbar />
 
-      {/* Cart Preview Toast */}
       {showCartPreview && (
         <div className="fixed top-20 right-6 z-50 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-lg animate-bounce">
           <div className="flex items-center gap-2">
@@ -172,7 +160,6 @@ const Shop = () => {
         </div>
       )}
 
-      {/* SEARCH BAR */}
       <section className="px-6 lg:px-16 pt-4 pb-2 bg-[#fff7f0]">
         <div className="max-w-xl w-full bg-white border border-orange-100 rounded-full px-4 py-2 flex items-center shadow-sm">
           <span className="text-slate-400 mr-2">🔍</span>
@@ -186,10 +173,8 @@ const Shop = () => {
         </div>
       </section>
 
-      {/* MAIN CONTENT */}
       <div className="flex-1 px-6 lg:px-16 py-4 lg:py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 lg:gap-8 items-start">
-          {/* FILTERS */}
           <aside className="md:col-span-1 bg-[#fffaf4] border border-orange-100 rounded-2xl p-4 shadow-sm md:sticky md:top-28 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-800">Filters</h3>
@@ -201,7 +186,6 @@ const Shop = () => {
               </button>
             </div>
 
-            {/* Category */}
             <div className="pt-3 border-t border-orange-100">
               <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">
                 Category
@@ -222,7 +206,6 @@ const Shop = () => {
               ))}
             </div>
 
-            {/* Pet Type */}
             <div className="pt-3 border-t border-orange-100">
               <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">
                 Pet Type
@@ -243,7 +226,6 @@ const Shop = () => {
               ))}
             </div>
 
-            {/* Price Range */}
             <div className="pt-3 border-t border-orange-100">
               <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">
                 Price Range
@@ -262,7 +244,6 @@ const Shop = () => {
             </div>
           </aside>
 
-          {/* PRODUCT GRID */}
           <main className="md:col-span-3 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">

@@ -18,7 +18,6 @@ const AdminDashboard = () => {
   const [detailsError, setDetailsError] = useState(null);
   const [error, setError] = useState(null);
 
-  // Fetch dashboard data
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -29,7 +28,6 @@ const AdminDashboard = () => {
       setError(null);
       const token = localStorage.getItem('token');
 
-      // Fetch stats, revenue, and product sales in parallel
       const [statsRes, revenueRes, productSalesRes] = await Promise.all([
         fetch(API_ENDPOINTS.DASHBOARD_STATS, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -72,7 +70,6 @@ const AdminDashboard = () => {
     return total > 0 ? Math.round((occupied / total) * 100) : 0;
   }, [stats]);
 
-  // chart.js setup using canvas + ref
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
   const pieChartRef = useRef(null);
@@ -117,7 +114,6 @@ const AdminDashboard = () => {
     const ctx = chartRef.current?.getContext("2d");
     if (!ctx) return;
 
-    // destroy previous chart if exists
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
@@ -258,7 +254,6 @@ const AdminDashboard = () => {
     };
   }, [productSales]);
 
-    // Loading state
     if (loading) {
       return (
         <div className="min-h-screen bg-[#fff7f0] flex">
@@ -276,7 +271,6 @@ const AdminDashboard = () => {
       );
     }
 
-    // Error state
     if (error || !stats) {
       return (
         <div className="min-h-screen bg-[#fff7f0] flex">
@@ -309,11 +303,8 @@ const AdminDashboard = () => {
           title={activeMenu}
         />
 
-                {/* Dashboard body */}
-        <main className="flex-1 p-4 lg:p-8 space-y-4">
-          {/* Stats cards */}
+                <main className="flex-1 p-4 lg:p-8 space-y-4">
           <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            {/* Total Pets */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col gap-2">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                 Total Pets
@@ -331,7 +322,6 @@ const AdminDashboard = () => {
               </p>
             </div>
 
-            {/* Hostel Rooms */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col gap-2">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                 Hostel Rooms
@@ -355,7 +345,6 @@ const AdminDashboard = () => {
               </p>
             </div>
 
-            {/* Adoption Requests */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col gap-2">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                 Bookings
@@ -373,7 +362,6 @@ const AdminDashboard = () => {
               </p>
             </div>
 
-            {/* Orders / Revenue */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col gap-2">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                 Orders & Revenue
@@ -400,9 +388,7 @@ const AdminDashboard = () => {
             </div>
           </section>
 
-          {/* Revenue chart + mini tables */}
           <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            {/* Revenue chart */}
             <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 lg:p-6 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -546,9 +532,7 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            {/* Right column mini lists */}
             <div className="space-y-4">
-              {/* System Overview */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
                 <h3 className="text-sm font-semibold text-slate-900 mb-3">
                   System Overview
@@ -577,7 +561,6 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Product Sales Pie */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
                 <h3 className="text-sm font-semibold text-slate-900 mb-3">
                   Product Sales

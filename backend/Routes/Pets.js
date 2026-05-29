@@ -9,13 +9,11 @@ import {
 
 const router = express.Router();
 
-// Public routes
 router.get('/', getAllPets);
 router.get('/:id', getPetById);
 
-// Admin routes (add auth middleware when ready)
-router.post('/', createPet); // Add: protect, adminOnly
-router.put('/:id', updatePet); // Add: protect, adminOnly
-router.delete('/:id', deletePet); // Add: protect, adminOnly
+router.post('/', createPet);
+router.put('/:id', updatePet);
+router.delete('/:id', deletePet);
 
 export default router;

@@ -7,7 +7,7 @@ const PetDetails = () => {
   const [showModal, setShowModal] = useState(false);
   const [pet, setPet] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [petStatus, setPetStatus] = useState('Available'); // Track pet status
+  const [petStatus, setPetStatus] = useState('Available');
 
   useEffect(() => {
     fetchPetDetails();
@@ -18,14 +18,12 @@ const PetDetails = () => {
       setLoading(true);
       const response = await fetch(`http://localhost:4000/api/pets/${id}`);
       const data = await response.json();
-      
+
       if (data.success) {
-        // Check if at least one vaccine is completed
         const vaccinations = data.data.vaccinations || [];
         const anyVaccineCompleted = vaccinations.some(v => v.status === 'completed');
         const isVaccinated = data.data.vaccinated && anyVaccineCompleted;
-        
-        // Transform backend data to match frontend format
+
         const transformedPet = {
           id: data.data._id,
           _id: data.data._id,
@@ -41,7 +39,7 @@ const PetDetails = () => {
           image: data.data.image,
         };
         setPet(transformedPet);
-        setPetStatus(data.data.status); // Store original status
+        setPetStatus(data.data.status);
       }
     } catch (error) {
       console.error('Error fetching pet details:', error);
@@ -80,10 +78,8 @@ const PetDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fff7f0] to-[#ffe8d6] flex flex-col">
-      {/* Top bar  */}
-     <header className="w-full bg-white border-b border-gray-200">
+      <header className="w-full bg-white border-b border-gray-200">
   <nav className="px-6 lg:px-16 py-4 flex items-center">
-    {/* Logo */}
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
         <span className="text-2xl">🐾</span>
@@ -94,24 +90,20 @@ const PetDetails = () => {
     </div>
   </nav>
 </header>
-    
 
-      {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-6 lg:px-16 pb-10">
         <div className="w-full max-w-5xl bg-white shadow-xl rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-2">
-          {/* Left: Large Image */}
           <div className="relative bg-slate-900/5">
             <img
               src={pet.image}
               alt={pet.name}
               className="w-full h-full object-cover max-h-[520px]"
-            /> 
+            />
             <span className="absolute top-4 left-4 bg-white/90 text-xs font-semibold text-orange-600 px-3 py-1 rounded-full shadow">
               Ready for Adoption
             </span>
           </div>
 
-          {/* Right: Details */}
           <div className="p-6 lg:p-8 flex flex-col justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-orange-500 mb-2">
@@ -156,7 +148,6 @@ const PetDetails = () => {
                   </p>
                 </div>
 
-                {/* Vaccination status – clickable */}
                 <button
                   type="button"
                   onClick={() =>
@@ -212,7 +203,6 @@ const PetDetails = () => {
         </div>
       </main>
 
-      {/* Simple modal for Adopt Now */}
       {showModal && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
@@ -243,7 +233,7 @@ const PetDetails = () => {
             >
               Cancel
             </button>
-          </div> 
+          </div>
         </div>
       )}
     </div>

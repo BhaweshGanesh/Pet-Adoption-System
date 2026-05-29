@@ -5,7 +5,7 @@ const hostelBookingSchema = new mongoose.Schema(
     bookingNumber: {
       type: String,
       unique: true,
-      sparse: true, 
+      sparse: true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -83,12 +83,11 @@ const hostelBookingSchema = new mongoose.Schema(
       default: 'Cash',
     },
     khaltiPayment: {
-      pidx: { type: String },         // Khalti e-Payment unique payment ID
-      transactionId: { type: String }, // Khalti transaction ID after completion
-      amount: { type: Number },        // Amount in paisa
-      mobile: { type: String },        // Payer's mobile number
-      verifiedAt: { type: Date },      // When payment was verified
-      // Legacy v1 fields (kept for backward compatibility)
+      pidx: { type: String },
+      transactionId: { type: String },
+      amount: { type: Number },
+      mobile: { type: String },
+      verifiedAt: { type: Date },
       idx: { type: String },
       token: { type: String },
       productIdentity: { type: String },
@@ -118,7 +117,6 @@ const hostelBookingSchema = new mongoose.Schema(
   }
 );
 
-// Generate booking number before saving
 hostelBookingSchema.pre('save', async function(next) {
   if (!this.bookingNumber) {
     const timestamp = Date.now().toString().slice(-8);
@@ -128,7 +126,6 @@ hostelBookingSchema.pre('save', async function(next) {
   next();
 });
 
-// Index for faster queries
 hostelBookingSchema.index({ user: 1, status: 1 });
 hostelBookingSchema.index({ room: 1, checkInDate: 1, checkOutDate: 1 });
 

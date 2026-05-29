@@ -1,12 +1,10 @@
 import jwt from 'jsonwebtoken';
 import User from '../model/Usermodel.js';
 
-// Protect routes - verify JWT token
 export const protect = async (req, res, next) => {
   try {
     let token;
 
-    // Check if authorization header exists and starts with Bearer
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith('Bearer')
@@ -14,7 +12,6 @@ export const protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
     }
 
-    // Check if token exists
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -23,10 +20,8 @@ export const protect = async (req, res, next) => {
     }
 
     try {
-      // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from token - use lean() and select only needed fields for better performance
       const user = await User.findById(decoded.id)
         .select('_id fullName email role isVerified')
         .lean()
@@ -39,7 +34,6 @@ export const protect = async (req, res, next) => {
         });
       }
 
-      // Set user in request (convert to object for adding id property)
       req.user = { ...user, id: user._id.toString() };
       next();
     } catch (error) {
@@ -57,7 +51,6 @@ export const protect = async (req, res, next) => {
   }
 };
 
-// Restrict to specific roles
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -78,7 +71,6 @@ export const restrictTo = (...roles) => {
   };
 };
 
-// Admin only middleware
 export const adminOnly = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
@@ -97,7 +89,6 @@ export const adminOnly = (req, res, next) => {
   next();
 };
 
-// Staff or Admin middleware (for hostel management)
 export const staffOrAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
@@ -116,7 +107,6 @@ export const staffOrAdmin = (req, res, next) => {
   next();
 };
 
-// Log staff actions for accountability
 export const logStaffAction = async (req, res, next) => {
   if (req.user && req.user.role === 'staff') {
     const action = {
@@ -128,12 +118,10 @@ export const logStaffAction = async (req, res, next) => {
       timestamp: new Date(),
       ip: req.ip || req.connection.remoteAddress,
     };
-    
+
     console.log('📝 [STAFF ACTION]', JSON.stringify(action, null, 2));
-    
-    // You can save this to a database StaffLog model if needed
-    // await StaffLog.create(action);
+
   }
-  
+
   next();
 };

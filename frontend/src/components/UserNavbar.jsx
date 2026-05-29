@@ -13,7 +13,6 @@ const UserNavbar = () => {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Edit profile form
   const [profileForm, setProfileForm] = useState({
     fullName: '',
     phone: '',
@@ -22,19 +21,16 @@ const UserNavbar = () => {
     country: '',
   });
 
-  // Change password form
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
-  // Fetch user profile
   useEffect(() => {
     fetchUserProfile();
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -50,7 +46,7 @@ const UserNavbar = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
-      
+
       const response = await fetch('http://localhost:4000/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -60,10 +56,9 @@ const UserNavbar = () => {
       const data = await response.json();
       if (data.success) {
         const user = data.data.user;
-        
-        // Check if user role matches - if staff/admin, redirect to appropriate dashboard
+
         console.log('[UserNavbar] Fetched profile:', { role: user.role, name: user.fullName });
-        
+
         if (user.role === 'staff') {
           console.log('[UserNavbar] Staff user detected, redirecting to staff dashboard');
           navigate('/staff-dashboard');
@@ -73,13 +68,11 @@ const UserNavbar = () => {
           navigate('/admin-dashboard');
           return;
         }
-        
-        // Only set profile for regular users
+
         setUserProfile(user);
-        
-        // Update localStorage with correct user data
+
         localStorage.setItem('user', JSON.stringify(user));
-        
+
         setProfileForm({
           fullName: user.fullName || '',
           phone: user.phone || '',
@@ -95,7 +88,6 @@ const UserNavbar = () => {
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
-      // Clear all user-related data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('userRole');
@@ -185,8 +177,8 @@ const UserNavbar = () => {
   };
 
   const getStatusBadgeColor = (isVerified) => {
-    return isVerified 
-      ? 'bg-emerald-100 text-emerald-700' 
+    return isVerified
+      ? 'bg-emerald-100 text-emerald-700'
       : 'bg-orange-100 text-orange-700';
   };
 
@@ -195,12 +187,10 @@ const UserNavbar = () => {
   const isActive = (path) => location.pathname === path;
   const isLoggedIn = !!localStorage.getItem('token');
 
-  // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Lock body scroll while mobile menu is open
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -208,10 +198,8 @@ const UserNavbar = () => {
 
   return (
     <>
-      {/* ── Main Navbar ── */}
       <nav className="bg-white border-b border-gray-200 px-4 md:px-8 py-3 md:py-4 sticky top-0 z-40">
         <div className="max-w-full mx-auto flex items-center">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 shrink-0">
             <div className="w-9 h-9 md:w-10 md:h-10 bg-orange-500 rounded-lg flex items-center justify-center">
               <span className="text-xl md:text-2xl">🐾</span>
@@ -221,9 +209,7 @@ const UserNavbar = () => {
             </span>
           </Link>
 
-          {/* Desktop nav links + right-side icons — grouped right with padding */}
           <div className="ml-auto flex items-center gap-8 lg:gap-12 pr-4 md:pr-10">
-            {/* Nav links */}
             <div className="hidden md:flex items-center gap-8 lg:gap-10">
               <Link to="/browse-pets" className={`font-medium ${isActive('/browse-pets') ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'} transition-colors`}>Browse Pets</Link>
               <Link to="/shop"        className={`font-medium ${isActive('/shop')        ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'} transition-colors`}>Shop</Link>
@@ -236,18 +222,15 @@ const UserNavbar = () => {
               )}
             </div>
 
-            {/* Cart, avatar, hamburger */}
             <div className="flex items-center gap-2 md:gap-4">
             {isLoggedIn ? (
               <>
-                {/* Cart */}
                 <Link to="/cart" className="p-2 text-gray-700 hover:text-orange-500 hover:bg-slate-50 rounded-full transition-colors">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </Link>
 
-                {/* Profile Dropdown (desktop) */}
                 <div className="relative hidden md:block" ref={dropdownRef}>
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center hover:opacity-90 transition-opacity">
                     <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-semibold text-sm shadow-sm">
@@ -306,7 +289,6 @@ const UserNavbar = () => {
               </div>
             )}
 
-            {/* Hamburger — mobile only */}
             <button
               className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
               onClick={() => setIsMobileMenuOpen(true)}
@@ -316,12 +298,9 @@ const UserNavbar = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            </div>{/* end cart/avatar/hamburger */}
-          </div>{/* end ml-auto group */}
-        </div>
+            </div></div></div>
       </nav>
 
-      {/* ── Mobile: backdrop ── */}
       <div
         className={`md:hidden fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
           isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -330,13 +309,11 @@ const UserNavbar = () => {
         aria-hidden="true"
       />
 
-      {/* ── Mobile: slide-in drawer ── */}
       <div
         className={`md:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Drawer header */}
         <div className="flex items-center justify-between px-5 h-16 border-b border-slate-100 shrink-0">
           <Link to="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
             <div className="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center">
@@ -355,7 +332,6 @@ const UserNavbar = () => {
           </button>
         </div>
 
-        {/* User info (if logged in) */}
         {isLoggedIn && userProfile && (
           <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
             <div className="flex items-center gap-3">
@@ -370,7 +346,6 @@ const UserNavbar = () => {
           </div>
         )}
 
-        {/* Nav links */}
         <nav className="flex-1 overflow-y-auto py-3 px-3">
           <ul className="space-y-1 text-sm">
             {[
@@ -394,7 +369,6 @@ const UserNavbar = () => {
             ))}
           </ul>
 
-          {/* Profile actions (logged-in) */}
           {isLoggedIn && (
             <div className="mt-4 pt-4 border-t border-slate-100 space-y-1">
               <button
@@ -421,7 +395,6 @@ const UserNavbar = () => {
             </div>
           )}
 
-          {/* Login / Sign Up (guest) */}
           {!isLoggedIn && (
             <div className="mt-4 pt-4 border-t border-slate-100 space-y-2 px-1">
               <Link
@@ -443,7 +416,6 @@ const UserNavbar = () => {
         </nav>
       </div>
 
-      {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
@@ -540,7 +512,6 @@ const UserNavbar = () => {
         </div>
       )}
 
-      {/* Change Password Modal */}
       {isChangePasswordOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">

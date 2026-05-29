@@ -6,7 +6,6 @@ import { validate } from '../Middleware/Validate.js';
 
 const router = express.Router();
 
-// Validation rules
 const signupValidation = [
   body('fullName')
     .trim()
@@ -55,21 +54,17 @@ const resendVerificationValidation = [
     .withMessage('Please provide a valid email'),
 ];
 
-// Authentication routes
 router.post('/signup', signupValidation, validate, signup);
 router.post('/login', loginValidation, validate, login);
 router.get('/me', protect, getMe);
 
-// Email verification routes
 router.post('/verify-email', verifyEmail);
 router.post('/resend-verification', resendVerificationValidation, validate, resendVerificationCode);
 
-// Password reset routes
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-reset-code', verifyResetCode);
 router.post('/reset-password', resetPassword);
 
-// Profile routes
 router.put('/update-profile', protect, updateProfile);
 router.put('/change-password', protect, changePassword);
 

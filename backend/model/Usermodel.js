@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide a password'],
       minlength: [6, 'Password must be at least 6 characters'],
-      select: false, // Don't return password by default
+      select: false,
     },
     role: {
       type: String,
@@ -66,19 +66,19 @@ const userSchema = new mongoose.Schema(
     },
     verificationCode: {
       type: String,
-      select: false, // Don't return by default
+      select: false,
     },
     verificationCodeExpiry: {
       type: Date,
-      select: false, // Don't return by default
+      select: false,
     },
     resetPasswordCode: {
       type: String,
-      select: false, // Don't return by default
+      select: false,
     },
     resetPasswordCodeExpiry: {
       type: Date,
-      select: false, // Don't return by default
+      select: false,
     },
   },
   {
@@ -86,12 +86,9 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Create indexes for frequently queried fields
-// Note: email already has index from unique: true in schema
-userSchema.index({ role: 1 }); // Index for role-based queries
-userSchema.index({ isVerified: 1 }); // Index for verification status
+userSchema.index({ role: 1 });
+userSchema.index({ isVerified: 1 });
 
-// Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
@@ -106,7 +103,6 @@ userSchema.pre('save', async function (next) {
   }
 });
 
-// Method to compare password
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
@@ -115,7 +111,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   }
 };
 
-// Method to get user without password
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;

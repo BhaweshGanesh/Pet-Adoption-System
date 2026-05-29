@@ -1,14 +1,11 @@
 import HostelRoom from '../model/HostelRoommodel.js';
 
-// @desc    Get all hostel rooms
-// @route   GET /api/hostel-rooms
-// @access  Public
 export const getAllRooms = async (req, res) => {
   try {
     const { status, petType, roomType } = req.query;
-    
+
     let filter = {};
-    
+
     if (status) filter.status = status;
     if (petType && petType !== 'All') filter.petType = { $in: [petType, 'All'] };
     if (roomType) filter.roomType = roomType;
@@ -30,9 +27,6 @@ export const getAllRooms = async (req, res) => {
   }
 };
 
-// @desc    Get single hostel room
-// @route   GET /api/hostel-rooms/:id
-// @access  Public
 export const getRoom = async (req, res) => {
   try {
     const room = await HostelRoom.findById(req.params.id);
@@ -58,9 +52,6 @@ export const getRoom = async (req, res) => {
   }
 };
 
-// @desc    Create new hostel room
-// @route   POST /api/hostel-rooms
-// @access  Private/Admin
 export const createRoom = async (req, res) => {
   try {
     const room = await HostelRoom.create(req.body);
@@ -79,9 +70,6 @@ export const createRoom = async (req, res) => {
   }
 };
 
-// @desc    Update hostel room
-// @route   PUT /api/hostel-rooms/:id
-// @access  Private/Admin
 export const updateRoom = async (req, res) => {
   try {
     const room = await HostelRoom.findByIdAndUpdate(
@@ -114,9 +102,6 @@ export const updateRoom = async (req, res) => {
   }
 };
 
-// @desc    Delete hostel room
-// @route   DELETE /api/hostel-rooms/:id
-// @access  Private/Admin
 export const deleteRoom = async (req, res) => {
   try {
     const room = await HostelRoom.findByIdAndDelete(req.params.id);
@@ -143,9 +128,6 @@ export const deleteRoom = async (req, res) => {
   }
 };
 
-// @desc    Check room availability for date range
-// @route   POST /api/hostel-rooms/:id/check-availability
-// @access  Public
 export const checkRoomAvailability = async (req, res) => {
   try {
     const { checkInDate, checkOutDate } = req.body;
@@ -166,9 +148,8 @@ export const checkRoomAvailability = async (req, res) => {
       });
     }
 
-    // Check for overlapping bookings
     const HostelBooking = (await import('../model/HostelBookingmodel.js')).default;
-    
+
     const overlappingBookings = await HostelBooking.find({
       room: req.params.id,
       status: { $nin: ['Cancelled', 'Checked-Out'] },

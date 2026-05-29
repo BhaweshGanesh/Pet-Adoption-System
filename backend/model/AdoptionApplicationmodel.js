@@ -11,10 +11,9 @@ const adoptionApplicationSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Pet name is required'],
     },
-    // Applicant Information
     fullName: {
       type: String,
-      required: [true, 'Full name is required'],    
+      required: [true, 'Full name is required'],
       trim: true,
     },
     email: {
@@ -47,7 +46,6 @@ const adoptionApplicationSchema = new mongoose.Schema(
       required: [true, 'Occupation is required'],
       trim: true,
     },
-    // Pet Ownership Details
     ownsPets: {
       type: String,
       required: [true, 'Please specify if you own pets'],
@@ -78,7 +76,6 @@ const adoptionApplicationSchema = new mongoose.Schema(
         message: 'You must agree to the adoption terms',
       },
     },
-    // Application Status
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected', 'withdrawn'],
@@ -95,7 +92,6 @@ const adoptionApplicationSchema = new mongoose.Schema(
     reviewedAt: {
       type: Date,
     },
-    // User who submitted (if logged in)
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

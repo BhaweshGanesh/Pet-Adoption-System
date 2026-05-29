@@ -1,4 +1,3 @@
-// src/components/admin/AdminNavbar.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,7 +12,6 @@ const AdminNavbar = ({ subtitle, title }) => {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Edit profile form
   const [profileForm, setProfileForm] = useState({
     fullName: '',
     phone: '',
@@ -22,19 +20,16 @@ const AdminNavbar = ({ subtitle, title }) => {
     country: '',
   });
 
-  // Change password form
-  const [passwordForm, setPasswordForm] = useState({  
+  const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
-  // Fetch admin profile
   useEffect(() => {
     fetchAdminProfile();
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -53,7 +48,7 @@ const AdminNavbar = ({ subtitle, title }) => {
         navigate('/login');
         return;
       }
-      
+
       const response = await fetch('http://localhost:4000/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -63,10 +58,9 @@ const AdminNavbar = ({ subtitle, title }) => {
       const data = await response.json();
       if (data.success) {
         const user = data.data.user;
-        
-        // Check if user role is admin
+
         console.log('[AdminNavbar] Fetched profile:', { role: user.role, name: user.fullName });
-        
+
         if (user.role === 'user') {
           console.log('[AdminNavbar] Regular user detected, redirecting to browse pets');
           navigate('/browse-pets');
@@ -78,13 +72,11 @@ const AdminNavbar = ({ subtitle, title }) => {
         } else if (user.role === 'admin') {
           console.log('[AdminNavbar] Admin user confirmed');
         }
-        
-        // Set profile for admin users only
+
         setAdminProfile(user);
-        
-        // Update localStorage with correct user data
+
         localStorage.setItem('user', JSON.stringify(user));
-        
+
         setProfileForm({
           fullName: user.fullName || '',
           phone: user.phone || '',
@@ -100,7 +92,6 @@ const AdminNavbar = ({ subtitle, title }) => {
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
-      // Clear all user-related data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('userRole');
@@ -190,15 +181,14 @@ const AdminNavbar = ({ subtitle, title }) => {
   };
 
   const getStatusBadgeColor = (isVerified) => {
-    return isVerified 
-      ? 'bg-emerald-100 text-emerald-700' 
+    return isVerified
+      ? 'bg-emerald-100 text-emerald-700'
       : 'bg-orange-100 text-orange-700';
   };
 
   return (
     <nav className="sticky top-0 z-30 bg-white border-b border-slate-200 h-16 md:h-20">
       <div className="flex items-center justify-between px-4 lg:px-10 h-full gap-3">
-        {/* Hamburger — only on mobile */}
         <button
           className="md:hidden shrink-0 p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition"
           onClick={() => window.dispatchEvent(new CustomEvent("admin-sidebar-toggle"))}
@@ -218,7 +208,6 @@ const AdminNavbar = ({ subtitle, title }) => {
           </h1>
         </div>
 
-        {/* Admin Profile Button */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -229,10 +218,8 @@ const AdminNavbar = ({ subtitle, title }) => {
             </div>
           </button>
 
-          {/* Dropdown Menu */}
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
-              {/* Profile Info */}
               <div className="px-4 py-3 border-b border-slate-100">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-orange-500 text-white flex items-center justify-center font-semibold">
@@ -257,7 +244,6 @@ const AdminNavbar = ({ subtitle, title }) => {
                 </div>
               </div>
 
-              {/* Menu Items */}
               <div className="py-1">
                 <button
                   onClick={() => {
@@ -299,7 +285,6 @@ const AdminNavbar = ({ subtitle, title }) => {
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
@@ -396,7 +381,6 @@ const AdminNavbar = ({ subtitle, title }) => {
         </div>
       )}
 
-      {/* Change Password Modal */}
       {isChangePasswordOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">

@@ -74,7 +74,6 @@ const hostelRoomSchema = new mongoose.Schema(
   }
 );
 
-// Index for faster queries
 hostelRoomSchema.index({ status: 1, petType: 1 });
 
 const HostelRoom = mongoose.model('HostelRoom', hostelRoomSchema);

@@ -41,9 +41,7 @@ const Login = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        // Check if email needs verification
         if (data.needsVerification) {
-          // Redirect to verification page
           navigate('/verify-email', {
             state: {
               userId: data.userId,
@@ -55,15 +53,12 @@ const Login = () => {
         throw new Error(data.message || 'Login failed');
       }
 
-      // Store token and user data in localStorage
       localStorage.setItem('token', data.data.token);
       localStorage.setItem('user', JSON.stringify(data.data.user));
 
-      // Show success message with role
       setUserRole(data.data.user.role);
       setSuccess(true);
-      
-      // Redirect based on user role after 1.5 seconds
+
       setTimeout(() => {
         if (data.data.user.role === 'admin') {
           navigate('/admin-dashboard');
@@ -82,10 +77,8 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex flex-col">
-      {/* Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
               <span className="text-2xl">🐾</span>
@@ -95,7 +88,6 @@ const Login = () => {
             </span>
           </Link>
 
-          {/* Back to Home */}
           <Link
             to="/"
             className="text-gray-900 font-medium hover:text-orange-500 transition-colors"
@@ -105,10 +97,8 @@ const Login = () => {
         </div>
       </nav>
 
-      {/* Login Form Section */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="max-w-md w-full">
-          {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
               Welcome Back! 👋
@@ -118,7 +108,6 @@ const Login = () => {
             </p>
           </div>
 
-          {/* Success Message */}
           {success && (
             <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center space-x-3 animate-bounce">
               <div className="text-2xl"></div>
@@ -133,7 +122,6 @@ const Login = () => {
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-center space-x-3">
               <div className="text-2xl"></div>
@@ -144,10 +132,8 @@ const Login = () => {
             </div>
           )}
 
-          {/* Login Card */}
           <div className="bg-white rounded-3xl shadow-2xl p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Input */}
               <div>
                 <label
                   htmlFor="email"
@@ -167,7 +153,6 @@ const Login = () => {
                 />
               </div>
 
-              {/* Password Input */}
               <div>
                 <label
                   htmlFor="password"
@@ -201,7 +186,6 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Forgot Password */}
               <div className="flex items-center justify-between">
                 <label className="flex items-center">
                   <input
@@ -215,7 +199,6 @@ const Login = () => {
                 </a>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -234,10 +217,8 @@ const Login = () => {
                 )}
               </button>
 
-              
             </form>
 
-            {/* Sign Up Link */}
             <div className="mt-6 text-center">
               <p className="text-gray-600">
                 Don't have an account?{' '}
@@ -248,7 +229,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Decorative Elements */}
           <div className="mt-8 flex justify-center space-x-4">
             <div className="text-4xl animate-bounce">🐕</div>
             <div className="text-4xl animate-bounce" style={{ animationDelay: '0.1s' }}>🐱</div>

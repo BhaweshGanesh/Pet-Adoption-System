@@ -46,7 +46,6 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/payments', paymentRoutes);
 
-// Start server immediately — don't wait for DB
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
@@ -58,11 +57,10 @@ server.on('error', (err) => {
   }
 });
 
-// Connect to MongoDB with explicit timeouts so it never hangs
 console.log('🔄 Connecting to MongoDB...');
 mongoose
   .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/petadopt', {
-    serverSelectionTimeoutMS: 10000,  // fail fast after 10s
+    serverSelectionTimeoutMS: 10000,
     connectTimeoutMS: 10000,
     socketTimeoutMS: 30000,
   })

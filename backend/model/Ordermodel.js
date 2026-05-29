@@ -32,12 +32,12 @@ const orderSchema = new mongoose.Schema(
     orderNumber: {
       type: String,
       unique: true,
-      sparse: true, // Allow null/undefined until generated
+      sparse: true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: false, // Optional - for authenticated users
+      required: false,
     },
     customer: {
       name: {
@@ -95,12 +95,11 @@ const orderSchema = new mongoose.Schema(
       default: 'Cash on Delivery',
     },
     khaltiPayment: {
-      pidx: { type: String },         // Khalti e-Payment unique payment ID
-      transactionId: { type: String }, // Khalti transaction ID after completion
-      amount: { type: Number },        // Amount in paisa
-      mobile: { type: String },        // Payer's mobile number
-      verifiedAt: { type: Date },      // When payment was verified
-      // Legacy v1 fields (kept for backward compatibility)
+      pidx: { type: String },
+      transactionId: { type: String },
+      amount: { type: Number },
+      mobile: { type: String },
+      verifiedAt: { type: Date },
       idx: { type: String },
       token: { type: String },
       productIdentity: { type: String },
@@ -122,14 +121,11 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-// Create indexes for frequently queried fields
-orderSchema.index({ user: 1, createdAt: -1 }); // User orders sorted by date
-orderSchema.index({ status: 1, createdAt: -1 }); // Orders by status
-orderSchema.index({ paymentStatus: 1 }); // Payment status filtering
-// Note: orderNumber already has index from unique: true in schema
-orderSchema.index({ 'customer.email': 1 }); // Customer email lookup
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ paymentStatus: 1 });
+orderSchema.index({ 'customer.email': 1 });
 
-// Generate order number before saving
 orderSchema.pre('save', async function(next) {
   if (!this.orderNumber) {
     const timestamp = Date.now().toString().slice(-8);

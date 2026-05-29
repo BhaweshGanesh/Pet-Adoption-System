@@ -75,27 +75,22 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-// Create indexes for frequently queried fields
-productSchema.index({ category: 1, petType: 1 }); // Compound index for filtering
-productSchema.index({ status: 1 }); // Index for status filtering
-productSchema.index({ createdAt: -1 }); // Index for sorting by date
-productSchema.index({ name: 'text', description: 'text', brand: 'text' }); // Text search index
-productSchema.index({ stock: 1, lowStockThreshold: 1 }); // For low stock queries
+productSchema.index({ category: 1, petType: 1 });
+productSchema.index({ status: 1 });
+productSchema.index({ createdAt: -1 });
+productSchema.index({ name: 'text', description: 'text', brand: 'text' });
+productSchema.index({ stock: 1, lowStockThreshold: 1 });
 
-// Virtual field to check if stock is low
 productSchema.virtual('isLowStock').get(function() {
   return this.stock <= this.lowStockThreshold && this.stock > 0;
 });
 
-// Virtual field for discounted offer price
 productSchema.virtual('offerPrice').get(function() {
   if (!this.discount || this.discount === 0) return this.price;
   return Math.round(this.price * (1 - this.discount / 100));
 });
 
-// Automatically update status based on stock
 productSchema.pre('save', function(next) {
-  // Only auto-manage status if it's not manually set to "Unavailable"
   if (this.status !== 'Unavailable') {
     if (this.stock === 0) {
       this.status = 'Out of Stock';
@@ -103,11 +98,9 @@ productSchema.pre('save', function(next) {
       this.status = 'Available';
     }
   }
-  // If status is "Unavailable", respect admin's choice regardless of stock
   next();
 });
 
-// Include virtuals in JSON
 productSchema.set('toJSON', { virtuals: true });
 productSchema.set('toObject', { virtuals: true });
 

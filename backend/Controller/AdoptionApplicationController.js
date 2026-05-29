@@ -2,12 +2,11 @@ import AdoptionApplication from '../model/AdoptionApplicationmodel.js';
 import Pet from '../model/Petmodel.js';
 import { sendAdoptionConfirmationEmail, sendAdoptionApprovalEmail, sendAdoptionRejectionEmail } from '../utils/emailService.js';
 
-//Submit adoption application
 export const submitApplication = async (req, res) => {
   try {
     const {
       petId,
-      petName,   
+      petName,
       fullName,
       email,
       phone,
@@ -21,7 +20,6 @@ export const submitApplication = async (req, res) => {
       agree,
     } = req.body;
 
-    // Validation
     if (!petId || !fullName || !email || !phone || !address || !age || !occupation) {
       return res.status(400).json({
         success: false,
@@ -36,7 +34,6 @@ export const submitApplication = async (req, res) => {
       });
     }
 
-    // Check if pet exists
     const pet = await Pet.findById(petId);
     if (!pet) {
       return res.status(404).json({
@@ -45,7 +42,6 @@ export const submitApplication = async (req, res) => {
       });
     }
 
-    // Check if pet is available
     if (pet.status !== 'Available') {
       return res.status(400).json({
         success: false,
@@ -53,7 +49,6 @@ export const submitApplication = async (req, res) => {
       });
     }
 
-    // Check if there's already a pending adoption request for this pet
     const existingRequest = await AdoptionApplication.findOne({
       petId,
       status: 'pending'
@@ -66,7 +61,6 @@ export const submitApplication = async (req, res) => {
       });
     }
 
-    // Create application
     const application = await AdoptionApplication.create({
       petId,
       petName: petName || pet.name,
@@ -81,15 +75,13 @@ export const submitApplication = async (req, res) => {
       experience,
       environment,
       agree,
-      userId: req.user?._id, // If user is logged in
+      userId: req.user?._id,
     });
 
-    // Update pet status to "Booked" since there's now a pending adoption request
     pet.status = 'Booked';
     await pet.save();
     console.log(`Pet ${pet.name} status updated to Booked`);
 
-    // Send confirmation email
     try {
       await sendAdoptionConfirmationEmail(email, fullName, {
         petName: petName || pet.name,
@@ -100,8 +92,7 @@ export const submitApplication = async (req, res) => {
       });
       console.log(`Adoption confirmation email sent to ${email}`);
     } catch (emailError) {
-      console.error('⚠️ Failed to send adoption confirmation email:', emailError);
-      // Don't fail the application if email fails
+      console.error(' Failed to send adoption confirmation email:', emailError);
     }
 
     res.status(201).json({
@@ -118,13 +109,10 @@ export const submitApplication = async (req, res) => {
   }
 };
 
-// @desc    Get all adoption applications
-// @route   GET /api/adoptions
-// @access  Private/Admin
 export const getAllApplications = async (req, res) => {
   try {
     const { status, petId } = req.query;
-    
+
     let filter = {};
     if (status) {
       filter.status = status;
@@ -136,7 +124,7 @@ export const getAllApplications = async (req, res) => {
     const applications = await AdoptionApplication.find(filter)
       .populate('petId', 'name type breed image')
       .sort({ createdAt: -1 });
-    
+
     res.status(200).json({
       success: true,
       count: applications.length,
@@ -151,9 +139,6 @@ export const getAllApplications = async (req, res) => {
   }
 };
 
-// @desc    Get single adoption application by ID
-// @route   GET /api/adoptions/:id
-// @access  Private/Admin
 export const getApplicationById = async (req, res) => {
   try {
     const application = await AdoptionApplication.findById(req.params.id)
@@ -180,9 +165,6 @@ export const getApplicationById = async (req, res) => {
   }
 };
 
-// @desc    Update application status (approve/reject)
-// @route   PUT /api/adoptions/:id/status
-// @access  Private/Admin
 export const updateApplicationStatus = async (req, res) => {
   try {
     const { status, reviewNotes } = req.body;
@@ -212,29 +194,24 @@ export const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    // Update application
     application.status = status;
     application.reviewNotes = reviewNotes || application.reviewNotes;
     application.reviewedBy = req.user?._id;
     application.reviewedAt = new Date();
     await application.save();
 
-    // Handle pet status based on application status
     if (status === 'approved') {
-      // Update pet status to Unavailable
       pet.status = 'Unavailable';
       await pet.save();
       console.log(`Pet ${pet.name} status updated to Unavailable (Adopted)`);
 
-      // Send approval email with pickup details
       try {
-        // Generate pickup details (3 days from now, 10 AM)
         const pickupDate = new Date();
         pickupDate.setDate(pickupDate.getDate() + 3);
-        const formattedDate = pickupDate.toLocaleDateString('en-US', { 
+        const formattedDate = pickupDate.toLocaleDateString('en-US', {
           weekday: 'long',
-          year: 'numeric', 
-          month: 'long', 
+          year: 'numeric',
+          month: 'long',
           day: 'numeric'
         });
 
@@ -248,16 +225,13 @@ export const updateApplicationStatus = async (req, res) => {
         });
         console.log(`Approval email sent to ${application.email}`);
       } catch (emailError) {
-        console.error('⚠️ Failed to send approval email:', emailError);
-        // Don't fail the approval if email fails
+        console.error(' Failed to send approval email:', emailError);
       }
     } else if (status === 'rejected') {
-      // Update pet status back to Available so others can apply
       pet.status = 'Available';
       await pet.save();
       console.log(`Pet ${pet.name} status updated to Available (Application Rejected)`);
 
-      // Send rejection email to applicant
       try {
         await sendAdoptionRejectionEmail(application.email, application.fullName, {
           petName: pet.name,
@@ -268,7 +242,6 @@ export const updateApplicationStatus = async (req, res) => {
         console.log(`Rejection email sent to ${application.email}`);
       } catch (emailError) {
         console.error('⚠️ Failed to send rejection email:', emailError);
-        // Don't fail the rejection if email fails
       }
     }
 
@@ -287,9 +260,6 @@ export const updateApplicationStatus = async (req, res) => {
   }
 };
 
-// @desc    Delete adoption application
-// @route   DELETE /api/adoptions/:id
-// @access  Private/Admin
 export const deleteApplication = async (req, res) => {
   try {
     const application = await AdoptionApplication.findById(req.params.id);
@@ -301,7 +271,6 @@ export const deleteApplication = async (req, res) => {
       });
     }
 
-    // If the application was pending, update pet status back to Available
     if (application.status === 'pending') {
       const pet = await Pet.findById(application.petId);
       if (pet && pet.status === 'Booked') {
@@ -326,17 +295,14 @@ export const deleteApplication = async (req, res) => {
   }
 };
 
-// @desc    Get applications by user email
-// @route   GET /api/adoptions/user/:email
-// @access  Public
 export const getApplicationsByEmail = async (req, res) => {
   try {
-    const applications = await AdoptionApplication.find({ 
-      email: req.params.email 
+    const applications = await AdoptionApplication.find({
+      email: req.params.email
     })
       .populate('petId', 'name type breed image')
       .sort({ createdAt: -1 });
-    
+
     res.status(200).json({
       success: true,
       count: applications.length,
@@ -351,14 +317,11 @@ export const getApplicationsByEmail = async (req, res) => {
   }
 };
 
-// @desc    Get logged-in user's adoption history
-// @route   GET /api/adoptions/my-adoptions
-// @access  Private
 export const getMyAdoptions = async (req, res) => {
   try {
     console.log('[getMyAdoptions] Request received');
     console.log('User:', req.user ? `${req.user.fullName} (${req.user.email})` : 'No user');
-    
+
     if (!req.user) {
       console.log('[getMyAdoptions] No user found in request');
       return res.status(401).json({
@@ -367,7 +330,6 @@ export const getMyAdoptions = async (req, res) => {
       });
     }
 
-    // Find applications by userId or email
     const applications = await AdoptionApplication.find({
       $or: [
         { userId: req.user._id },
@@ -380,7 +342,6 @@ export const getMyAdoptions = async (req, res) => {
 
     console.log(`[getMyAdoptions] Found ${applications.length} applications`);
 
-    // Separate by status for easier display
     const adoptionHistory = {
       approved: applications.filter(app => app.status === 'approved'),
       pending: applications.filter(app => app.status === 'pending'),
@@ -390,7 +351,7 @@ export const getMyAdoptions = async (req, res) => {
     };
 
     console.log('[getMyAdoptions] Response sent successfully');
-    
+
     res.status(200).json({
       success: true,
       count: applications.length,

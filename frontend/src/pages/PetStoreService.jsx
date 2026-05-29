@@ -35,7 +35,7 @@ const PetStoreService = () => {
     "Fast and reliable home delivery service",
     "Easy returns and quality guarantee",
     "Products suitable for all pet types and ages",
-   
+
   ];
 
   const featuredProducts = [
@@ -68,7 +68,6 @@ const PetStoreService = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      {/* NAVBAR */}
       <header className="sticky top-0 z-20 bg-white border-b border-green-100/80 px-6 lg:px-16 py-4 flex items-center justify-between shadow-sm">
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
@@ -88,7 +87,6 @@ const PetStoreService = () => {
 
       </header>
 
-      {/* HERO SECTION */}
       <section className="relative px-6 lg:px-16 py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-green-100 via-green-50 to-transparent opacity-50"></div>
         <div className="max-w-7xl mx-auto relative z-10">
@@ -102,8 +100,8 @@ const PetStoreService = () => {
                 <span className="text-orange-500"> Happy Pets</span>
               </h1>
               <p className="text-xl text-slate-600 leading-relaxed">
-                Our pet store delivers high-quality and essential products designed to support your pet's 
-                health, comfort, and happiness. From nutrition to accessories, we focus on reliable, 
+                Our pet store delivers high-quality and essential products designed to support your pet's
+                health, comfort, and happiness. From nutrition to accessories, we focus on reliable,
                 pet-friendly products that meet everyday needs and promote a better lifestyle for your furry companions.
               </p>
               <div className="flex gap-4">
@@ -113,7 +111,7 @@ const PetStoreService = () => {
                 >
                   Browse Products
                 </Link>
-                
+
               </div>
             </div>
             <div className="relative">
@@ -133,7 +131,6 @@ const PetStoreService = () => {
         </div>
       </section>
 
-      {/* PET TYPES */}
       <section className="px-6 lg:px-16 py-16 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -145,7 +142,7 @@ const PetStoreService = () => {
             {petTypes.map((pet, index) => (
               <Link
                 key={index}
-                
+
                 className="group bg-gradient-to-br from-green-50 to-white rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-green-100 text-center"
               >
                 <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">
@@ -159,7 +156,6 @@ const PetStoreService = () => {
         </div>
       </section>
 
-      {/* CATEGORIES */}
       <section className="px-6 lg:px-16 py-16 bg-gradient-to-b from-slate-50 to-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -192,7 +188,6 @@ const PetStoreService = () => {
         </div>
       </section>
 
-      {/* FEATURED PRODUCTS */}
       <section className="px-6 lg:px-16 py-16 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -229,14 +224,13 @@ const PetStoreService = () => {
         </div>
       </section>
 
-      {/* BENEFITS */}
       <section className="px-6 lg:px-16 py-16 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold mb-6">Why Shop With Us?</h2>
               <p className="text-slate-300 text-lg mb-8">
-                We carefully curate our product selection to ensure your pets get only the best. 
+                We carefully curate our product selection to ensure your pets get only the best.
                 From nutrition to comfort, every product is chosen with your pet's wellbeing in mind.
               </p>
               <div className="grid sm:grid-cols-2 gap-4">
@@ -272,7 +266,6 @@ const PetStoreService = () => {
         </div>
       </section>
 
-      {/* DELIVERY INFO */}
       <section className="px-6 lg:px-16 py-16 bg-gradient-to-b from-green-50 to-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -308,7 +301,6 @@ const PetStoreService = () => {
         </div>
       </section>
 
-      {/* CTA SECTION */}
       <section className="px-6 lg:px-16 py-20 bg-gradient-to-r from-orange-500 to-orange-600">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
@@ -326,7 +318,6 @@ const PetStoreService = () => {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="bg-slate-900 text-white py-8 px-6 lg:px-16">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">

@@ -1,4 +1,3 @@
-// src/components/admin/hostel/RoomTable.jsx
 import React from "react";
 
 const RoomTable = ({ rooms, onEdit, onDelete }) => {

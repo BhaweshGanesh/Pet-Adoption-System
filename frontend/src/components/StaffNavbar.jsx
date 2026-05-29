@@ -13,7 +13,6 @@ const StaffNavbar = () => {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Edit profile form
   const [profileForm, setProfileForm] = useState({
     fullName: '',
     phone: '',
@@ -22,19 +21,16 @@ const StaffNavbar = () => {
     country: '',
   });
 
-  // Change password form
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
-  // Fetch staff profile
   useEffect(() => {
     fetchStaffProfile();
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -53,7 +49,7 @@ const StaffNavbar = () => {
         navigate('/login');
         return;
       }
-      
+
       const response = await fetch('http://localhost:4000/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -63,10 +59,9 @@ const StaffNavbar = () => {
       const data = await response.json();
       if (data.success) {
         const user = data.data.user;
-        
-        // Check if user role matches - only staff and admin can access staff pages
+
         console.log('[StaffNavbar] Fetched profile:', { role: user.role, name: user.fullName });
-        
+
         if (user.role === 'user') {
           console.log('[StaffNavbar] Regular user detected, redirecting to browse pets');
           navigate('/browse-pets');
@@ -76,13 +71,11 @@ const StaffNavbar = () => {
         } else if (user.role === 'staff') {
           console.log('[StaffNavbar] Staff user confirmed');
         }
-        
-        // Set profile for staff/admin users
+
         setStaffProfile(user);
-        
-        // Update localStorage with correct user data
+
         localStorage.setItem('user', JSON.stringify(user));
-        
+
         setProfileForm({
           fullName: user.fullName || '',
           phone: user.phone || '',
@@ -98,7 +91,6 @@ const StaffNavbar = () => {
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
-      // Clear all user-related data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('userRole');
@@ -188,8 +180,8 @@ const StaffNavbar = () => {
   };
 
   const getStatusBadgeColor = (isVerified) => {
-    return isVerified 
-      ? 'bg-emerald-100 text-emerald-700' 
+    return isVerified
+      ? 'bg-emerald-100 text-emerald-700'
       : 'bg-orange-100 text-orange-700';
   };
 
@@ -199,7 +191,6 @@ const StaffNavbar = () => {
     <>
       <nav className="bg-white border-b border-gray-200 px-8 py-4">
         <div className="max-w-full mx-auto flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
               <span className="text-2xl">🐾</span>
@@ -209,31 +200,28 @@ const StaffNavbar = () => {
             </span>
           </Link>
 
-          {/* Navigation Links + Profile */}
           <div className="flex items-center gap-16 pr-8">
-            {/* Navigation Links */}
             <div className="flex items-center space-x-8">
-              <Link 
-                to="/staff-dashboard" 
+              <Link
+                to="/staff-dashboard"
                 className={`font-medium ${isActive('/staff-dashboard') ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'} transition-colors`}
               >
                 Dashboard
               </Link>
-              <Link 
-                to="/staff-rooms" 
+              <Link
+                to="/staff-rooms"
                 className={`font-medium ${isActive('/staff-rooms') ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'} transition-colors`}
               >
                 Rooms
               </Link>
-              <Link 
-                to="/staff-bookings" 
+              <Link
+                to="/staff-bookings"
                 className={`font-medium ${isActive('/staff-bookings') ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'} transition-colors`}
               >
                 Bookings
               </Link>
             </div>
 
-            {/* Profile Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -244,10 +232,8 @@ const StaffNavbar = () => {
                 </div>
               </button>
 
-              {/* Dropdown Menu */}
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
-                  {/* Profile Info */}
                   <div className="px-4 py-3 border-b border-slate-100">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
@@ -272,7 +258,6 @@ const StaffNavbar = () => {
                     </div>
                   </div>
 
-                  {/* Menu Items */}
                   <div className="py-1">
                     <button
                       onClick={() => {
@@ -316,7 +301,6 @@ const StaffNavbar = () => {
         </div>
       </nav>
 
-      {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
@@ -413,7 +397,6 @@ const StaffNavbar = () => {
         </div>
       )}
 
-      {/* Change Password Modal */}
       {isChangePasswordOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">

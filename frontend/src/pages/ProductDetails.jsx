@@ -261,7 +261,6 @@ const ProductDetails = () => {
 
   return (
     <div className="min-h-screen bg-[#fff7f0]">
-      {/* NAVBAR */}
       <header className="sticky top-0 z-20 bg-white border-b border-orange-100/80 px-6 lg:px-16 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
@@ -273,8 +272,6 @@ const ProductDetails = () => {
         </div>
 
         <nav className="hidden md:flex gap-6 text-sm text-slate-500">
-          {/* <Link to="/" className="hover:text-slate-900">Home</Link> */}
-          {/* <Link to="/browse-pets" className="hover:text-slate-900">Browse Pets</Link> */}
           <Link to="/shop" className="text-orange-500">Shop</Link>
         </nav>
 
@@ -282,11 +279,10 @@ const ProductDetails = () => {
           <Link to="/cart" className="px-4 py-2 rounded-full bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600">
             🛒 Cart
           </Link>
-          
+
         </div>
       </header>
 
-      {/* BREADCRUMB */}
       <div className="bg-white border-b border-slate-100 px-6 lg:px-16 py-3">
         <div className="flex items-center gap-2 text-sm text-slate-600">
           <Link to="/shop" className="hover:text-orange-500">Shop</Link>
@@ -297,11 +293,9 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      {/* PRODUCT DETAILS */}
       <div className="px-6 lg:px-16 py-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-12">
-            {/* Product Image */}
             <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 p-6 relative">
               {product.discount > 0 && (
                 <div className="absolute top-4 left-4 z-10 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow">
@@ -323,7 +317,6 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Product Info */}
             <div className="flex flex-col">
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -369,7 +362,7 @@ const ProductDetails = () => {
                 )}
                 <div className="flex items-center gap-4 text-sm">
                   <span className={`font-medium ${
-                    product.status === 'Out of Stock' ? 'text-red-600' : 
+                    product.status === 'Out of Stock' ? 'text-red-600' :
                     product.stock > 10 ? 'text-emerald-600' : 'text-amber-600'
                   }`}>
                     {product.status === 'Out of Stock' ? 'Out of Stock' : `${product.stock} in stock`}
@@ -385,7 +378,6 @@ const ProductDetails = () => {
                 <p className="text-slate-700 leading-relaxed">{product.description}</p>
               </div>
 
-              {/* Quantity Selector */}
               {product.status !== 'Out of Stock' && product.stock > 0 && (
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-slate-900 mb-2 uppercase">
@@ -411,7 +403,6 @@ const ProductDetails = () => {
                 </div>
               )}
 
-              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
                 {product.status !== 'Out of Stock' && product.stock > 0 ? (
                   <>
@@ -440,7 +431,6 @@ const ProductDetails = () => {
             </div>
           </div>
 
-          {/* Reviews & Feedback */}
           <section className="mb-12 bg-white rounded-2xl border border-orange-100 p-6 lg:p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-slate-900 mb-1">Reviews & Feedback</h2>
             <p className="text-sm text-slate-500 mb-6">
@@ -587,7 +577,6 @@ const ProductDetails = () => {
             )}
           </section>
 
-          {/* Related Products */}
           {relatedProducts.length > 0 && (
             <div className="mt-12">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">Related Products</h2>

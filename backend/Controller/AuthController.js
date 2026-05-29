@@ -7,16 +7,12 @@ const STRONG_PASSWORD_REGEX =
 const STRONG_PASSWORD_MESSAGE =
   'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.';
 
-// Generate JWT Token
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '7d',
   });
 };
 
-// @desc    Register a new user
-// @route   POST /api/auth/signup
-// @access  Public
 export const signup = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
@@ -27,7 +23,6 @@ export const signup = async (req, res) => {
       });
     }
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -36,11 +31,9 @@ export const signup = async (req, res) => {
       });
     }
 
-    
     const verificationCode = generateVerificationCode();
-    const verificationCodeExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const verificationCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Create new user with verification code
     const user = await User.create({
       fullName,
       email,
@@ -50,7 +43,6 @@ export const signup = async (req, res) => {
       verificationCodeExpiry,
     });
 
-    // Send verification email
     try {
       await sendVerificationEmail(email, fullName, verificationCode);
       console.log(`Verification email sent to: ${email}`);
@@ -77,14 +69,10 @@ export const signup = async (req, res) => {
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if email and password are provided
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -92,7 +80,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Find user and include password
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
@@ -102,7 +89,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check if password matches
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
@@ -112,7 +98,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check if email is verified
     if (!user.isVerified) {
       return res.status(403).json({
         success: false,
@@ -123,7 +108,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Generate token
     const token = generateToken(user._id);
 
     res.status(200).json({
@@ -148,9 +132,6 @@ export const login = async (req, res) => {
   }
 };
 
-// @desc    Verify email with code
-// @route   POST /api/auth/verify-email
-// @access  Public
 export const verifyEmail = async (req, res) => {
   try {
     const { userId, verificationCode } = req.body;
@@ -162,7 +143,6 @@ export const verifyEmail = async (req, res) => {
       });
     }
 
-    // Find user with verification code
     const user = await User.findById(userId).select('+verificationCode +verificationCodeExpiry');
 
     if (!user) {
@@ -172,7 +152,6 @@ export const verifyEmail = async (req, res) => {
       });
     }
 
-    // Check if already verified
     if (user.isVerified) {
       return res.status(400).json({
         success: false,
@@ -180,7 +159,6 @@ export const verifyEmail = async (req, res) => {
       });
     }
 
-    // Check if code expired
     if (user.verificationCodeExpiry < new Date()) {
       return res.status(400).json({
         success: false,
@@ -188,7 +166,6 @@ export const verifyEmail = async (req, res) => {
       });
     }
 
-    // Check if code matches
     if (user.verificationCode !== verificationCode) {
       return res.status(400).json({
         success: false,
@@ -196,16 +173,13 @@ export const verifyEmail = async (req, res) => {
       });
     }
 
-    // Verify user
     user.isVerified = true;
     user.verificationCode = undefined;
     user.verificationCodeExpiry = undefined;
     await user.save();
 
-    // Send welcome email
     await sendWelcomeEmail(user.email, user.fullName);
 
-    // Generate token
     const token = generateToken(user._id);
 
     res.status(200).json({
@@ -236,9 +210,6 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-// @desc    Resend verification code
-// @route   POST /api/auth/resend-verification
-// @access  Public
 export const resendVerificationCode = async (req, res) => {
   try {
     const { email } = req.body;
@@ -266,7 +237,6 @@ export const resendVerificationCode = async (req, res) => {
       });
     }
 
-    // Generate new verification code
     const verificationCode = generateVerificationCode();
     const verificationCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -274,7 +244,6 @@ export const resendVerificationCode = async (req, res) => {
     user.verificationCodeExpiry = verificationCodeExpiry;
     await user.save();
 
-    // Send new verification email
     await sendVerificationEmail(user.email, user.fullName, verificationCode);
 
     res.status(200).json({
@@ -290,9 +259,6 @@ export const resendVerificationCode = async (req, res) => {
   }
 };
 
-// @desc    Get current logged in user
-// @route   GET /api/auth/me
-// @access  Private
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -338,9 +304,6 @@ export const hi = async (req, res) => {
   }
 };
 
-// @desc    Send password reset code
-// @route   POST /api/auth/forgot-password
-// @access  Public
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -352,27 +315,22 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    // Find user by email
     const user = await User.findOne({ email });
 
     if (!user) {
-      // Don't reveal if user exists or not for security
       return res.status(200).json({
         success: true,
         message: 'If an account exists with this email, you will receive a password reset code',
       });
     }
 
-    // Generate reset code
     const resetCode = generateVerificationCode();
-    const resetCodeExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const resetCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Save reset code to user
     user.resetPasswordCode = resetCode;
     user.resetPasswordCodeExpiry = resetCodeExpiry;
     await user.save();
 
-    // Send password reset email
     await sendPasswordResetEmail(email, user.fullName, resetCode);
 
     res.status(200).json({
@@ -388,9 +346,6 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// @desc    Verify password reset code
-// @route   POST /api/auth/verify-reset-code
-// @access  Public
 export const verifyResetCode = async (req, res) => {
   try {
     const { email, resetCode } = req.body;
@@ -402,7 +357,6 @@ export const verifyResetCode = async (req, res) => {
       });
     }
 
-    // Find user with reset code
     const user = await User.findOne({ email }).select('+resetPasswordCode +resetPasswordCodeExpiry');
 
     if (!user) {
@@ -412,7 +366,6 @@ export const verifyResetCode = async (req, res) => {
       });
     }
 
-    // Check if reset code exists
     if (!user.resetPasswordCode) {
       return res.status(400).json({
         success: false,
@@ -420,7 +373,6 @@ export const verifyResetCode = async (req, res) => {
       });
     }
 
-    // Check if code expired
     if (user.resetPasswordCodeExpiry < new Date()) {
       return res.status(400).json({
         success: false,
@@ -428,7 +380,6 @@ export const verifyResetCode = async (req, res) => {
       });
     }
 
-    // Check if code matches
     if (user.resetPasswordCode !== resetCode) {
       return res.status(400).json({
         success: false,
@@ -436,7 +387,6 @@ export const verifyResetCode = async (req, res) => {
       });
     }
 
-    // Code is valid, return success with userId for next step
     res.status(200).json({
       success: true,
       message: 'Reset code verified successfully',
@@ -454,9 +404,6 @@ export const verifyResetCode = async (req, res) => {
   }
 };
 
-// @desc    Reset password with verified code
-// @route   POST /api/auth/reset-password
-// @access  Public
 export const resetPassword = async (req, res) => {
   try {
     const { email,resetToken, newPassword } = req.body;
@@ -468,7 +415,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Validate strong password format
     if (!STRONG_PASSWORD_REGEX.test(newPassword || '')) {
       return res.status(400).json({
         success: false,
@@ -476,7 +422,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Find user with reset code
     const user = await User.findOne({ email }).select('+resetPasswordCode +resetPasswordCodeExpiry +password');
 
     if (!user) {
@@ -486,7 +431,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Check if reset code exists
     if (!user.resetPasswordCode) {
       return res.status(400).json({
         success: false,
@@ -494,7 +438,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Check if code expired
     if (user.resetPasswordCodeExpiry < new Date()) {
       return res.status(400).json({
         success: false,
@@ -502,7 +445,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Check if code matches
     if (user.resetPasswordCode !== resetToken) {
       return res.status(400).json({
         success: false,
@@ -510,7 +452,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Update password and clear reset code
     user.password = newPassword;
     user.resetPasswordCode = undefined;
     user.resetPasswordCodeExpiry = undefined;
@@ -529,14 +470,10 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-// @desc    Update user profile
-// @route   PUT /api/auth/update-profile
-// @access  Private
 export const updateProfile = async (req, res) => {
   try {
     const { fullName, phone, address, city, country } = req.body;
 
-    // Find user
     const user = await User.findById(req.user.id);
 
     if (!user) {
@@ -546,7 +483,6 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Update fields if provided
     if (fullName !== undefined) user.fullName = fullName;
     if (phone !== undefined) user.phone = phone;
     if (address !== undefined) user.address = address;
@@ -582,9 +518,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Change user password
-// @route   PUT /api/auth/change-password
-// @access  Private
 export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -596,7 +529,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Validate new password format
     if (!STRONG_PASSWORD_REGEX.test(newPassword || '')) {
       return res.status(400).json({
         success: false,
@@ -604,7 +536,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Find user with password
     const user = await User.findById(req.user.id).select('+password');
 
     if (!user) {
@@ -614,7 +545,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Check if current password matches
     const isPasswordValid = await user.comparePassword(currentPassword);
 
     if (!isPasswordValid) {
@@ -624,7 +554,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Update password
     user.password = newPassword;
     await user.save();
 

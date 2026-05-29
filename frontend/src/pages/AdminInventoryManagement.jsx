@@ -3,12 +3,10 @@ import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
 
 const AdminInventoryManagement = () => {
-  // State for products
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("products"); // products or orders
-  
-  // Product states
+  const [activeTab, setActiveTab] = useState("products");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [petTypeFilter, setPetTypeFilter] = useState("all");
@@ -17,7 +15,6 @@ const AdminInventoryManagement = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // Orders states
   const [orders, setOrders] = useState([]);
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -42,7 +39,6 @@ const AdminInventoryManagement = () => {
   const [imageFile, setImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // Fetch products on mount
   useEffect(() => {
     fetchProducts();
     fetchOrders();
@@ -122,7 +118,6 @@ const AdminInventoryManagement = () => {
     }
   };
 
-  // Filtered products
   const filteredProducts = useMemo(() => {
     return products
       .filter((p) => {
@@ -138,13 +133,11 @@ const AdminInventoryManagement = () => {
       .filter((p) => statusFilter === "all" || p.status === statusFilter);
   }, [products, searchTerm, categoryFilter, petTypeFilter, statusFilter]);
 
-  // Filtered orders
   const filteredOrders = useMemo(() => {
     if (orderStatusFilter === "all") return orders;
     return orders.filter(o => o.status === orderStatusFilter);
   }, [orders, orderStatusFilter]);
 
-  // Low stock products
   const lowStockProducts = useMemo(() => {
     return products.filter(p => p.isLowStock || (p.stock <= p.lowStockThreshold && p.stock > 0));
   }, [products]);
@@ -206,8 +199,7 @@ const AdminInventoryManagement = () => {
 
     try {
       setUploading(true);
-      
-      // Upload image if new file selected
+
       let imageUrl = productForm.image;
       if (imageFile) {
         imageUrl = await uploadImage();
@@ -235,7 +227,7 @@ const AdminInventoryManagement = () => {
       const token = localStorage.getItem('token');
       const response = await fetch(url, {
         method: editingProduct ? 'PUT' : 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
@@ -271,7 +263,7 @@ const AdminInventoryManagement = () => {
       const token = localStorage.getItem('token');
       const response = await fetch(
         `http://localhost:4000/api/products/${deleteTarget._id}`,
-        { 
+        {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -312,17 +304,14 @@ const AdminInventoryManagement = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Update the selected order in state
         setSelectedOrder(data.data);
-        
-        // Refresh orders list
+
         fetchOrders();
-        
-        // Show success message with email confirmation
-        const statusMsg = newStatus !== selectedOrder.status 
+
+        const statusMsg = newStatus !== selectedOrder.status
           ? `Order status updated to "${newStatus}"`
           : `Payment status updated to "${newPaymentStatus}"`;
-        
+
         alert(`${statusMsg}\n\n✅ Email notification sent to customer!`);
       } else {
         alert(data.message || 'Failed to update order status');
@@ -352,7 +341,6 @@ const AdminInventoryManagement = () => {
         />
 
         <main className="flex-1 p-4 lg:p-8 space-y-4">
-          {/* Tabs */}
           <div className="flex gap-2 border-b border-slate-200">
             <button
               onClick={() => setActiveTab("products")}
@@ -376,7 +364,6 @@ const AdminInventoryManagement = () => {
             </button>
           </div>
 
-          {/* Low Stock Alert */}
           {activeTab === "products" && lowStockProducts.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <div className="flex items-start gap-3">
@@ -400,7 +387,6 @@ const AdminInventoryManagement = () => {
             </div>
           )}
 
-          {/* PRODUCTS TAB */}
           {activeTab === "products" && (
             <>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -461,8 +447,7 @@ const AdminInventoryManagement = () => {
             </div>
           </div>
 
-              {/* Products Table */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 {loading ? (
                   <div className="p-8 text-center text-slate-500">Loading products...</div>
                 ) : (
@@ -586,7 +571,6 @@ const AdminInventoryManagement = () => {
             </>
           )}
 
-          {/* ORDERS TAB */}
           {activeTab === "orders" && (
             <>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -609,7 +593,6 @@ const AdminInventoryManagement = () => {
                 </select>
           </div>
 
-              {/* Orders Table */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-xs">
@@ -709,7 +692,6 @@ const AdminInventoryManagement = () => {
             </>
           )}
 
-          {/* Add/Edit Product Modal */}
           {isProductModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto py-8">
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 my-8">
@@ -727,7 +709,6 @@ const AdminInventoryManagement = () => {
 
                 <form onSubmit={handleSaveProduct} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Left Column */}
                     <div className="space-y-3">
                     <div>
                         <label className="block mb-1 text-sm font-medium text-slate-700">
@@ -813,7 +794,6 @@ const AdminInventoryManagement = () => {
                       </div>
                       </div>
 
-                      {/* Discount */}
                       <div>
                         <label className="block mb-1 text-sm font-medium text-slate-700">
                           Offer Discount
@@ -904,7 +884,6 @@ const AdminInventoryManagement = () => {
                           >
                             <option value="Available">Available</option>
                             <option value="Unavailable">Unavailable</option>
-                            {/* Only show "Out of Stock" option when editing an existing product */}
                             {editingProduct && <option value="Out of Stock">Out of Stock</option>}
                       </select>
                           <p className="text-xs text-slate-500 mt-1">
@@ -914,7 +893,6 @@ const AdminInventoryManagement = () => {
                       </div>
                   </div>
 
-                    {/* Right Column */}
                     <div className="space-y-3">
                     <div>
                         <label className="block mb-1 text-sm font-medium text-slate-700">
@@ -974,7 +952,6 @@ const AdminInventoryManagement = () => {
             </div>
           )}
 
-          {/* Delete Product Confirmation */}
           {deleteTarget && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
@@ -1004,7 +981,6 @@ const AdminInventoryManagement = () => {
             </div>
           )}
 
-          {/* Order Details Modal */}
           {isOrderModalOpen && selectedOrder && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto py-8">
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 my-8">
@@ -1021,7 +997,6 @@ const AdminInventoryManagement = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {/* Customer Info */}
                   <div className="bg-slate-50 rounded-lg p-4">
                     <h4 className="font-semibold text-sm text-slate-900 mb-2">Customer Information</h4>
                     <div className="text-sm space-y-1">
@@ -1032,7 +1007,6 @@ const AdminInventoryManagement = () => {
                     </div>
                   </div>
 
-                  {/* Order Items */}
                   <div>
                     <h4 className="font-semibold text-sm text-slate-900 mb-2">Order Items</h4>
                     <div className="space-y-2">
@@ -1066,7 +1040,6 @@ const AdminInventoryManagement = () => {
                     </div>
                   </div>
 
-                  {/* Order Status */}
                   <div className="bg-slate-50 rounded-lg p-4">
                     <h4 className="font-semibold text-sm text-slate-900 mb-3">Update Order Status</h4>
                     <div className="grid grid-cols-2 gap-3">
@@ -1113,7 +1086,7 @@ const AdminInventoryManagement = () => {
                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
                           disabled={selectedOrder.paymentStatus === 'Failed' || selectedOrder.paymentStatus === 'Refunded' || selectedOrder.paymentStatus === 'Unpaid'}
                           title={
-                            selectedOrder.paymentStatus === 'Failed' 
+                            selectedOrder.paymentStatus === 'Failed'
                               ? 'Failed payment status is locked and cannot be changed'
                               : selectedOrder.paymentStatus === 'Refunded'
                               ? 'Refunded payment status is locked and cannot be changed'
@@ -1122,7 +1095,6 @@ const AdminInventoryManagement = () => {
                               : ''
                           }
                         >
-                          {/* Pending can change to any status */}
                           {selectedOrder.paymentStatus === 'Pending' && (
                             <>
                               <option value="Pending">Pending</option>
@@ -1131,26 +1103,22 @@ const AdminInventoryManagement = () => {
                               <option value="Refunded">Refunded (Auto-returns order)</option>
                             </>
                           )}
-                          
-                          {/* Paid can only change to Refunded */}
+
                           {selectedOrder.paymentStatus === 'Paid' && (
                             <>
                               <option value="Paid">Paid</option>
                               <option value="Refunded">Refunded (Auto-returns order)</option>
                             </>
                           )}
-                          
-                          {/* Failed is locked */}
+
                           {selectedOrder.paymentStatus === 'Failed' && (
                             <option value="Failed">Failed (Locked)</option>
                           )}
-                          
-                          {/* Refunded is locked */}
+
                           {selectedOrder.paymentStatus === 'Refunded' && (
                             <option value="Refunded">Refunded (Locked)</option>
                           )}
-                          
-                          {/* Unpaid is locked (auto-set for cancelled orders) */}
+
                           {selectedOrder.paymentStatus === 'Unpaid' && (
                             <option value="Unpaid">Unpaid (Locked)</option>
                           )}
@@ -1159,7 +1127,6 @@ const AdminInventoryManagement = () => {
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="flex justify-end pt-4 border-t border-slate-200">
                     <button
                       onClick={closeModals}

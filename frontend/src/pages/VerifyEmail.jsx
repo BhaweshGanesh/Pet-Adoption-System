@@ -21,12 +21,11 @@ const VerifyEmail = () => {
 
   const handleCodeChange = (index, value) => {
     if (value.length > 1) return;
-    
+
     const newCode = [...verificationCode];
     newCode[index] = value;
     setVerificationCode(newCode);
 
-    // Auto-focus next input
     if (value && index < 5) {
       document.getElementById(`code-${index + 1}`)?.focus();
     }
@@ -44,7 +43,7 @@ const VerifyEmail = () => {
     setSuccess(false);
 
     const code = verificationCode.join('');
-    
+
     if (code.length !== 6) {
       setError('Please enter all 6 digits');
       return;
@@ -70,13 +69,11 @@ const VerifyEmail = () => {
         throw new Error(data.message || 'Verification failed');
       }
 
-      // Store token and user data
       localStorage.setItem('token', data.data.token);
       localStorage.setItem('user', JSON.stringify(data.data.user));
 
       setSuccess(true);
 
-      // Redirect to login page after success
       setTimeout(() => {
         navigate('/login');
       }, 2000);
@@ -117,7 +114,6 @@ const VerifyEmail = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center px-6 py-12">
       <div className="max-w-md w-full">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">📧</div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -130,7 +126,6 @@ const VerifyEmail = () => {
           </p>
         </div>
 
-        {/* Success Message */}
         {success && (
           <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center space-x-3 animate-bounce">
             <div className="text-2xl">✅</div>
@@ -141,7 +136,6 @@ const VerifyEmail = () => {
           </div>
         )}
 
-        {/* Error Message */}
         {error && (
           <div className="mb-6 bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-center space-x-3">
             <div className="text-2xl">❌</div>
@@ -152,10 +146,8 @@ const VerifyEmail = () => {
           </div>
         )}
 
-        {/* Verification Form */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Code Input */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-4 text-center">
                 Enter Verification Code
@@ -177,7 +169,6 @@ const VerifyEmail = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -197,7 +188,6 @@ const VerifyEmail = () => {
             </button>
           </form>
 
-          {/* Resend Code */}
           <div className="mt-6 text-center">
             <p className="text-gray-600 text-sm mb-2">
               Didn't receive the code?
@@ -211,7 +201,6 @@ const VerifyEmail = () => {
             </button>
           </div>
 
-          {/* Info */}
           <div className="mt-6 p-4 bg-orange-50 rounded-xl">
             <p className="text-sm text-gray-600 text-center">
               ⏰ Code expires in 10 minutes
@@ -219,7 +208,6 @@ const VerifyEmail = () => {
           </div>
         </div>
 
-        {/* Back to Signup */}
         <div className="mt-6 text-center">
           <button
             onClick={() => navigate('/signup')}

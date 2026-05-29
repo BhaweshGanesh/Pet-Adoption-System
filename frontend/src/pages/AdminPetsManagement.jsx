@@ -3,11 +3,8 @@ import { useEffect } from 'react';
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
 
-
-
-
 const AdminPetsManagement = () => {
-  const [activeTab, setActiveTab] = useState("pets"); // pets or adoptions
+  const [activeTab, setActiveTab] = useState("pets");
   const [pets, setPets] = useState([]);
   const [adoptionRequests, setAdoptionRequests] = useState([]);
   const [_loading, setLoading] = useState(true);
@@ -94,7 +91,7 @@ const AdminPetsManagement = () => {
 
       if (data.success) {
         alert(data.message);
-        fetchPets(); // Refresh the list
+        fetchPets();
         setDeleteTarget(null);
       } else {
         alert(data.message || 'Failed to delete pet');
@@ -171,7 +168,7 @@ const AdminPetsManagement = () => {
       image: pet.image,
       size: pet.size || "Medium",
       vaccinated: pet.vaccinated !== undefined ? pet.vaccinated : false,
-      vaccinations: pet.vaccinations && pet.vaccinations.length > 0 
+      vaccinations: pet.vaccinations && pet.vaccinations.length > 0
         ? pet.vaccinations.map(v => ({
             ...v,
             date: v.date ? new Date(v.date).toISOString().split('T')[0] : '',
@@ -194,7 +191,7 @@ const AdminPetsManagement = () => {
     if (!file) return;
     const previewUrl = URL.createObjectURL(file);
     setImagePreview(previewUrl);
-    setImageFile(file); // Store the actual file for upload
+    setImageFile(file);
   };
 
   const handleVaccinationChange = (index, field, value) => {
@@ -216,7 +213,6 @@ const AdminPetsManagement = () => {
       return;
     }
 
-    // Check if vaccinated checkbox is ticked and at least one vaccine is completed
     const anyVaccineCompleted = form.vaccinations.some(v => v.status === 'completed');
     const isVaccinated = form.vaccinated && anyVaccineCompleted;
 
@@ -229,7 +225,6 @@ const AdminPetsManagement = () => {
       setUploading(true);
       let imageUrl = form.image;
 
-      // Upload image to Cloudinary if a new file is selected
       if (imageFile) {
         const formData = new FormData();
         formData.append('image', imageFile);
@@ -250,11 +245,10 @@ const AdminPetsManagement = () => {
         }
       }
 
-      // Save pet with the Cloudinary image URL
       const url = editingPet
         ? `http://localhost:4000/api/pets/${editingPet._id}`
         : 'http://localhost:4000/api/pets';
-      
+
       const method = editingPet ? 'PUT' : 'POST';
       const token = localStorage.getItem('token');
 
@@ -271,7 +265,7 @@ const AdminPetsManagement = () => {
 
       if (data.success) {
         alert(data.message);
-        fetchPets(); // Refresh the list
+        fetchPets();
         setIsPetModalOpen(false);
         setEditingPet(null);
         setImageFile(null);
@@ -290,8 +284,6 @@ const AdminPetsManagement = () => {
     setDeleteTarget(pet);
   };
 
-  
-
   const closeModals = () => {
     setIsPetModalOpen(false);
     setEditingPet(null);
@@ -299,8 +291,6 @@ const AdminPetsManagement = () => {
     setImageFile(null);
     setImagePreview("");
   };
-
-  
 
   return (
         <div className="min-h-screen bg-[#fff7f0] flex">
@@ -313,8 +303,7 @@ const AdminPetsManagement = () => {
         />
 
         <main className="flex-1 p-4 lg:p-8 space-y-4">
-          
-          {/* Tab Switcher */}
+
           <div className="flex gap-2 border-b border-slate-200 pb-2">
             <button
               onClick={() => setActiveTab("pets")}
@@ -343,7 +332,6 @@ const AdminPetsManagement = () => {
             </button>
           </div>
 
-          {/* Pets Tab Content */}
           {activeTab === "pets" && (
             <>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -351,7 +339,7 @@ const AdminPetsManagement = () => {
               <h2 className="text-lg font-semibold text-slate-900">
                 Manage available pets for adoption and hostel.
               </h2>
-              
+
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -376,7 +364,6 @@ const AdminPetsManagement = () => {
             </div>
           </div>
 
-          {/* Pets table */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full text-xs">
@@ -470,7 +457,6 @@ const AdminPetsManagement = () => {
             </div>
           </div>
 
-          {/* Add/Edit pet modal */}
           {isPetModalOpen && (
             <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 overflow-y-auto py-8">
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 lg:p-8 my-8">
@@ -757,7 +743,6 @@ const AdminPetsManagement = () => {
             </>
           )}
 
-          {/* Adoption Requests Tab Content */}
           {activeTab === "adoptions" && (
             <>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -784,7 +769,6 @@ const AdminPetsManagement = () => {
                 </div>
               </div>
 
-              {/* Adoption Requests Table */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-xs">
@@ -884,7 +868,6 @@ const AdminPetsManagement = () => {
             </>
           )}
 
-          {/* Adoption Details Modal */}
           {isAdoptionModalOpen && selectedAdoption && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 overflow-y-auto py-8">
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6 my-8">
@@ -904,7 +887,6 @@ const AdminPetsManagement = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Applicant Information */}
                   <div className="space-y-4">
                     <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
                       Applicant Information
@@ -939,7 +921,6 @@ const AdminPetsManagement = () => {
                     </div>
                   </div>
 
-                  {/* Pet & Lifestyle Information */}
                   <div className="space-y-4">
                     <h4 className="font-semibold text-slate-900 text-sm border-b pb-2">
                       Pet & Lifestyle Details
@@ -965,7 +946,6 @@ const AdminPetsManagement = () => {
                   </div>
                 </div>
 
-                {/* Reason for Adoption */}
                 <div className="mt-6">
                   <h4 className="font-semibold text-slate-900 text-sm border-b pb-2 mb-2">
                     Why They Want to Adopt
@@ -975,7 +955,6 @@ const AdminPetsManagement = () => {
                   </p>
                 </div>
 
-                {/* Status & Actions */}
                 <div className="mt-6 pt-6 border-t border-slate-200">
                   <div className="flex flex-col sm:flex-row gap-3">
                     {selectedAdoption.status === 'pending' && (
@@ -988,7 +967,7 @@ const AdminPetsManagement = () => {
                                 `http://localhost:4000/api/adoptions/${selectedAdoption._id}/status`,
                                 {
                                   method: 'PUT',
-                                  headers: { 
+                                  headers: {
                                     'Content-Type': 'application/json',
                                     'Authorization': `Bearer ${token}`,
                                   },
@@ -998,8 +977,8 @@ const AdminPetsManagement = () => {
                               const data = await response.json();
                               if (data.success) {
                                 alert('✅ Application approved! The applicant will receive an email with pickup details. The pet status has been updated to Unavailable.');
-                                fetchAdoptionRequests(); // Refresh adoption requests
-                                fetchPets(); // Refresh pets list to show updated status
+                                fetchAdoptionRequests();
+                                fetchPets();
                                 setIsAdoptionModalOpen(false);
                               }
                             } catch (error) {
@@ -1020,7 +999,7 @@ const AdminPetsManagement = () => {
                                 `http://localhost:4000/api/adoptions/${selectedAdoption._id}/status`,
                                 {
                                   method: 'PUT',
-                                  headers: { 
+                                  headers: {
                                     'Content-Type': 'application/json',
                                     'Authorization': `Bearer ${token}`,
                                   },
@@ -1030,8 +1009,8 @@ const AdminPetsManagement = () => {
                               const data = await response.json();
                               if (data.success) {
                                 alert('Application rejected. The pet status has been updated to Available for other adopters.');
-                                fetchAdoptionRequests(); // Refresh adoption requests
-                                fetchPets(); // Refresh pets list to show updated status
+                                fetchAdoptionRequests();
+                                fetchPets();
                                 setIsAdoptionModalOpen(false);
                               }
                             } catch (error) {
@@ -1063,8 +1042,8 @@ const AdminPetsManagement = () => {
                           const data = await response.json();
                           if (data.success) {
                             alert('Application deleted successfully. If it was pending, the pet is now available again.');
-                            fetchAdoptionRequests(); // Refresh adoption requests
-                            fetchPets(); // Refresh pets list to show updated status
+                            fetchAdoptionRequests();
+                            fetchPets();
                             setIsAdoptionModalOpen(false);
                           }
                         } catch (error) {
@@ -1082,7 +1061,6 @@ const AdminPetsManagement = () => {
             </div>
           )}
 
-          {/* Delete confirmation */}
           {deleteTarget && (
             <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5">

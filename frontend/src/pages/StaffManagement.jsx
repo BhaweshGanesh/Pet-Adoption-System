@@ -26,7 +26,6 @@ const StaffManagement = () => {
   const [newPassword, setNewPassword] = useState('');
 
   useEffect(() => {
-    // Check if user is admin
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.role !== 'admin') {
       navigate('/access-denied');
@@ -257,7 +256,6 @@ const StaffManagement = () => {
             <p className="text-slate-600 mt-1">Manage staff members and their access</p>
           </div>
 
-          {/* Search and Filters */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
@@ -289,7 +287,6 @@ const StaffManagement = () => {
             </div>
           </div>
 
-          {/* Staff Table */}
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
             {loading ? (
               <div className="p-12 text-center">
@@ -395,7 +392,6 @@ const StaffManagement = () => {
         </main>
       </div>
 
-      {/* Add Staff Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -503,7 +499,6 @@ const StaffManagement = () => {
         </div>
       )}
 
-      {/* Edit Staff Modal */}
       {showEditModal && selectedStaff && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -610,7 +605,6 @@ const StaffManagement = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteModal && selectedStaff && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full">
@@ -641,7 +635,6 @@ const StaffManagement = () => {
         </div>
       )}
 
-      {/* Reset Password Modal */}
       {showPasswordModal && selectedStaff && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full">

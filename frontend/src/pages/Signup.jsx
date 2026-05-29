@@ -62,10 +62,8 @@ const Signup = () => {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Show success message
       setSuccess(true);
-      
-      // Redirect to verification page after 2 seconds
+
       setTimeout(() => {
         navigate('/verify-email', {
           state: {
@@ -86,10 +84,8 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex flex-col">
-      {/* Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
               <span className="text-2xl">🐾</span>
@@ -99,7 +95,6 @@ const Signup = () => {
             </span>
           </Link>
 
-          {/* Back to Home */}
           <Link
             to="/"
             className="text-gray-900 font-medium hover:text-orange-500 transition-colors"
@@ -109,10 +104,8 @@ const Signup = () => {
         </div>
       </nav>
 
-      {/* Signup Form Section */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="max-w-md w-full">
-          {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
               Join Us Today! 🎉
@@ -122,18 +115,16 @@ const Signup = () => {
             </p>
           </div>
 
-          {/* Success Message */}
           {success && (
             <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center space-x-3 animate-bounce">
               <div className="text-2xl">✅</div>
               <div>
-                
+
                 <p className="text-green-600 text-sm">Check your email for verification code...</p>
               </div>
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-center space-x-3">
               <div className="text-2xl">❌</div>
@@ -144,10 +135,8 @@ const Signup = () => {
             </div>
           )}
 
-          {/* Signup Card */}
           <div className="bg-white rounded-3xl shadow-2xl p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Full Name Input */}
               <div>
                 <label
                   htmlFor="fullName"
@@ -167,7 +156,6 @@ const Signup = () => {
                 />
               </div>
 
-              {/* Email Input */}
               <div>
                 <label
                   htmlFor="email"
@@ -187,7 +175,6 @@ const Signup = () => {
                 />
               </div>
 
-              {/* Password Input */}
               <div>
                 <label
                   htmlFor="password"
@@ -224,7 +211,6 @@ const Signup = () => {
                 </p>
               </div>
 
-              {/* Confirm Password Input */}
               <div>
                 <label
                   htmlFor="confirmPassword"
@@ -267,7 +253,6 @@ const Signup = () => {
                 )}
               </div>
 
-              {/* Terms and Conditions */}
               <div className="flex items-start">
                 <input
                   type="checkbox"
@@ -286,7 +271,6 @@ const Signup = () => {
                 </span>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -305,10 +289,8 @@ const Signup = () => {
                 )}
               </button>
 
-              
             </form>
 
-            {/* Login Link */}
             <div className="mt-6 text-center">
               <p className="text-gray-600">
                 Already have an account?{' '}
@@ -319,7 +301,6 @@ const Signup = () => {
             </div>
           </div>
 
-          {/* Decorative Elements */}
           <div className="mt-8 flex justify-center space-x-4">
             <div className="text-4xl animate-bounce">🐕</div>
             <div className="text-4xl animate-bounce" style={{ animationDelay: '0.1s' }}>🐱</div>

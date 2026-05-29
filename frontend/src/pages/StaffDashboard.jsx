@@ -1,4 +1,3 @@
-// src/pages/StaffDashboard.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import StaffNavbar from "../components/StaffNavbar";
@@ -6,20 +5,16 @@ import StaffNavbar from "../components/StaffNavbar";
 const StaffDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
       <StaffNavbar />
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Staff Dashboard</h1>
           <p className="text-lg text-gray-600">Welcome! Manage hostel rooms and bookings.</p>
         </div>
 
-        {/* Quick Access Cards */}
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Rooms Card */}
-          <Link 
+          <Link
             to="/staff-rooms"
             className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow"
           >
@@ -40,8 +35,7 @@ const StaffDashboard = () => {
             </div>
           </Link>
 
-          {/* Bookings Card */}
-          <Link 
+          <Link
             to="/staff-bookings"
             className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow"
           >
@@ -63,7 +57,6 @@ const StaffDashboard = () => {
           </Link>
         </div>
 
-        {/* Info Section */}
         <div className="mt-12 bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
           <h3 className="text-xl font-bold text-gray-900 mb-4">Staff Access Information</h3>
           <div className="space-y-3 text-gray-700">
@@ -79,7 +72,7 @@ const StaffDashboard = () => {
               <span className="text-green-500 mr-3">✓</span>
               <span>You can update booking statuses (Check-in/Check-out)</span>
             </div>
-            
+
           </div>
         </div>
       </main>

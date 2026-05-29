@@ -3,7 +3,6 @@ import { lazy, Suspense } from 'react';
 import ProtectedRoute from './components/ProtectedRoute';
 import SessionChecker from './components/SessionChecker';
 
-// Lazy load all pages - only downloaded when user visits that route
 const LandingPage = lazy(() => import('./pages/landingpage'));
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
@@ -54,7 +53,6 @@ function App() {
       <SessionChecker />
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -68,11 +66,9 @@ function App() {
           <Route path="/access-denied" element={<AccessDenied />} />
           <Route path="/payment-callback" element={<PaymentCallback />} />
 
-          {/* Semi-Protected Routes */}
           <Route path="/pet-details/:id" element={<ProtectedRoute requireAuth={true}><PetDetails /></ProtectedRoute>} />
           <Route path="/product/:id" element={<ProtectedRoute requireAuth={true}><ProductDetails /></ProtectedRoute>} />
 
-          {/* User Routes */}
           <Route path="/user-profile" element={<ProtectedRoute requireAuth={true}><UserProfile /></ProtectedRoute>} />
           <Route path="/adopt/:id" element={<ProtectedRoute requireAuth={true}><AdoptionForm /></ProtectedRoute>} />
           <Route path="/cart" element={<ProtectedRoute requireAuth={true}><Cart /></ProtectedRoute>} />
@@ -83,7 +79,6 @@ function App() {
           <Route path="/my-orders" element={<ProtectedRoute requireAuth={true}><MyOrders /></ProtectedRoute>} />
           <Route path="/my-adoptions" element={<ProtectedRoute requireAuth={true}><MyAdoptions /></ProtectedRoute>} />
 
-          {/* Admin Routes */}
           <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin-profile" element={<ProtectedRoute allowedRoles={['admin']}><AdminProfile /></ProtectedRoute>} />
           <Route path="/admin-pets-management" element={<ProtectedRoute allowedRoles={['admin']}><AdminPetsManagement /></ProtectedRoute>} />
@@ -93,7 +88,6 @@ function App() {
           <Route path="/vaccinations/:id" element={<ProtectedRoute allowedRoles={['admin', 'staff', 'user']}><VaccinationDetails /></ProtectedRoute>} />
           <Route path="/admin-staff-management" element={<ProtectedRoute allowedRoles={['admin']}><StaffManagement /></ProtectedRoute>} />
 
-          {/* Staff & Admin Routes */}
           <Route path="/staff-dashboard" element={<ProtectedRoute allowedRoles={['staff', 'admin']}><StaffDashboard /></ProtectedRoute>} />
           <Route path="/staff-rooms" element={<ProtectedRoute allowedRoles={['staff', 'admin']}><StaffRooms /></ProtectedRoute>} />
           <Route path="/staff-bookings" element={<ProtectedRoute allowedRoles={['staff', 'admin']}><StaffBookings /></ProtectedRoute>} />

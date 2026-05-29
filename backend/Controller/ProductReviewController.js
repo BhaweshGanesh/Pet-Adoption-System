@@ -4,7 +4,6 @@ import ProductReview from '../model/ProductReviewmodel.js';
 const userMatches = (reviewUserId, reqUserId) =>
   reviewUserId?.toString() === reqUserId?.toString();
 
-// GET /api/products/:productId/reviews
 export const getProductReviews = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -31,7 +30,6 @@ export const getProductReviews = async (req, res) => {
   }
 };
 
-// POST /api/products/:productId/reviews
 export const createProductReview = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -95,7 +93,6 @@ export const createProductReview = async (req, res) => {
   }
 };
 
-// PUT /api/products/:productId/reviews/:reviewId
 export const updateProductReview = async (req, res) => {
   try {
     const { productId, reviewId } = req.params;
@@ -154,7 +151,6 @@ export const updateProductReview = async (req, res) => {
   }
 };
 
-// DELETE /api/products/:productId/reviews/:reviewId
 export const deleteProductReview = async (req, res) => {
   try {
     const { productId, reviewId } = req.params;

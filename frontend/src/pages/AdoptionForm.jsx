@@ -6,10 +6,9 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const AdoptionForm = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // pet id from URL
+  const { id } = useParams();
   const location = useLocation();
 
-  // Data passed from PetDetails via navigate state
   const petName = location.state?.petName || "Selected Pet";
   const petImage = location.state?.petImage || "/photo/golden-retriever.avif";
 
@@ -145,7 +144,6 @@ const AdoptionForm = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fff7f0] to-[#ffe8d6] flex flex-col">
-      {/* Header with pet info */}
       <header className="w-full px-6 lg:px-16 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
@@ -172,7 +170,6 @@ const AdoptionForm = () => {
 
       <main className="flex-1 flex items-start justify-center px-4 lg:px-16 pb-10">
         <div className="w-full max-w-5xl bg-white/95 shadow-xl rounded-3xl p-5 lg:p-8">
-          {/* Pet thumbnail */}
           <div className="flex items-center gap-3 mb-6">
             <img
               src={petImage}
@@ -188,7 +185,6 @@ const AdoptionForm = () => {
           </div>
 
           {submitted ? (
-            // Success state
             <div className="border border-green-200 bg-green-50 rounded-2xl p-6 text-center">
               <h2 className="text-lg font-semibold text-slate-900 mb-2">
                 Application Submitted!
@@ -206,11 +202,8 @@ const AdoptionForm = () => {
               </button>
             </div>
           ) : (
-            // Form
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Two columns on desktop */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left: User Info */}
                 <div className="space-y-4">
                   <h2 className="text-sm font-semibold text-slate-900">
                     Your Information
@@ -335,7 +328,6 @@ const AdoptionForm = () => {
                   </div>
                 </div>
 
-                {/* Right: Pet ownership info */}
                 <div className="space-y-4">
                   <h2 className="text-sm font-semibold text-slate-900">
                     Pet Ownership Details
@@ -475,7 +467,6 @@ const AdoptionForm = () => {
                 </div>
               </div>
 
-              {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 justify-end pt-2">
                 <button
                   type="button"

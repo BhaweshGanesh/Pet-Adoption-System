@@ -5,7 +5,6 @@ import UserNavbar from "../components/UserNavbar";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
-// Nepal mobile: 10 digits starting with 97 or 98
 const NEPAL_PHONE_REGEX = /^(97|98)\d{8}$/;
 
 const Checkout = () => {
@@ -124,7 +123,6 @@ const Checkout = () => {
       try {
         setLoading(true);
 
-        // Step 1: Create order with pending payment status
         const orderData = {
           customer: {
             name: formData.name,
@@ -162,9 +160,7 @@ const Checkout = () => {
 
         const orderId = data.data._id;
 
-        // Step 2: Initiate Khalti payment — redirects to pay.khalti.com
         await initiateKhaltiOrderPayment(orderId, token);
-        // execution stops here because browser navigates away
 
       } catch (error) {
         console.error('Error placing order:', error);
@@ -174,7 +170,6 @@ const Checkout = () => {
       return;
     }
 
-    // Cash on Delivery
     try {
       setLoading(true);
 
@@ -242,7 +237,6 @@ const Checkout = () => {
 
           <form onSubmit={handlePlaceOrder}>
             <div className="grid lg:grid-cols-3 gap-8">
-              {/* Billing Information */}
               <div className="lg:col-span-2 space-y-6">
                 <div className="bg-white rounded-2xl border border-slate-100 p-6">
                   <h2 className="text-xl font-bold text-slate-900 mb-4">Customer Information</h2>
@@ -331,7 +325,6 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* Payment Method */}
                 <div className="bg-white rounded-2xl border border-slate-100 p-6">
                   <h2 className="text-xl font-bold text-slate-900 mb-4">Payment Method</h2>
 
@@ -384,7 +377,6 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* Order Notes */}
                 <div className="bg-white rounded-2xl border border-slate-100 p-6">
                   <h2 className="text-xl font-bold text-slate-900 mb-4">Order Notes (Optional)</h2>
                   <textarea
@@ -398,7 +390,6 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Order Summary */}
               <div className="lg:col-span-1">
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 sticky top-24">
                   <h2 className="text-xl font-bold text-slate-900 mb-4">Order Summary</h2>

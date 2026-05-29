@@ -1,4 +1,3 @@
-// src/pages/StaffBookings.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import StaffNavbar from "../components/StaffNavbar";
@@ -13,15 +12,13 @@ const StaffBookings = () => {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
 
-  // Notification state
   const [notification, setNotification] = useState({
     show: false,
-    type: 'success', // 'success' | 'error' | 'info'
+    type: 'success',
     message: '',
     details: ''
   });
 
-  // Show notification function
   const showNotification = (type, message, details = '') => {
     setNotification({
       show: true,
@@ -31,7 +28,6 @@ const StaffBookings = () => {
     });
   };
 
-  // Close notification function
   const closeNotification = () => {
     setNotification({
       ...notification,
@@ -47,14 +43,14 @@ const StaffBookings = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      
+
       const response = await fetch('http://localhost:4000/api/hostel-bookings', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      
+
       const data = await response.json();
 
       if (data.success) {
@@ -81,7 +77,7 @@ const StaffBookings = () => {
 
     try {
       const token = localStorage.getItem('token');
-      
+
       const response = await fetch(
         `http://localhost:4000/api/hostel-bookings/${selectedBooking._id}/status`,
         {
@@ -119,10 +115,9 @@ const StaffBookings = () => {
     }
   };
 
-
   const filteredBookings = bookings.filter((booking) => {
     const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
-    const matchesSearch = 
+    const matchesSearch =
       booking.bookingNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.petDetails?.petName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.room?.roomNumber?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -161,17 +156,14 @@ const StaffBookings = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
       <StaffNavbar />
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Hostel Bookings</h1>
           <p className="text-lg text-gray-600">View and manage booking check-ins and check-outs</p>
         </div>
 
-        {/* Filters */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
@@ -202,7 +194,6 @@ const StaffBookings = () => {
           </div>
         </div>
 
-        {/* Bookings Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -288,7 +279,6 @@ const StaffBookings = () => {
         </div>
       </main>
 
-      {/* Booking Details Modal */}
       {selectedBooking && !isStatusModalOpen && (
         <div className="fixed left-1/2 top-16 -translate-x-1/2 z-50 w-full max-w-2xl px-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-gray-300 shadow-2xl">
@@ -305,7 +295,6 @@ const StaffBookings = () => {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Booking Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Booking Number</p>
@@ -371,7 +360,6 @@ const StaffBookings = () => {
         </div>
       )}
 
-      {/* Update Status Modal */}
       {isStatusModalOpen && selectedBooking && (
         <div className="fixed left-1/2 top-20 -translate-x-1/2 z-50 w-full max-w-md px-4">
           <div className="bg-white rounded-2xl max-w-md w-full border-2 border-gray-300 shadow-2xl">
@@ -428,18 +416,14 @@ const StaffBookings = () => {
         </div>
       )}
 
-      {/* Custom Notification Modal */}
       {notification.show && (
         <div className="fixed left-1/2 top-24 -translate-x-1/2 z-50 w-full max-w-md px-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
-            {/* Content */}
             <div className="p-8">
-              {/* Message */}
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 {notification.message}
               </h3>
 
-              {/* Details with Icon */}
               {notification.details && (
                 <div className="flex items-start gap-2 mb-6">
                   {notification.type === 'success' && (
@@ -469,10 +453,8 @@ const StaffBookings = () => {
                 </div>
               )}
 
-              {/* Divider */}
               <div className="border-t border-gray-200 mb-4"></div>
 
-              {/* Close Button */}
               <button
                 onClick={closeNotification}
                 className="w-full text-center py-3 text-blue-600 font-semibold text-lg hover:bg-gray-50 rounded-lg transition-colors"

@@ -15,8 +15,8 @@ const MyAdoptions = () => {
 
   const fetchAdoptionHistory = async () => {
     try {
-      const token = localStorage.getItem('token');  
-      
+      const token = localStorage.getItem('token');
+
       if (!token) {
         setError('Please log in to view your adoption history');
         setLoading(false);
@@ -27,7 +27,7 @@ const MyAdoptions = () => {
       console.log('🔍 Fetching adoption history...');
       console.log('📍 API URL:', apiUrl);
       console.log('🔑 Token:', token ? `${token.substring(0, 20)}...` : 'No token');
-      
+
       const response = await fetch(apiUrl, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -37,7 +37,7 @@ const MyAdoptions = () => {
 
       console.log('📊 Response status:', response.status);
       console.log('📊 Response ok:', response.ok);
-      
+
       const data = await response.json();
       console.log('📦 Response data:', data);
 
@@ -99,22 +99,19 @@ const MyAdoptions = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
       <UserNavbar />
-      
+
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">My Adoption History</h1>
           <p className="text-gray-600">Track all your pet adoption applications and their status</p>
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg">
             {error}
           </div>
         )}
 
-        {/* Tabs */}
         <div className="mb-6 flex flex-wrap gap-2 bg-white p-2 rounded-lg shadow-sm">
           <button
             onClick={() => setSelectedTab('all')}
@@ -158,7 +155,6 @@ const MyAdoptions = () => {
           </button>
         </div>
 
-        {/* Adoptions List */}
         {getTabData().length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
             <div className="text-6xl mb-4">🐾</div>
@@ -184,7 +180,6 @@ const MyAdoptions = () => {
                 key={application._id}
                 className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden"
               >
-                {/* Pet Image */}
                 <div className="relative h-48 bg-gray-200">
                   {application.petId?.image ? (
                     <img
@@ -197,7 +192,6 @@ const MyAdoptions = () => {
                       🐾
                     </div>
                   )}
-                  {/* Status Badge */}
                   <div className="absolute top-3 right-3">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
@@ -209,12 +203,11 @@ const MyAdoptions = () => {
                   </div>
                 </div>
 
-                {/* Application Details */}
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-800 mb-2">
                     {application.petId?.name || application.petName}
                   </h3>
-                  
+
                   <div className="space-y-2 text-sm text-gray-600 mb-4">
                     {application.petId?.breed && (
                       <p className="flex items-center">
@@ -247,14 +240,14 @@ const MyAdoptions = () => {
                       <span className="font-semibold text-gray-700">Applied on:</span>{' '}
                       <span className="text-gray-600">{formatDate(application.createdAt)}</span>
                     </p>
-                    
+
                     {application.status === 'approved' && application.reviewedAt && (
                       <p className="text-sm">
                         <span className="font-semibold text-green-700">Approved on:</span>{' '}
                         <span className="text-green-600">{formatDate(application.reviewedAt)}</span>
                       </p>
                     )}
-                    
+
                     {application.status === 'rejected' && application.reviewedAt && (
                       <p className="text-sm">
                         <span className="font-semibold text-red-700">Rejected on:</span>{' '}
@@ -272,7 +265,6 @@ const MyAdoptions = () => {
                     )}
                   </div>
 
-                  {/* Action Button */}
                   {application.status === 'approved' && (
                     <div className="mt-4">
                       <button className="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">
@@ -280,7 +272,7 @@ const MyAdoptions = () => {
                       </button>
                     </div>
                   )}
-                  
+
                   {application.status === 'pending' && (
                     <div className="mt-4">
                       <button className="w-full bg-yellow-100 text-yellow-800 py-2 rounded-lg font-medium border border-yellow-300 cursor-default">

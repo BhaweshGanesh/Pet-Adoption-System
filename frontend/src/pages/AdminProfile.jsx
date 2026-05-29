@@ -8,7 +8,7 @@ const AdminProfile = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   const [profileForm, setProfileForm] = useState({
     fullName: '',
     email: '',
@@ -17,13 +17,13 @@ const AdminProfile = () => {
     city: '',
     country: ''
   });
-  
+
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
-  
+
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -41,13 +41,12 @@ const AdminProfile = () => {
       }
 
       const parsedUser = JSON.parse(userData);
-      
+
       if (parsedUser.role !== 'admin') {
         navigate('/dashboard');
         return;
       }
 
-      // Fetch fresh user data from server
       try {
         const response = await fetch('http://localhost:4000/api/auth/me', {
           headers: {
@@ -58,10 +57,9 @@ const AdminProfile = () => {
         if (response.ok) {
           const data = await response.json();
           const freshUser = data.data.user;
-          
-          // Update localStorage with fresh data
+
           localStorage.setItem('user', JSON.stringify(freshUser));
-          
+
           setUser(freshUser);
           setProfileForm({
             fullName: freshUser.fullName || '',
@@ -72,7 +70,6 @@ const AdminProfile = () => {
             country: freshUser.country || ''
           });
         } else {
-          // If fetch fails, use cached data
           setUser(parsedUser);
           setProfileForm({
             fullName: parsedUser.fullName || '',
@@ -85,7 +82,6 @@ const AdminProfile = () => {
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
-        // Use cached data on error
         setUser(parsedUser);
         setProfileForm({
           fullName: parsedUser.fullName || '',

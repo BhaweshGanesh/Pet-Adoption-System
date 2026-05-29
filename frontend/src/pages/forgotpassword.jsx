@@ -7,7 +7,7 @@ const STRONG_PASSWORD_MESSAGE =
   'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.';
 
 const ForgotPassword = () => {
-  const [step, setStep] = useState(1); // 1 = email input, 2 = code verification, 3 = reset password
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [password, setPassword] = useState('');
@@ -21,10 +21,9 @@ const ForgotPassword = () => {
   const [resetToken, setResetToken] = useState('');
   const navigate = useNavigate();
 
-  // Step 1: Send Reset Code
   const handleSendCode = async () => {
     setError('');
-    
+
     if (!email) {
       setError('Please enter your email address');
       return;
@@ -47,7 +46,7 @@ const ForgotPassword = () => {
         throw new Error(data.message || 'Failed to send reset code');
       }
 
-      setStep(2); // Move to code verification step
+      setStep(2);
     } catch (err) {
       setError(err.message || 'Failed to send reset code');
     } finally {
@@ -55,15 +54,13 @@ const ForgotPassword = () => {
     }
   };
 
-  // Step 2: Verify Code
   const handleCodeChange = (index, value) => {
     if (value.length > 1) return;
-    
+
     const newCode = [...verificationCode];
     newCode[index] = value;
     setVerificationCode(newCode);
 
-    // Auto-focus next input
     if (value && index < 5) {
       document.getElementById(`code-${index + 1}`)?.focus();
     }
@@ -80,7 +77,7 @@ const ForgotPassword = () => {
     setSuccess(false);
 
     const code = verificationCode.join('');
-    
+
     if (code.length !== 6) {
       setError('Please enter all 6 digits');
       return;
@@ -106,9 +103,8 @@ const ForgotPassword = () => {
         throw new Error(data.message || 'Verification failed');
       }
 
-      // Store reset token for password reset
       setResetToken(data.data?.resetToken || code);
-      setStep(3); // Move to reset password step
+      setStep(3);
     } catch (err) {
       setError(err.message || 'Verification failed');
     } finally {
@@ -143,7 +139,6 @@ const ForgotPassword = () => {
     }
   };
 
-  // Step 3: Reset Password
   const handleResetPassword = async () => {
     setError('');
     setSuccess(false);
@@ -186,7 +181,6 @@ const ForgotPassword = () => {
 
       setSuccess(true);
 
-      // Redirect to login page after success
       setTimeout(() => {
         navigate('/login');
       }, 2000);
@@ -212,12 +206,10 @@ const ForgotPassword = () => {
   const showConfirmFeedback = confirmPassword.length > 0;
   const passwordsMatch = password === confirmPassword;
 
-  // Step 1: Email Input Page
   if (step === 1) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center px-6 py-12">
         <div className="max-w-md w-full">
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">🔐</div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -228,7 +220,6 @@ const ForgotPassword = () => {
             </p>
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-center space-x-3">
               <div className="text-2xl">❌</div>
@@ -239,10 +230,8 @@ const ForgotPassword = () => {
             </div>
           )}
 
-          {/* Email Form */}
           <div className="bg-white rounded-3xl shadow-2xl p-8">
             <div className="space-y-6">
-              {/* Email Input */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Email Address
@@ -258,7 +247,6 @@ const ForgotPassword = () => {
                 />
               </div>
 
-              {/* Submit Button */}
               <button
                 onClick={handleSendCode}
                 disabled={loading}
@@ -278,7 +266,6 @@ const ForgotPassword = () => {
               </button>
             </div>
 
-            {/* Info */}
             <div className="mt-6 p-4 bg-orange-50 rounded-xl">
               <p className="text-sm text-gray-600 text-center">
                 📧 We'll send a 6-digit code to your email
@@ -286,7 +273,6 @@ const ForgotPassword = () => {
             </div>
           </div>
 
-          {/* Back to Login */}
           <div className="mt-6 text-center">
             <button
               onClick={() => navigate('/login')}
@@ -300,12 +286,10 @@ const ForgotPassword = () => {
     );
   }
 
-  // Step 2: Code Verification Page
   if (step === 2) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center px-6 py-12">
         <div className="max-w-md w-full">
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">📧</div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -318,7 +302,6 @@ const ForgotPassword = () => {
             </p>
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-center space-x-3">
               <div className="text-2xl">❌</div>
@@ -329,10 +312,8 @@ const ForgotPassword = () => {
             </div>
           )}
 
-          {/* Verification Form */}
           <div className="bg-white rounded-3xl shadow-2xl p-8">
             <div className="space-y-6">
-              {/* Code Input */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-4 text-center">
                   Enter Reset Code
@@ -354,7 +335,6 @@ const ForgotPassword = () => {
                 </div>
               </div>
 
-              {/* Submit Button */}
               <button
                 onClick={handleVerifyCode}
                 disabled={loading}
@@ -374,7 +354,6 @@ const ForgotPassword = () => {
               </button>
             </div>
 
-            {/* Resend Code */}
             <div className="mt-6 text-center">
               <p className="text-gray-600 text-sm mb-2">
                 Didn't receive the code?
@@ -388,7 +367,6 @@ const ForgotPassword = () => {
               </button>
             </div>
 
-            {/* Info */}
             <div className="mt-6 p-4 bg-orange-50 rounded-xl">
               <p className="text-sm text-gray-600 text-center">
                 ⏰ Code expires in 10 minutes
@@ -396,7 +374,6 @@ const ForgotPassword = () => {
             </div>
           </div>
 
-          {/* Back Button */}
           <div className="mt-6 text-center">
             <button
               onClick={() => setStep(1)}
@@ -410,11 +387,9 @@ const ForgotPassword = () => {
     );
   }
 
-  // Step 3: Reset Password Page
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center px-6 py-12">
       <div className="max-w-md w-full">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🔑</div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -425,7 +400,6 @@ const ForgotPassword = () => {
           </p>
         </div>
 
-        {/* Success Message */}
         {success && (
           <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center space-x-3 animate-bounce">
             <div className="text-2xl">✅</div>
@@ -436,7 +410,6 @@ const ForgotPassword = () => {
           </div>
         )}
 
-        {/* Error Message */}
         {error && (
           <div className="mb-6 bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-center space-x-3">
             <div className="text-2xl">❌</div>
@@ -447,10 +420,8 @@ const ForgotPassword = () => {
           </div>
         )}
 
-        {/* Reset Password Form */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           <div className="space-y-6">
-            {/* New Password Input */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">
                 New Password
@@ -482,7 +453,6 @@ const ForgotPassword = () => {
               </p>
             </div>
 
-            {/* Confirm Password Input */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">
                 Confirm Password
@@ -519,7 +489,6 @@ const ForgotPassword = () => {
               )}
             </div>
 
-            {/* Submit Button */}
             <button
               onClick={handleResetPassword}
               disabled={loading}
@@ -539,7 +508,6 @@ const ForgotPassword = () => {
             </button>
           </div>
 
-          {/* Info */}
           <div className="mt-6 p-4 bg-orange-50 rounded-xl">
             <p className="text-sm text-gray-600 text-center">
               🔒 Your password will be securely encrypted
@@ -547,7 +515,6 @@ const ForgotPassword = () => {
           </div>
         </div>
 
-        {/* Back to Login */}
         <div className="mt-6 text-center">
           <Link to="/login" className="text-gray-600 hover:text-orange-500 text-sm">
             ← Back to Login

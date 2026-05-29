@@ -18,11 +18,9 @@ import { protect } from '../Middleware/Auth.js';
 
 const router = express.Router();
 
-// Product routes
 router.get('/', getAllProducts);
 router.get('/alerts/low-stock', getLowStockProducts);
 
-// Product reviews (must be before /:id so "reviews" is not parsed as an id)
 router.get('/:productId/reviews', getProductReviews);
 router.post('/:productId/reviews', protect, createProductReview);
 router.put('/:productId/reviews/:reviewId', protect, updateProductReview);

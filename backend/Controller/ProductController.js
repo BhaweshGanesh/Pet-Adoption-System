@@ -1,19 +1,15 @@
 import Product from '../model/Productmodel.js';
 
-// @desc    Get all products
-// @route   GET /api/products
-// @access  Public
 export const getAllProducts = async (req, res) => {
   try {
     const { category, petType, status, search, page, limit } = req.query;
-    
+
     let filter = {};
-    
+
     if (category) filter.category = category;
     if (petType) filter.petType = petType;
     if (status) filter.status = status;
-    
-    // Use text index for search instead of $regex - much faster!
+
     if (search) {
       filter.$text = { $search: search };
     }
@@ -31,7 +27,7 @@ export const getAllProducts = async (req, res) => {
     }
 
     const [products, total] = await Promise.all([
-      query.lean().exec(), // Use lean for faster queries
+      query.lean().exec(),
       Product.countDocuments(filter),
     ]);
 
@@ -53,9 +49,6 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
-// @desc    Get single product
-// @route   GET /api/products/:id
-// @access  Public
 export const getProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -81,9 +74,6 @@ export const getProduct = async (req, res) => {
   }
 };
 
-// @desc    Create new product
-// @route   POST /api/products
-// @access  Private/Admin
 export const createProduct = async (req, res) => {
   try {
     const product = await Product.create(req.body);
@@ -103,12 +93,8 @@ export const createProduct = async (req, res) => {
   }
 };
 
-// @desc    Update product
-// @route   PUT /api/products/:id
-// @access  Private/Admin
 export const updateProduct = async (req, res) => {
   try {
-    // Find the product first
     const product = await Product.findById(req.params.id);
 
     if (!product) {
@@ -118,12 +104,10 @@ export const updateProduct = async (req, res) => {
       });
     }
 
-    // Update fields
     Object.keys(req.body).forEach((key) => {
       product[key] = req.body[key];
     });
 
-    // Save to trigger pre-save middleware for automatic status update
     await product.save();
 
     res.status(200).json({
@@ -141,9 +125,6 @@ export const updateProduct = async (req, res) => {
   }
 };
 
-// @desc    Delete product
-// @route   DELETE /api/products/:id
-// @access  Private/Admin
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
@@ -170,9 +151,6 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// @desc    Get low stock products
-// @route   GET /api/products/alerts/low-stock
-// @access  Private/Admin
 export const getLowStockProducts = async (req, res) => {
   try {
     const products = await Product.find({
@@ -195,9 +173,6 @@ export const getLowStockProducts = async (req, res) => {
   }
 };
 
-// @desc    Update product stock
-// @route   PATCH /api/products/:id/stock
-// @access  Private/Admin
 export const updateStock = async (req, res) => {
   try {
     const { stock } = req.body;

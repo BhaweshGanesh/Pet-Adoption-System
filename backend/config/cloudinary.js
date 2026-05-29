@@ -25,7 +25,6 @@ async function initCloudinary() {
   return cloudinary;
 }
 
-/** Load Cloudinary on first upload/delete — keeps server startup fast. */
 export default function getCloudinary() {
   if (!cloudinaryPromise) {
     cloudinaryPromise = initCloudinary();

@@ -12,7 +12,6 @@ const BrowsePets = () => {
   const [size, setSize] = useState("");
   const [vaccinated, setVaccinated] = useState("");
 
-  // Fetch pets from backend
   useEffect(() => {
     fetchPets();
   }, []);
@@ -22,16 +21,15 @@ const BrowsePets = () => {
       setLoading(true);
       const response = await fetch('http://localhost:4000/api/pets');
       const data = await response.json();
-      
+
       if (data.success) {
-        // Filter only available and booked pets
         const availablePets = data.data.filter(pet => pet.status === 'Available' || pet.status === 'Booked');
-        
+
         const transformedPets = availablePets.map(pet => {
           const vaccinations = pet.vaccinations || [];
           const anyVaccineCompleted = vaccinations.some(v => v.status === 'completed');
           const isVaccinated = pet.vaccinated && anyVaccineCompleted;
-          
+
           return {
             id: pet._id,
             _id: pet._id,
@@ -58,7 +56,6 @@ const BrowsePets = () => {
     }
   };
 
-  // Helper function to parse age string to months
   const parseAgeToMonths = (ageString) => {
     if (!ageString) return 0;
     const lower = ageString.toLowerCase();
@@ -69,7 +66,6 @@ const BrowsePets = () => {
     return unit.startsWith('year') ? value * 12 : value;
   };
 
-  // Define all possible filter options (always visible, matching backend schema)
   const petTypes = ['Dog', 'Cat', 'Rabbit', 'Other'];
   const sizes = ['Small', 'Medium', 'Large'];
   const genders = ['Male', 'Female'];
@@ -127,10 +123,8 @@ const BrowsePets = () => {
 
   return (
     <div className="min-h-screen bg-[#fff7f0] flex flex-col">
-        {/* NAVBAR */}
-      <UserNavbar />
+        <UserNavbar />
 
-      {/* SEARCH BAR */}
       <section className="px-6 lg:px-16 pt-4 pb-2 bg-[#fff7f0]">
         <div className="max-w-xl w-full bg-white border border-orange-100 rounded-full px-4 py-2 flex items-center shadow-sm">
           <span className="text-slate-400 mr-2">🔍</span>
@@ -144,10 +138,8 @@ const BrowsePets = () => {
         </div>
       </section>
 
-      {/* MAIN CONTENT */}
       <div className="flex-1 px-6 lg:px-16 py-4 lg:py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 lg:gap-8 items-start">
-          {/* FILTERS */}
           <aside className="md:col-span-1 bg-[#fffaf4] border border-orange-100 rounded-2xl p-4 shadow-sm md:sticky md:top-28 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-800">Filters</h3>
@@ -159,7 +151,6 @@ const BrowsePets = () => {
               </button>
             </div>
 
-            {/* Pet Type */}
             <div className="pt-3 border-t border-orange-100">
               <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">
                 Pet Type
@@ -180,7 +171,6 @@ const BrowsePets = () => {
               ))}
             </div>
 
-            {/* Gender */}
             <div className="pt-3 border-t border-orange-100">
               <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">
                 Gender
@@ -214,7 +204,6 @@ const BrowsePets = () => {
               </label>
             </div>
 
-            {/* Age */}
             <div className="pt-3 border-t border-orange-100">
               <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">
                 Age
@@ -232,7 +221,6 @@ const BrowsePets = () => {
               </select>
             </div>
 
-            {/* Size */}
             <div className="pt-3 border-t border-orange-100">
               <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">
                 Size
@@ -266,7 +254,6 @@ const BrowsePets = () => {
               </label>
             </div>
 
-            {/* Vaccinated */}
             <div className="pt-3 border-t border-orange-100">
               <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">
                 Vaccinated
@@ -307,7 +294,6 @@ const BrowsePets = () => {
             </div>
           </aside>
 
-          {/* PET CARDS GRID */}
           <main className="md:col-span-3 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">
@@ -359,19 +345,19 @@ const BrowsePets = () => {
                       </p>
                       <p className="flex justify-between gap-2">
                         <span>Gender: {pet.gender}</span>
-                        <span>Size: {pet.size}</span>  
+                        <span>Size: {pet.size}</span>
                       </p>
                       <p className="flex justify-between gap-2">
                         <span>In shelter: {pet.inShelter}</span>
                         <span>
-                          Vaccinated: 
+                          Vaccinated:
                           <span className={`ml-1 font-semibold ${pet.vaccinated ? 'text-green-600' : 'text-amber-600'}`}>
                             {pet.vaccinationStatus}
                           </span>
                         </span>
                       </p>
                       <p className="flex justify-between gap-2">
-                        <span>Status: 
+                        <span>Status:
                           <span className={`ml-1 font-semibold ${pet.status === 'Available' ? 'text-green-600' : 'text-orange-600'}`}>
                             {pet.status}
                           </span>
@@ -390,12 +376,11 @@ const BrowsePets = () => {
                            </Link>
                          )}
                          </div>
-                      
-                     
+
                     </div>
                   </article>
                 ))}
-              </div>                    
+              </div>
             )}
           </main>
         </div>

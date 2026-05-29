@@ -1,4 +1,3 @@
-// src/pages/AccessDenied.jsx
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -10,9 +9,9 @@ const AccessDenied = () => {
       <div className="max-w-md w-full text-center">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-4xl">🚫</span>
+            <span className="text-4xl"></span>
           </div>
-          
+
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Access Denied</h1>
           <p className="text-gray-600 mb-8">
             You don't have permission to access this page.

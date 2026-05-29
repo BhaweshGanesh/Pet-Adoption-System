@@ -4,7 +4,7 @@ import { verifyKhaltiOrderPayment, verifyKhaltiBookingPayment } from "../utils/k
 
 const PaymentCallback = () => {
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState("verifying"); // verifying | success | error | cancelled
+  const [status, setStatus] = useState("verifying");
   const [message, setMessage] = useState("");
   const [orderData, setOrderData] = useState(null);
   const [bookingData, setBookingData] = useState(null);
@@ -49,7 +49,6 @@ const PaymentCallback = () => {
         } else if (orderId) {
           const data = await verifyKhaltiOrderPayment(pidx, orderId, token);
           if (data.success) {
-            // Clear cart since order is paid
             localStorage.removeItem("petshop_cart");
             setOrderData(data.data.order);
             setStatus("success");
@@ -147,7 +146,6 @@ const PaymentCallback = () => {
     );
   }
 
-  // Success
   const isBooking = !!bookingData;
 
   return (
@@ -167,7 +165,6 @@ const PaymentCallback = () => {
           </p>
         </div>
 
-        {/* Details */}
         <div className="bg-slate-50 rounded-2xl p-6 mb-6 text-left">
           {isBooking ? (
             <div className="grid grid-cols-2 gap-4">

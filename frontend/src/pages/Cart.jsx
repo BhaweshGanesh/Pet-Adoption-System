@@ -22,7 +22,7 @@ const Cart = () => {
   };
 
   const updateQuantity = (productId, newQuantity) => {
-    const item = cart.find(item => item._id === productId);    
+    const item = cart.find(item => item._id === productId);
     if (newQuantity > item.stock) {
       alert(`Only ${item.stock} items available`);
       return;
@@ -55,12 +55,11 @@ const Cart = () => {
     }
     return sum;
   }, 0);
-  const shipping = cart.length > 0 ? 100 : 0; // Flat shipping rate
+  const shipping = cart.length > 0 ? 100 : 0;
   const total = subtotal + shipping;
 
   return (
     <div className="min-h-screen bg-[#fff7f0]">
-      {/* NAVBAR */}
       <header className="sticky top-0 z-20 bg-white border-b border-orange-100/80 px-6 lg:px-16 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
@@ -72,15 +71,13 @@ const Cart = () => {
         </div>
 
         <nav className="hidden md:flex gap-6 text-sm text-slate-500">
-         
+
           <Link to="/browse-pets" className="hover:text-slate-900">Browse Pets</Link>
           <Link to="/shop" className="hover:text-slate-900">Shop</Link>
         </nav>
 
-       
       </header>
 
-      {/* BREADCRUMB */}
       <div className="bg-white border-b border-slate-100 px-6 lg:px-16 py-3">
         <div className="flex items-center gap-2 text-sm text-slate-600">
           <Link to="/shop" className="hover:text-orange-500">Shop</Link>
@@ -89,7 +86,6 @@ const Cart = () => {
         </div>
       </div>
 
-      {/* CART CONTENT */}
       <div className="px-6 lg:px-16 py-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-slate-900 mb-8">Shopping Cart</h1>
@@ -108,7 +104,6 @@ const Cart = () => {
             </div>
           ) : (
             <div className="grid lg:grid-cols-3 gap-8">
-              {/* Cart Items */}
               <div className="lg:col-span-2 space-y-4">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-semibold text-slate-900">
@@ -128,7 +123,6 @@ const Cart = () => {
                     className="bg-white rounded-2xl border border-slate-100 p-4 hover:shadow-md transition-shadow"
                   >
                     <div className="flex gap-4">
-                      {/* Product Image */}
                       <Link to={`/product/${item._id}`} className="flex-shrink-0">
                         <div className="w-24 h-24 rounded-xl overflow-hidden bg-slate-50">
                           {item.image ? (
@@ -145,7 +139,6 @@ const Cart = () => {
                         </div>
                       </Link>
 
-                      {/* Product Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between gap-4 mb-2">
                           <div>
@@ -174,7 +167,6 @@ const Cart = () => {
                         </div>
 
                         <div className="flex items-center justify-between mt-3">
-                          {/* Quantity Controls */}
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => updateQuantity(item._id, item.quantity - 1)}
@@ -193,7 +185,6 @@ const Cart = () => {
                             </button>
                           </div>
 
-                          {/* Price */}
                           <div className="text-right">
                             <p className="text-lg font-bold text-orange-500">
                               Rs {item.price * item.quantity}
@@ -215,7 +206,6 @@ const Cart = () => {
                           </div>
                         </div>
 
-                        {/* Stock Warning */}
                         {item.quantity >= item.stock && (
                           <div className="mt-2 px-2 py-1 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700">
                             Maximum quantity reached
@@ -227,7 +217,6 @@ const Cart = () => {
                 ))}
               </div>
 
-              {/* Order Summary */}
               <div className="lg:col-span-1">
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 sticky top-24">
                   <h2 className="text-xl font-bold text-slate-900 mb-4">Order Summary</h2>
