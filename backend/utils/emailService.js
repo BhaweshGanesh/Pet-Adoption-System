@@ -77,7 +77,7 @@ export const sendVerificationEmail = async (email, fullName, verificationCode) =
         <body>
           <div class="container">
             <div class="header">
-              <h1>🐾 Welcome to PetAdopt+!</h1>
+              <h1>Welcome to PetAdopt+!</h1>
             </div>
             <div class="content">
               <h2>Hi ${fullName},</h2>
@@ -93,7 +93,7 @@ export const sendVerificationEmail = async (email, fullName, verificationCode) =
               
               <p>If you didn't create an account with PetAdopt+, please ignore this email.</p>
               
-              <p>Best regards,<br>The PetAdopt+ Team 🐕🐱</p>
+              <p>Best regards,<br>The PetAdopt+ Team</p>
             </div>
             <div class="footer">
               <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
@@ -131,7 +131,7 @@ export const sendWelcomeEmail = async (email, fullName) => {
     const mailOptions = {
       from: `"PetAdopt+" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Welcome to PetAdopt+! 🎉',
+      subject: 'Welcome to PetAdopt+!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -281,7 +281,7 @@ export const sendPasswordResetEmail = async (email, fullName, resetCode) => {
                 <p>If you didn't request a password reset, please ignore this email. Your password will remain unchanged.</p>
               </div>
               
-              <p>Best regards,<br>The PetAdopt+ Team 🐕🐱</p>
+              <p>Best regards,<br>The PetAdopt+ Team</p>
             </div>
             <div class="footer">
               <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
@@ -475,14 +475,14 @@ export const sendHostelBookingConfirmationEmail = async (email, fullName, bookin
               </div>
 
               <div class="pet-box">
-                <h3 style="margin-top: 0; color: #10b981;">🐾 Pet Information</h3>
+                <h3 style="margin-top: 0; color: #10b981;">Pet Information</h3>
                 <p style="margin: 5px 0;"><strong>Name:</strong> ${petName}</p>
                 <p style="margin: 5px 0;"><strong>Type:</strong> ${petType}</p>
                 ${specialInstructions ? `<p style="margin: 5px 0;"><strong>Special Instructions:</strong> ${specialInstructions}</p>` : ''}
               </div>
 
               <div class="facilities-list">
-                <h3 style="margin-top: 0; color: #1f2937;">🎁 Room Facilities</h3>
+                <h3 style="margin-top: 0; color: #1f2937;">Room Facilities</h3>
                 <ul>
                   ${facilitiesList}
                 </ul>
@@ -497,7 +497,7 @@ export const sendHostelBookingConfirmationEmail = async (email, fullName, bookin
               </div>
 
               <div class="success-box">
-                <p style="margin: 0;"><strong>✨ What to Bring on Check-In:</strong></p>
+                <p style="margin: 0;"><strong>What to Bring on Check-In:</strong></p>
                 <ul style="margin: 10px 0 0 0; padding-left: 20px;">
                   <li>Pet's food and favorite toys</li>
                   <li>Vaccination records</li>
@@ -508,7 +508,7 @@ export const sendHostelBookingConfirmationEmail = async (email, fullName, bookin
               
               <p>If you have any questions or need to modify your booking, please don't hesitate to contact us.</p>
               
-              <p>Best regards,<br>The PetAdopt+ Team 🐕🐱</p>
+              <p>Best regards,<br>The PetAdopt+ Team</p>
             </div>
             <div class="footer">
               <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
@@ -537,25 +537,21 @@ export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) 
       'Pending': {
         title: 'Order Received',
         message: 'We have received your order and it is being processed.',
-        icon: '📋',
         color: '#f59e0b'
       },
       'Processing': {
         title: 'Order Processing',
         message: 'Your order is being prepared for shipment.',
-        icon: '📦',
         color: '#3b82f6'
       },
       'Shipped': {
         title: 'Order Shipped',
         message: 'Your order has been shipped and is on its way!',
-        icon: '🚚',
         color: '#8b5cf6'
       },
       'Delivered': {
         title: 'Order Delivered',
         message: 'Your order has been successfully delivered!',
-        icon: '✅',
         color: '#10b981'
       },
       'Cancelled': {
@@ -563,13 +559,12 @@ export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) 
         message: orderDetails.paymentStatus === 'Failed' 
           ? 'Your order has been cancelled due to payment failure. The amount will not be charged, and stock has been restored.'
           : 'Your order has been cancelled. Stock has been restored to our inventory.',
-        icon: '❌',
+        
         color: '#ef4444'
       },
       'Returned': {
         title: 'Order Returned',
         message: 'Your order has been returned and refund has been processed. Stock has been restored to our inventory.',
-        icon: '↩️',
         color: '#6366f1'
       }
     };
@@ -579,7 +574,7 @@ export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) 
     const mailOptions = {
       from: `"PetAdopt+" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: `${statusInfo.icon} Order ${orderDetails.status} - ${orderDetails.orderNumber}`,
+      subject: `Order ${orderDetails.status} - ${orderDetails.orderNumber}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -669,7 +664,7 @@ export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) 
         <body>
           <div class="container">
             <div class="header">
-              <h1>${statusInfo.icon} Order Status Update</h1>
+              <h1>Order Status Update</h1>
             </div>
             <div class="status-banner">
               ${statusInfo.title}
@@ -735,7 +730,7 @@ export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) 
               ${orderDetails.status === 'Delivered' ? `
                 <div style="background: #d1fae5; border: 2px solid #10b981; border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
                   <p style="margin: 0; color: #065f46; font-weight: bold;">
-                    🎉 Thank you for shopping with PetAdopt+! We hope your pets love their new items!
+                     Thank you for shopping with PetAdopt+! We hope your pets love their new items!
                   </p>
                 </div>
               ` : ''}
@@ -743,7 +738,7 @@ export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) 
               ${orderDetails.status === 'Cancelled' ? `
                 <div style="background: #fee2e2; border: 2px solid #ef4444; border-radius: 10px; padding: 15px; margin-top: 20px;">
                   <p style="margin: 0; color: #991b1b; font-weight: bold;">
-                    ⚠️ Order Cancelled
+                     Order Cancelled
                   </p>
                   <p style="margin: 10px 0 0 0; color: #991b1b;">
                     ${orderDetails.paymentStatus === 'Failed' 
@@ -756,7 +751,7 @@ export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) 
               ${orderDetails.status === 'Returned' ? `
                 <div style="background: #ede9fe; border: 2px solid #6366f1; border-radius: 10px; padding: 15px; margin-top: 20px;">
                   <p style="margin: 0; color: #4338ca; font-weight: bold;">
-                    ↩️ Order Returned & Refunded
+                    Order Returned & Refunded
                   </p>
                   <p style="margin: 10px 0 0 0; color: #4338ca;">
                     Your order has been successfully returned. The refund of <strong>Rs ${orderDetails.totalAmount}</strong> has been processed and will be credited to your account within 5-7 business days. Stock has been restored to our inventory.
@@ -766,7 +761,7 @@ export const sendOrderStatusUpdateEmail = async (email, fullName, orderDetails) 
 
               <p style="margin-top: 20px;">If you have any questions about your order, please don't hesitate to contact us.</p>
               
-              <p>Best regards,<br>The PetAdopt+ Team 🐕🐱</p>
+              <p>Best regards,<br>The PetAdopt+ Team</p>
             </div>
             <div class="footer">
               <p>© ${new Date().getFullYear()} PetAdopt+. All rights reserved.</p>
@@ -975,13 +970,13 @@ export const sendOrderConfirmationEmail = async (email, fullName, orderDetails) 
               </table>
 
               <div class="success-box">
-                <p style="margin: 0;"><strong>✨ What's Next?</strong></p>
+                <p style="margin: 0;"><strong>What's Next?</strong></p>
                 <p style="margin: 5px 0 0 0;">We're preparing your order for shipment. You'll receive another email once your order is dispatched with tracking details.</p>
               </div>
               
               <p>If you have any questions about your order, please don't hesitate to contact us.</p>
               
-              <p>Best regards,<br>The PetAdopt+ Team 🐕🐱</p>
+              <p>Best regards,<br>The PetAdopt+ Team</p>
             </div>
             <div class="footer">
               <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
@@ -1099,7 +1094,6 @@ export const sendAdoptionConfirmationEmail = async (email, fullName, adoptionDet
         <body>
           <div class="container">
             <div class="header">
-              <div class="paw-icon">🐾</div>
               <h1>Application Received!</h1>
             </div>
             <div class="content">
@@ -1107,7 +1101,7 @@ export const sendAdoptionConfirmationEmail = async (email, fullName, adoptionDet
               <p>We've received your adoption application and we're excited about your interest in giving a loving pet a forever home!</p>
               
               <div class="pet-box">
-                <div class="pet-name">🐕 ${petName}</div>
+                <div class="pet-name">${petName}</div>
                 
                 <div style="margin: 15px 0;">
                   <div class="info-row">
@@ -1130,13 +1124,13 @@ export const sendAdoptionConfirmationEmail = async (email, fullName, adoptionDet
                   </div>
                   <div class="info-row" style="border-bottom: none;">
                     <span class="info-label">Status:</span>
-                    <span class="status-badge">⏳ ${status.toUpperCase()}</span>
+                    <span class="status-badge">${status.toUpperCase()}</span>
                   </div>
                 </div>
               </div>
 
               <div class="success-box">
-                <p style="margin: 0;"><strong>✨ What's Next?</strong></p>
+                <p style="margin: 0;"><strong>What's Next?</strong></p>
                 <p style="margin: 5px 0 0 0;">
                   Our team is reviewing your application. We'll contact you within 2-3 business days to discuss the next steps. 
                   This may include a phone interview, home visit, and meeting with ${petName}.
@@ -1152,11 +1146,11 @@ export const sendAdoptionConfirmationEmail = async (email, fullName, adoptionDet
               
               <p>If you have any questions or need to update your application, please don't hesitate to contact us.</p>
               
-              <p>Best regards,<br>The PetAdopt+ Team 🐕🐱</p>
+              <p>Best regards,<br>The PetAdopt+ Team</p>
             </div>
             <div class="footer">
               <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
-              <p>Making tails wag and hearts happy! 🐾</p>
+              <p>Making tails wag and hearts happy!</p>
             </div>
           </div>
         </body>
@@ -1189,7 +1183,7 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
     const mailOptions = {
       from: `"PetAdopt+" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: `🎉 Adoption Approved for ${petName} - PetAdopt+`,
+      subject: `Adoption Approved for ${petName} - PetAdopt+`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -1323,7 +1317,7 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
               You're about to give a wonderful pet a loving forever home. </p>
               
               <div class="pet-box">
-                <div class="pet-name">🐕 ${petName}</div>
+                <div class="pet-name">${petName}</div>
                 <div style="margin: 15px 0; text-align: center;">
                   <div class="info-row" style="border-bottom: none; text-align: center;">
                     <span class="info-label">Breed:</span>
@@ -1335,10 +1329,9 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
               </div>
 
               <div class="pickup-section">
-                <div class="pickup-title">📍 Pickup Details</div>
+                <div class="pickup-title">Pickup Details</div>
                 
                 <div class="pickup-detail">
-                  <span class="pickup-icon">📅</span>
                   <div>
                     <span class="pickup-label">Date:</span>
                     <span class="pickup-value">${pickupDate}</span>
@@ -1346,7 +1339,6 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
                 </div>
                 
                 <div class="pickup-detail">
-                  <span class="pickup-icon">🕐</span>
                   <div>
                     <span class="pickup-label">Time:</span>
                     <span class="pickup-value">${pickupTime}</span>
@@ -1354,7 +1346,6 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
                 </div>
                 
                 <div class="pickup-detail">
-                  <span class="pickup-icon">📍</span>
                   <div>
                     <span class="pickup-label">Location:</span>
                     <span class="pickup-value">${pickupLocation}</span>
@@ -1374,7 +1365,7 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
               </div>
 
               <div class="success-box">
-                <p style="margin: 0;"><strong>✨ What Happens Next?</strong></p>
+                <p style="margin: 0;"><strong>What Happens Next?</strong></p>
                 <p style="margin: 5px 0 0 0;">
                   Please arrive at the specified date and time. Our team will have ${petName} ready for you, 
                   along with any medical records, vaccination certificates, and care instructions. 
@@ -1383,7 +1374,7 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
               </div>
 
               <div style="background: #fef3c7; border-radius: 10px; padding: 15px; margin: 20px 0;">
-                <p style="margin: 0; color: #78350f;"><strong>📞 Need to Reschedule?</strong></p>
+                <p style="margin: 0; color: #78350f;"><strong>Need to Reschedule?</strong></p>
                 <p style="margin: 5px 0 0 0; color: #92400e;">
                   Please contact us at least 24 hours in advance if you need to change your pickup time. 
                   We understand that circumstances can change!
@@ -1391,14 +1382,14 @@ export const sendAdoptionApprovalEmail = async (email, fullName, approvalDetails
               </div>
               
               <p style="font-size: 16px; color: #047857; font-weight: bold; text-align: center; margin: 30px 0;">
-                Thank you for choosing to adopt and giving ${petName} a wonderful new home! 🐾
+                Thank you for choosing to adopt and giving ${petName} a wonderful new home!
               </p>
               
-              <p>Warmest regards,<br><strong>The PetAdopt+ Team</strong> 🐕🐱</p>
+              <p>Warmest regards,<br><strong>The PetAdopt+ Team</strong></p>
             </div>
             <div class="footer">
               <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
-              <p>Making tails wag and hearts happy! 🐾</p>
+              <p>Making tails wag and hearts happy!</p>
             </div>
           </div>
         </body>
@@ -1510,14 +1501,14 @@ export const sendAdoptionRejectionEmail = async (email, fullName, rejectionDetai
         <body>
           <div class="container">
             <div class="header">
-              <h1>🐾 Adoption Application Update</h1>
+              <h1>Adoption Application Update</h1>
             </div>
             <div class="content">
               <h2>Dear ${fullName},</h2>
               <p>Thank you for your interest in adopting from PetAdopt+. We appreciate the time and effort you put into your adoption application.</p>
               
               <div class="pet-box">
-                <div class="pet-name">🐕 ${petName}</div>
+                <div class="pet-name">${petName}</div>
                 <div style="margin: 15px 0; text-align: center;">
                   <span class="info-label">Breed:</span> ${petBreed || 'Mixed'}
                   <span class="info-label" style="margin-left: 20px;">Age:</span> ${petAge || 'Unknown'}
@@ -1544,12 +1535,12 @@ export const sendAdoptionRejectionEmail = async (email, fullName, rejectionDetai
 
               <div style="text-align: center; margin: 30px 0;">
                 <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/browse-pets" class="browse-button" style="color: white;">
-                  🐾 Browse Other Pets
+                  Browse Other Pets
                 </a>
               </div>
 
               <div class="info-box">
-                <p style="margin: 0; font-weight: bold; color: #92400e;">💡 Tips for Future Applications:</p>
+                <p style="margin: 0; font-weight: bold; color: #92400e;"> Tips for Future Applications:</p>
                 <ul style="margin: 10px 0; padding-left: 20px; color: #78350f;">
                   <li>Ensure your home environment is suitable for the specific pet type</li>
                   <li>Provide detailed information about your pet care experience</li>
@@ -1560,11 +1551,11 @@ export const sendAdoptionRejectionEmail = async (email, fullName, rejectionDetai
 
               <p>If you have any questions or would like to discuss your application further, please don't hesitate to contact us. We're here to help you find your perfect companion!</p>
               
-              <p>Best regards,<br><strong>The PetAdopt+ Team</strong> 🐕🐱</p>
+              <p>Best regards,<br><strong>The PetAdopt+ Team</strong></p>
             </div>
             <div class="footer">
               <p>&copy; 2024 PetAdopt+. All rights reserved.</p>
-              <p>Making tails wag and hearts happy! 🐾</p>
+              <p>Making tails wag and hearts happy!</p>
             </div>
           </div>
         </body>
@@ -1596,7 +1587,7 @@ export const sendBookingStatusUpdateEmail = async (email, customerName, statusDe
       updateDate
     } = statusDetails;
 
-    let statusColor, statusIcon, statusTitle, statusMessage, actionMessage;
+    let statusColor, statusIcon = '', statusTitle, statusMessage, actionMessage;
 
     switch(status) {
       case 'Confirmed':
@@ -1614,7 +1605,7 @@ export const sendBookingStatusUpdateEmail = async (email, customerName, statusDe
         break;
       case 'Checked-Out':
         statusColor = '#8b5cf6';
-        statusIcon = '👋';
+        statusIcon = '';
         statusTitle = 'Checked Out';
         statusMessage = `${petName} has been checked out. Thank you for choosing our pet hostel service!`;
         actionMessage = 'We hope to see you again soon! Please share your feedback with us.';
@@ -1637,7 +1628,7 @@ export const sendBookingStatusUpdateEmail = async (email, customerName, statusDe
     const mailOptions = {
       from: `"PetAdopt+ Hostel" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: `${statusIcon} ${statusTitle} - Booking #${bookingNumber}`,
+      subject: `${statusTitle} - Booking #${bookingNumber}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -1772,13 +1763,13 @@ export const sendBookingStatusUpdateEmail = async (email, customerName, statusDe
               </div>
 
               <div class="info-box">
-                <p style="margin: 0;"><strong>💡 What's Next?</strong></p>
+                <p style="margin: 0;"><strong>What's Next?</strong></p>
                 <p style="margin: 5px 0 0 0;">${actionMessage}</p>
               </div>
               
               <p>If you have any questions or concerns, please don't hesitate to contact us.</p>
               
-              <p>Best regards,<br><strong>PetAdopt+ Hostel Team</strong> 🐕🐱</p>
+              <p>Best regards,<br><strong>PetAdopt+ Hostel Team</strong></p>
             </div>
             <div class="footer">
               <p>&copy; 2024 PetAdopt+ Hostel Services. All rights reserved.</p>
