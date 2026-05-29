@@ -15,7 +15,7 @@ const MyAdoptions = () => {
 
   const fetchAdoptionHistory = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token');  
       
       if (!token) {
         setError('Please log in to view your adoption history');
