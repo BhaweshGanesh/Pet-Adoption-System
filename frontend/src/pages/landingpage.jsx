@@ -34,9 +34,7 @@ const LandingPage = () => {
             <a href="#services" className="text-gray-900 font-medium hover:text-orange-500 transition-colors">
               Services
             </a>
-            <a href="#about" className="text-gray-900 font-medium hover:text-orange-500 transition-colors">
-              About us
-            </a>
+            
             <Link to="/login" className="text-gray-900 font-medium hover:text-orange-500 transition-colors">
               Log in
             </Link>

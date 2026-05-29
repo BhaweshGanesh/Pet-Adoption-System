@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { getCurrentUser } from "../utils/auth";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -28,6 +29,46 @@ const AdoptionForm = () => {
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [identityLocked, setIdentityLocked] = useState(false);
+
+  const lockedInputClass =
+    "w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-100 text-slate-700 cursor-not-allowed";
+  const editableInputClass =
+    "w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-[1.5px] focus:ring-orange-500";
+
+  useEffect(() => {
+    const applyUserFields = (user) => {
+      if (!user?.email) return;
+      setForm((prev) => ({
+        ...prev,
+        fullName: user.fullName || prev.fullName,
+        email: user.email || prev.email,
+      }));
+      setIdentityLocked(true);
+    };
+
+    applyUserFields(getCurrentUser());
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (data.success && data.data?.user) {
+          localStorage.setItem("user", JSON.stringify(data.data.user));
+          applyUserFields(data.data.user);
+        }
+      } catch (error) {
+        console.error("Error loading user for adoption form:", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -184,7 +225,8 @@ const AdoptionForm = () => {
                       name="fullName"
                       value={form.fullName}
                       onChange={handleChange}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-[1.5px] focus:ring-orange-500"
+                      readOnly={identityLocked}
+                      className={identityLocked ? lockedInputClass : editableInputClass}
                     />
                     {errors.fullName && (
                       <p className="text-[11px] text-red-500 mt-1">
@@ -202,7 +244,8 @@ const AdoptionForm = () => {
                       name="email"
                       value={form.email}
                       onChange={handleChange}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-[1.5px] focus:ring-orange-500"
+                      readOnly={identityLocked}
+                      className={identityLocked ? lockedInputClass : editableInputClass}
                     />
                     {errors.email && (
                       <p className="text-[11px] text-red-500 mt-1">
