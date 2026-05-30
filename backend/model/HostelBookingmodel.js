@@ -25,7 +25,7 @@ const hostelBookingSchema = new mongoose.Schema(
       },
       petType: {
         type: String,
-        enum: ['Dog', 'Cat', 'Rabbit', 'Other'],
+        enum: ['Dog', 'Cat', 'Rabbit', 'Other'], 
         required: true,
       },
       age: {

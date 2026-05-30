@@ -13,10 +13,10 @@ async function initCloudinary() {
       api_key: process.env.CLOUDINARY_API_KEY,
       api_secret: process.env.CLOUDINARY_API_SECRET,
     });
-    console.log('✅ Cloudinary configured successfully');
+    console.log(' Cloudinary configured successfully');
   } else {
-    console.warn('⚠️  Cloudinary credentials not found. Image upload may not work.');
-    console.warn('💡 Add these to your .env file:');
+    console.warn(' Cloudinary credentials not found. Image upload may not work.');
+    console.warn(' Add these to your .env file:');
     console.warn('   CLOUDINARY_CLOUD_NAME=your_cloud_name');
     console.warn('   CLOUDINARY_API_KEY=your_api_key');
     console.warn('   CLOUDINARY_API_SECRET=your_api_secret');
